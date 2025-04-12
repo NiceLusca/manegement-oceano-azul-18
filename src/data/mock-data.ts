@@ -1,5 +1,4 @@
-
-import { TeamMember, Project, Task } from '@/types';
+import { TeamMember, Project, Task, Customer } from '@/types';
 
 export const teamMembers: TeamMember[] = [
   {
@@ -180,6 +179,81 @@ export const projects: Project[] = [
   },
 ];
 
+export const customers: Customer[] = [
+  {
+    id: '1',
+    name: 'John Smith',
+    company: 'Acme Corp',
+    email: 'john.smith@acmecorp.com',
+    phone: '(555) 123-4567',
+    status: 'customer',
+    lastContact: '2025-04-01',
+    notes: 'Long-term enterprise client, considering expansion',
+    assignedTo: '1',
+    value: 25000,
+  },
+  {
+    id: '2',
+    name: 'Sarah Johnson',
+    company: 'Globex Industries',
+    email: 'sarah.j@globex.com',
+    phone: '(555) 987-6543',
+    status: 'lead',
+    lastContact: '2025-04-05',
+    notes: 'Interested in our premium plan',
+    assignedTo: '2',
+    value: 5000,
+  },
+  {
+    id: '3',
+    name: 'Michael Brown',
+    company: 'Oceanic Airlines',
+    email: 'mbrown@oceanic.com',
+    phone: '(555) 555-5555',
+    status: 'prospect',
+    lastContact: '2025-04-08',
+    notes: 'Meeting scheduled for next week',
+    assignedTo: '5',
+    value: 15000,
+  },
+  {
+    id: '4',
+    name: 'Lisa Chen',
+    company: 'Stark Industries',
+    email: 'lisa.chen@stark.com',
+    phone: '(555) 333-2222',
+    status: 'customer',
+    lastContact: '2025-03-28',
+    notes: 'Current client, due for renewal next month',
+    assignedTo: '3',
+    value: 18000,
+  },
+  {
+    id: '5',
+    name: 'David Wilson',
+    company: 'Wayne Enterprises',
+    email: 'dwilson@wayne.com',
+    phone: '(555) 777-8888',
+    status: 'churned',
+    lastContact: '2025-02-15',
+    notes: 'Left due to budget constraints, follow up in Q3',
+    assignedTo: '4',
+    value: 0,
+  },
+  {
+    id: '6',
+    name: 'Emily Davis',
+    company: 'Umbrella Corporation',
+    email: 'e.davis@umbrellacorp.com',
+    phone: '(555) 444-1111',
+    status: 'prospect',
+    lastContact: '2025-04-10',
+    notes: 'Very interested in our services, requested proposal',
+    assignedTo: '1',
+    value: 12000,
+  },
+];
+
 export const getTasksByStatus = () => {
   const taskStats = {
     todo: tasks.filter(task => task.status === 'todo').length,
@@ -204,4 +278,16 @@ export const getTaskById = (id: string): Task | undefined => {
 
 export const getTasksByAssignee = (assigneeId: string): Task[] => {
   return tasks.filter(task => task.assigneeId === assigneeId);
+};
+
+export const getCustomerById = (id: string): Customer | undefined => {
+  return customers.find(customer => customer.id === id);
+};
+
+export const getCustomersByStatus = (status: Customer['status']): Customer[] => {
+  return customers.filter(customer => customer.status === status);
+};
+
+export const getCustomersByAssignee = (assigneeId: string): Customer[] => {
+  return customers.filter(customer => customer.assignedTo === assigneeId);
 };

@@ -8,7 +8,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus, Calendar, Users, CheckSquare } from 'lucide-react';
-import { AvatarGroup } from '@/components/ui/avatar';
 
 const ProjectsPage = () => {
   return (
@@ -41,7 +40,7 @@ const ProjectsPage = () => {
                         project.status === 'planning' ? 'outline' :
                         project.status === 'in-progress' ? 'default' :
                         project.status === 'review' ? 'secondary' :
-                        'success'
+                        'default'
                       }
                     >
                       {project.status.replace('-', ' ')}

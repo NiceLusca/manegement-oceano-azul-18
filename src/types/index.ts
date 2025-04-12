@@ -31,3 +31,16 @@ export type Task = {
   priority: 'low' | 'medium' | 'high';
   projectId: string;
 };
+
+export type Customer = {
+  id: string;
+  name: string;
+  company: string;
+  email: string;
+  phone: string;
+  status: 'lead' | 'prospect' | 'customer' | 'churned';
+  lastContact: string;
+  notes: string;
+  assignedTo: string;
+  value: number;
+};

@@ -40,7 +40,7 @@ export default function CalendarPage() {
             assigneeId: task.assignee_id || '',
             dueDate: task.due_date || new Date().toISOString(),
             priority: task.priority as 'low' | 'medium' | 'high',
-            projectId: task.project_id || '' // Map from snake_case to camelCase
+            projectId: 'default-category' // Assign a default projectId since it's not in the database
           }));
           setAllTasks(formattedTasks);
         } else {
@@ -169,9 +169,9 @@ export default function CalendarPage() {
                 locale={ptBR}
                 className="rounded-md border"
                 components={{
-                  Day: (props) => (
+                  Day: ({ date: day, ...props }) => (
                     <button {...props}>
-                      {renderDay(props.date)}
+                      {renderDay(day)}
                     </button>
                   ),
                 }}

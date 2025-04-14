@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Briefcase, CheckCircle, ClockIcon, BarChart, Target, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Users, Briefcase, CheckCircle, ClockIcon, BarChart, Target, TrendingUp, AlertTriangle, Calendar, CalendarIcon, CalendarDays } from 'lucide-react';
 import { getTasksByStatus, teamMembers, projects, getTasksByAssignee, getTasksByProject, getTasksByDepartment } from '@/data/mock-data';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { format, isAfter, isBefore, startOfMonth, endOfMonth } from 'date-fns';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { format, isAfter, isBefore, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DateRange } from 'react-day-picker';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface StatCardProps {
   title: string;
@@ -62,24 +64,68 @@ const departments = ["Desenvolvimento", "Design", "Marketing", "Vendas", "Suport
 const departmentColors = ["bg-blue-500", "bg-pink-500", "bg-green-500", "bg-orange-500", "bg-purple-500"];
 
 export function DashboardStats() {
-  const [dateRange, setDateRange] = useState<DateRange>({
-    from: startOfMonth(new Date()),
-    to: endOfMonth(new Date())
-  });
+  const [startDate, setStartDate] = useState<Date | undefined>(startOfMonth(new Date()));
+  const [endDate, setEndDate] = useState<Date | undefined>(endOfMonth(new Date()));
+  const [startDateInput, setStartDateInput] = useState<string>(format(startOfMonth(new Date()), 'dd/MM/yyyy'));
+  const [endDateInput, setEndDateInput] = useState<string>(format(endOfMonth(new Date()), 'dd/MM/yyyy'));
   
   const [nivelAcesso, setNivelAcesso] = useState("admin");
   const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
   
+  // Parse date input in format dd/MM/yyyy
+  const parseDateInput = (dateString: string): Date | undefined => {
+    const parts = dateString.split('/');
+    if (parts.length === 3) {
+      const day = parseInt(parts[0]);
+      const month = parseInt(parts[1]) - 1; // month is 0-indexed in JS Date
+      const year = parseInt(parts[2]);
+      
+      if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+        const date = new Date(year, month, day);
+        return date;
+      }
+    }
+    return undefined;
+  };
+  
+  // Update dates when input changes
+  useEffect(() => {
+    const parsedDate = parseDateInput(startDateInput);
+    if (parsedDate) {
+      setStartDate(parsedDate);
+    }
+  }, [startDateInput]);
+  
+  useEffect(() => {
+    const parsedDate = parseDateInput(endDateInput);
+    if (parsedDate) {
+      setEndDate(parsedDate);
+    }
+  }, [endDateInput]);
+  
+  // Update input when calendar selection changes
+  useEffect(() => {
+    if (startDate) {
+      setStartDateInput(format(startDate, 'dd/MM/yyyy'));
+    }
+  }, [startDate]);
+  
+  useEffect(() => {
+    if (endDate) {
+      setEndDateInput(format(endDate, 'dd/MM/yyyy'));
+    }
+  }, [endDate]);
+  
   const filteredTaskStats = getTasksByStatus(task => {
     const taskDate = new Date(task.dueDate);
-    if (dateRange.from && dateRange.to) {
-      return !isBefore(taskDate, dateRange.from) && !isAfter(taskDate, dateRange.to);
+    if (startDate && endDate) {
+      return !isBefore(taskDate, startDate) && !isAfter(taskDate, endDate);
     }
-    if (dateRange.from) {
-      return !isBefore(taskDate, dateRange.from);
+    if (startDate) {
+      return !isBefore(taskDate, startDate);
     }
-    if (dateRange.to) {
-      return !isAfter(taskDate, dateRange.to);
+    if (endDate) {
+      return !isAfter(taskDate, endDate);
     }
     return true;
   });
@@ -103,45 +149,76 @@ export function DashboardStats() {
   const isAdmin = nivelAcesso === "admin";
   const isManager = nivelAcesso === "admin" || nivelAcesso === "manager";
   
+  // Filtra os departamentos com base no filtro selecionado
+  const filteredDepartmentStats = departmentFilter 
+    ? departmentStats.filter(dept => dept.department === departmentFilter)
+    : departmentStats;
+  
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start">
         <div className="flex flex-wrap gap-4 items-center">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="justify-start text-left font-normal">
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateRange.from ? (
-                  dateRange.to ? (
-                    <>
-                      De {format(dateRange.from, "P", { locale: ptBR })} até{" "}
-                      {format(dateRange.to, "P", { locale: ptBR })}
-                    </>
-                  ) : (
-                    format(dateRange.from, "P", { locale: ptBR })
-                  )
-                ) : (
-                  "Selecionar período"
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
-              <Calendar
-                initialFocus
-                mode="range"
-                defaultMonth={dateRange.from}
-                selected={dateRange}
-                onSelect={(range) => {
-                  if (range) {
-                    setDateRange(range);
-                  }
-                }}
-                numberOfMonths={2}
-                locale={ptBR}
-                className="p-3 pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="start-date">Data inicial</Label>
+              <div className="flex">
+                <Input
+                  id="start-date"
+                  value={startDateInput}
+                  onChange={(e) => setStartDateInput(e.target.value)}
+                  placeholder="DD/MM/AAAA"
+                  className="w-[150px]"
+                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="icon" className="ml-2">
+                      <CalendarIcon className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={startDate}
+                      onSelect={setStartDate}
+                      initialFocus
+                      locale={ptBR}
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="end-date">Data final</Label>
+              <div className="flex">
+                <Input
+                  id="end-date"
+                  value={endDateInput}
+                  onChange={(e) => setEndDateInput(e.target.value)}
+                  placeholder="DD/MM/AAAA"
+                  className="w-[150px]"
+                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="icon" className="ml-2">
+                      <CalendarIcon className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={endDate}
+                      onSelect={setEndDate}
+                      initialFocus
+                      locale={ptBR}
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          </div>
           
           <Select
             value={departmentFilter || "all"}
@@ -211,17 +288,20 @@ export function DashboardStats() {
               <CardTitle>Progresso por Departamento</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {departmentStats
-                .filter(dept => !departmentFilter || dept.department === departmentFilter)
-                .map((dept) => (
-                  <DepartmentProgress
-                    key={dept.department}
-                    department={dept.department}
-                    tasksCompleted={dept.tasksCompleted}
-                    tasksTotal={dept.tasksTotal}
-                    color={dept.color}
-                  />
-                ))}
+              {filteredDepartmentStats.map((dept) => (
+                <DepartmentProgress
+                  key={dept.department}
+                  department={dept.department}
+                  tasksCompleted={dept.tasksCompleted}
+                  tasksTotal={dept.tasksTotal}
+                  color={dept.color}
+                />
+              ))}
+              {filteredDepartmentStats.length === 0 && (
+                <div className="text-center py-4 text-muted-foreground">
+                  Nenhum departamento encontrado.
+                </div>
+              )}
             </CardContent>
           </Card>
           
@@ -290,31 +370,8 @@ export function DashboardStats() {
   );
 }
 
-function CalendarIcon({ className, ...props }: React.ComponentProps<typeof Clock>) {
+function CalendarIcon({ className, ...props }: React.ComponentProps<typeof Calendar>) {
   return (
-    <Clock className={cn(className)} {...props} />
-  );
-}
-
-function Clock({ className, ...props }: React.ComponentProps<"svg">) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={cn("lucide lucide-calendar", className)}
-      {...props}
-    >
-      <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-      <line x1="16" x2="16" y1="2" y2="6" />
-      <line x1="8" x2="8" y1="2" y2="6" />
-      <line x1="3" x2="21" y1="10" y2="10" />
-    </svg>
+    <Calendar className={cn(className)} {...props} />
   );
 }

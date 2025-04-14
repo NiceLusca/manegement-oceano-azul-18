@@ -10,6 +10,7 @@ import ProjectsPage from "./pages/ProjectsPage";
 import CalendarPage from "./pages/CalendarPage";
 import SettingsPage from "./pages/SettingsPage";
 import CustomersPage from "./pages/CustomersPage";
+import RecurringTasksPage from "./pages/RecurringTasksPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/customers" element={<CustomersPage />} />
+          <Route path="/recurring-tasks" element={<RecurringTasksPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

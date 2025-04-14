@@ -44,3 +44,31 @@ export type Customer = {
   assignedTo: string;
   value: number;
 };
+
+export type RecurringTask = {
+  id: string;
+  title: string;
+  description: string | null;
+  assigneeId: string;
+  recurrenceType: 'daily' | 'weekly' | 'monthly' | 'custom';
+  customDays: number[] | null;
+  customMonths: number[] | null;
+  startDate: string;
+  endDate: string | null;
+  lastGenerated: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type TaskInstance = {
+  id: string;
+  recurringTaskId: string | null;
+  title: string;
+  description: string | null;
+  assigneeId: string;
+  dueDate: string;
+  status: 'todo' | 'in-progress' | 'review' | 'completed';
+  priority: 'low' | 'medium' | 'high';
+  createdAt: string;
+  updatedAt: string;
+};

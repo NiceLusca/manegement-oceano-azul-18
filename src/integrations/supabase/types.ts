@@ -9,7 +9,98 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      recurring_tasks: {
+        Row: {
+          assignee_id: string
+          created_at: string
+          custom_days: number[] | null
+          custom_months: number[] | null
+          description: string | null
+          end_date: string | null
+          id: string
+          last_generated: string | null
+          recurrence_type: string
+          start_date: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_id: string
+          created_at?: string
+          custom_days?: number[] | null
+          custom_months?: number[] | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          last_generated?: string | null
+          recurrence_type: string
+          start_date?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_id?: string
+          created_at?: string
+          custom_days?: number[] | null
+          custom_months?: number[] | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          last_generated?: string | null
+          recurrence_type?: string
+          start_date?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      task_instances: {
+        Row: {
+          assignee_id: string
+          created_at: string
+          description: string | null
+          due_date: string
+          id: string
+          priority: string
+          recurring_task_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_id: string
+          created_at?: string
+          description?: string | null
+          due_date: string
+          id?: string
+          priority?: string
+          recurring_task_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_id?: string
+          created_at?: string
+          description?: string | null
+          due_date?: string
+          id?: string
+          priority?: string
+          recurring_task_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_instances_recurring_task_id_fkey"
+            columns: ["recurring_task_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

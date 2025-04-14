@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,38 +38,48 @@ const TasksPage = () => {
     status: 'todo',
     prioridade: 'medium',
     responsavel: '',
+    departamento: '',
     dataVencimento: ''
   });
   const [projects, setProjects] = useState<Project[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [departamentos, setDepartamentos] = useState<{id: string, nome: string}[]>([]);
+  const [membrosFiltrados, setMembrosFiltrados] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchProjects();
     fetchTeamMembers();
+    fetchDepartamentos();
   }, []);
+
+  useEffect(() => {
+    if (novaTarefa.departamento) {
+      const membrosDoDepto = teamMembers.filter(member => member.department === novaTarefa.departamento);
+      setMembrosFiltrados(membrosDoDepto);
+      if (novaTarefa.responsavel && !membrosDoDepto.some(m => m.id === novaTarefa.responsavel)) {
+        setNovaTarefa({...novaTarefa, responsavel: ''});
+      }
+    } else {
+      setMembrosFiltrados([]);
+    }
+  }, [novaTarefa.departamento, teamMembers]);
 
   const fetchProjects = async () => {
     try {
-      // Primeiro tentamos buscar do Supabase
       const { data: tasksData, error: tasksError } = await supabase
         .from('tasks')
         .select('*');
 
       if (tasksError) throw tasksError;
 
-      // Convertendo as tarefas para o formato esperado pelo componente
       const mockProjects: Project[] = [];
       
-      // Se não houver dados, usamos os dados simulados
       if (!tasksData || tasksData.length === 0) {
-        // Usar os dados simulados existentes na importação
-        // Mock data continuará sendo usado até que tenhamos um modelo completo de projetos no banco
         const { projects } = await import('@/data/mock-data');
         setProjects(projects);
       } else {
-        // Criar um "projeto" simulado com as tarefas reais
         const realTasks = tasksData.map(task => ({
           id: task.id,
           title: task.title,
@@ -100,7 +109,6 @@ const TasksPage = () => {
       }
     } catch (error: any) {
       console.error('Erro ao buscar tarefas:', error.message);
-      // Se falhar, podemos usar os dados simulados como fallback
       const { projects } = await import('@/data/mock-data');
       setProjects(projects);
     } finally {
@@ -116,29 +124,40 @@ const TasksPage = () => {
 
       if (error) throw error;
       
-      // Mapear os dados do Supabase para o formato da interface TeamMember
       const formattedMembers: TeamMember[] = (data || []).map(profile => ({
         id: profile.id,
         name: profile.nome || 'Sem nome',
         role: profile.cargo || 'Colaborador',
-        email: '',  // O Supabase não armazena emails no perfil
+        email: '',
         avatar: profile.avatar_url || '',
         department: profile.departamento_id || '',
-        status: 'active' as 'active' | 'inactive', // Definindo como 'active' para corresponder ao tipo esperado
+        status: 'active' as 'active' | 'inactive',
         joinedDate: profile.created_at
       }));
       
       setTeamMembers(formattedMembers);
     } catch (error: any) {
       console.error('Erro ao buscar equipe:', error.message);
-      // Se falhar, podemos usar os dados simulados como fallback
       const { teamMembers } = await import('@/data/mock-data');
       setTeamMembers(teamMembers);
     }
   };
 
+  const fetchDepartamentos = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('departamentos')
+        .select('*');
+
+      if (error) throw error;
+      
+      setDepartamentos(data || []);
+    } catch (error: any) {
+      console.error('Erro ao buscar departamentos:', error.message);
+    }
+  };
+
   const handleAddTask = async () => {
-    // Validações básicas
     if (!novaTarefa.titulo.trim()) {
       toast({
         title: "Erro",
@@ -149,7 +168,6 @@ const TasksPage = () => {
     }
 
     try {
-      // Inserir a nova tarefa no Supabase
       const { data, error } = await supabase
         .from('tasks')
         .insert([
@@ -172,16 +190,15 @@ const TasksPage = () => {
         variant: "default"
       });
 
-      // Recarregar as tarefas após a adição
       fetchProjects();
 
-      // Limpar os campos e fechar o diálogo
       setNovaTarefa({
         titulo: '',
         descricao: '',
         status: 'todo',
         prioridade: 'medium',
         responsavel: '',
+        departamento: '',
         dataVencimento: ''
       });
       setOpenDialog(false);
@@ -278,18 +295,47 @@ const TasksPage = () => {
                   </Select>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="departamento" className="text-right">
+                    Equipe/Departamento
+                  </Label>
+                  <Select
+                    value={novaTarefa.departamento}
+                    onValueChange={(value) => setNovaTarefa({...novaTarefa, departamento: value})}
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Selecione um departamento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {departamentos.map((dep) => (
+                        <SelectItem key={dep.id} value={dep.id}>
+                          {dep.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="responsavel" className="text-right">
                     Responsável
                   </Label>
                   <Select
                     value={novaTarefa.responsavel}
                     onValueChange={(value) => setNovaTarefa({...novaTarefa, responsavel: value})}
+                    disabled={!novaTarefa.departamento || membrosFiltrados.length === 0}
                   >
                     <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Selecione um responsável" />
+                      <SelectValue 
+                        placeholder={
+                          !novaTarefa.departamento 
+                            ? "Selecione um departamento primeiro" 
+                            : membrosFiltrados.length === 0 
+                              ? "Sem membros neste departamento" 
+                              : "Selecione um responsável"
+                        } 
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      {teamMembers.map(member => (
+                      {membrosFiltrados.map((member) => (
                         <SelectItem key={member.id} value={member.id}>
                           {member.name}
                         </SelectItem>

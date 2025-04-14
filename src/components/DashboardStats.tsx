@@ -11,6 +11,7 @@ import { format, isAfter, isBefore, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DateRange } from 'react-day-picker';
 
 interface StatCardProps {
   title: string;
@@ -62,10 +63,7 @@ const departments = ["Desenvolvimento", "Design", "Marketing", "Vendas", "Suport
 const departmentColors = ["bg-blue-500", "bg-pink-500", "bg-green-500", "bg-orange-500", "bg-purple-500"];
 
 export function DashboardStats() {
-  const [dateRange, setDateRange] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date())
   });
@@ -138,7 +136,11 @@ export function DashboardStats() {
                 mode="range"
                 defaultMonth={dateRange.from}
                 selected={dateRange}
-                onSelect={setDateRange}
+                onSelect={(range) => {
+                  if (range) {
+                    setDateRange(range);
+                  }
+                }}
                 numberOfMonths={2}
                 locale={ptBR}
                 className="p-3 pointer-events-auto"

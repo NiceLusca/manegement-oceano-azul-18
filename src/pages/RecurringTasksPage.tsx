@@ -69,12 +69,13 @@ const RecurringTasksPage = () => {
 
       if (error) throw error;
       
-      const formattedData = data.map(task => ({
+      // Explicitly validate the recurrence_type to ensure it matches our allowed values
+      const formattedData: RecurringTask[] = data.map(task => ({
         id: task.id,
         title: task.title,
         description: task.description,
         assigneeId: task.assignee_id,
-        recurrenceType: task.recurrence_type,
+        recurrenceType: validateRecurrenceType(task.recurrence_type),
         customDays: task.custom_days,
         customMonths: task.custom_months,
         startDate: task.start_date,
@@ -106,15 +107,16 @@ const RecurringTasksPage = () => {
 
       if (error) throw error;
       
-      const formattedData = data.map(task => ({
+      // Explicitly validate status and priority to ensure they match our allowed values
+      const formattedData: TaskInstance[] = data.map(task => ({
         id: task.id,
         recurringTaskId: task.recurring_task_id,
         title: task.title,
         description: task.description,
         assigneeId: task.assignee_id,
         dueDate: task.due_date,
-        status: task.status,
-        priority: task.priority,
+        status: validateTaskStatus(task.status),
+        priority: validateTaskPriority(task.priority),
         createdAt: task.created_at,
         updatedAt: task.updated_at
       }));
@@ -129,6 +131,30 @@ const RecurringTasksPage = () => {
       });
     }
   }
+
+  // Helper function to validate recurrence type
+  const validateRecurrenceType = (type: string): RecurringTask['recurrenceType'] => {
+    const validTypes: RecurringTask['recurrenceType'][] = ['daily', 'weekly', 'monthly', 'custom'];
+    return validTypes.includes(type as any) 
+      ? (type as RecurringTask['recurrenceType']) 
+      : 'daily'; // Default to daily if invalid
+  };
+
+  // Helper function to validate task status
+  const validateTaskStatus = (status: string): TaskInstance['status'] => {
+    const validStatuses: TaskInstance['status'][] = ['todo', 'in-progress', 'review', 'completed'];
+    return validStatuses.includes(status as any) 
+      ? (status as TaskInstance['status']) 
+      : 'todo'; // Default to todo if invalid
+  };
+
+  // Helper function to validate task priority
+  const validateTaskPriority = (priority: string): TaskInstance['priority'] => {
+    const validPriorities: TaskInstance['priority'][] = ['low', 'medium', 'high'];
+    return validPriorities.includes(priority as any) 
+      ? (priority as TaskInstance['priority']) 
+      : 'medium'; // Default to medium if invalid
+  };
 
   const onSubmit = async (values: RecurringTaskFormValues) => {
     try {

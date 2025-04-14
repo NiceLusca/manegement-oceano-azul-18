@@ -258,7 +258,7 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {isAdmin && user?.nivel_acesso === 'SuperAdmin' && (
+                        {isAdmin && userProfile?.nivel_acesso === 'SuperAdmin' && (
                           <SelectItem value="SuperAdmin">Super Administrador</SelectItem>
                         )}
                         <SelectItem value="Admin">Administrador</SelectItem>
@@ -284,3 +284,4 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
     </Card>
   );
 }
+

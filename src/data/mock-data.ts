@@ -254,12 +254,14 @@ export const customers: Customer[] = [
   },
 ];
 
-export const getTasksByStatus = () => {
+export const getTasksByStatus = (filterFn?: (task: Task) => boolean) => {
+  const filteredTasks = filterFn ? tasks.filter(filterFn) : tasks;
+  
   const taskStats = {
-    todo: tasks.filter(task => task.status === 'todo').length,
-    inProgress: tasks.filter(task => task.status === 'in-progress').length,
-    review: tasks.filter(task => task.status === 'review').length,
-    completed: tasks.filter(task => task.status === 'completed').length,
+    todo: filteredTasks.filter(task => task.status === 'todo').length,
+    inProgress: filteredTasks.filter(task => task.status === 'in-progress').length,
+    review: filteredTasks.filter(task => task.status === 'review').length,
+    completed: filteredTasks.filter(task => task.status === 'completed').length,
   };
   return taskStats;
 };
@@ -278,6 +280,17 @@ export const getTaskById = (id: string): Task | undefined => {
 
 export const getTasksByAssignee = (assigneeId: string): Task[] => {
   return tasks.filter(task => task.assigneeId === assigneeId);
+};
+
+export const getTasksByProject = (projectId: string): Task[] => {
+  return tasks.filter(task => task.projectId === projectId);
+};
+
+export const getTasksByDepartment = (department: string): Task[] => {
+  const membersInDepartment = teamMembers.filter(member => member.department === department);
+  const memberIds = membersInDepartment.map(member => member.id);
+  
+  return tasks.filter(task => memberIds.includes(task.assigneeId));
 };
 
 export const getCustomerById = (id: string): Customer | undefined => {

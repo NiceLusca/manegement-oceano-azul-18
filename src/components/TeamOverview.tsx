@@ -20,6 +20,9 @@ export function TeamOverview() {
   const isAdmin = nivelAcesso === "admin";
   const isManager = nivelAcesso === "admin" || nivelAcesso === "manager";
   
+  // Mapeamento dos membros da equipe que são líderes (para exibir o ícone de estrela)
+  const teamLeads = new Set(teamMembers.filter(member => member.role.toLowerCase().includes('lead')).map(member => member.id));
+  
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -49,23 +52,25 @@ export function TeamOverview() {
                     <div>
                       <p className="text-sm font-medium flex items-center gap-1">
                         {member.name}
-                        {member.isLead && <Star className="h-3 w-3 text-amber-500" fill="currentColor" />}
+                        {teamLeads.has(member.id) && <Star className="h-3 w-3 text-amber-500" fill="currentColor" />}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {member.role}
-                        <Badge 
-                          variant="outline" 
-                          className={cn(
-                            "ml-2 text-[10px] py-0 h-4",
-                            member.department === "Desenvolvimento" ? "bg-blue-100 text-blue-800 border-blue-200" :
-                            member.department === "Design" ? "bg-pink-100 text-pink-800 border-pink-200" :
-                            member.department === "Marketing" ? "bg-green-100 text-green-800 border-green-200" :
-                            member.department === "Vendas" ? "bg-orange-100 text-orange-800 border-orange-200" :
-                            "bg-purple-100 text-purple-800 border-purple-200"
-                          )}
-                        >
-                          {member.department}
-                        </Badge>
+                        <span className="inline-block ml-2">
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              "text-[10px] py-0 h-4",
+                              member.department === "Desenvolvimento" ? "bg-blue-100 text-blue-800 border-blue-200" :
+                              member.department === "Design" ? "bg-pink-100 text-pink-800 border-pink-200" :
+                              member.department === "Marketing" ? "bg-green-100 text-green-800 border-green-200" :
+                              member.department === "Vendas" ? "bg-orange-100 text-orange-800 border-orange-200" :
+                              "bg-purple-100 text-purple-800 border-purple-200"
+                            )}
+                          >
+                            {member.department}
+                          </Badge>
+                        </span>
                       </p>
                     </div>
                   </div>

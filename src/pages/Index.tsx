@@ -29,6 +29,7 @@ import {
   CarouselPrevious
 } from '@/components/ui/carousel';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { Briefcase, Users, Bell, Calendar, Settings, ChevronDown } from 'lucide-react';
 
 const Index = () => {

@@ -8,6 +8,7 @@ import { Edit, Trash2, Mail, Phone, ShieldAlert, ShieldCheck, UserCheck, User } 
 import { TeamMember } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { AvatarUpload } from '@/components/AvatarUpload';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TeamMemberCardProps {
   member: TeamMember;
@@ -28,6 +29,29 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
 }) => {
   const { user } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState(member.avatar);
+  const [userAccessLevel, setUserAccessLevel] = useState<string | null>(null);
+  
+  // Buscar o nível de acesso do usuário atual quando o componente montar
+  React.useEffect(() => {
+    const fetchUserAccessLevel = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('nivel_acesso')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) throw error;
+        setUserAccessLevel(data?.nivel_acesso || 'user');
+      } catch (error) {
+        console.error('Erro ao buscar nível de acesso:', error);
+      }
+    };
+    
+    fetchUserAccessLevel();
+  }, [user]);
   
   // Função para renderizar o ícone baseado no nível de acesso
   const renderAccessLevelIcon = (accessLevel: string | undefined) => {
@@ -79,14 +103,14 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
     if (user.id === member.id) return true;
     
     // Supervisor pode editar avatar de pessoas do seu departamento
-    if (user.accessLevel === 'Supervisor') {
+    if (userAccessLevel === 'Supervisor') {
       // Precisaria ter acesso ao departamento do usuário atual
       // Por simplicidade, vamos permitir
       return true;
     }
     
     // Admin e SuperAdmin podem editar qualquer avatar
-    return ['Admin', 'SuperAdmin'].includes(user.accessLevel || '');
+    return ['Admin', 'SuperAdmin'].includes(userAccessLevel || '');
   };
 
   const handleAvatarUpload = (url: string) => {

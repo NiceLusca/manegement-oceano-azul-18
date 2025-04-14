@@ -1,279 +1,38 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { teamMembers, getTasksByAssignee } from '@/data/mock-data';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Check, Eye, Plus, Star } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { supabase } from "@/integrations/supabase/client";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/components/ui/use-toast';
-
-type Departamento = {
-  id: string;
-  nome: string;
-  cor: string | null;
-};
+import { teamMembers } from '@/data/mock-data';
+import { useTeamDepartments } from '@/hooks/useTeamDepartments';
+import { AddTeamMemberDialog } from '@/components/team/AddTeamMemberDialog';
+import { TeamMembersList } from '@/components/team/TeamMembersList';
 
 export function TeamOverview() {
   const [nivelAcesso] = React.useState("admin"); // Em uma aplicação real, viria de um contexto de autenticação
-  const [showAll, setShowAll] = React.useState(false);
-  const [departamentos, setDepartamentos] = useState<Record<string, Departamento>>({});
+  const { departamentos, getDepartmentColor } = useTeamDepartments();
   const [openDialog, setOpenDialog] = useState(false);
-  const [novoMembro, setNovoMembro] = useState({
-    nome: '',
-    cargo: '',
-    departamento: '',
-    email: ''
-  });
-  const { toast } = useToast();
   
-  const filteredMembers = teamMembers
-    .filter(member => member.status === 'active')
-    .slice(0, showAll ? undefined : 5);
-    
   const isAdmin = nivelAcesso === "admin";
   const isManager = nivelAcesso === "admin" || nivelAcesso === "manager";
-  
-  // Mapeamento dos membros da equipe que são líderes (para exibir o ícone de estrela)
-  const teamLeads = new Set(teamMembers.filter(member => member.role.toLowerCase().includes('lead')).map(member => member.id));
-  
-  useEffect(() => {
-    const fetchDepartamentos = async () => {
-      try {
-        const { data } = await supabase
-          .from('departamentos')
-          .select('*');
-        
-        if (data) {
-          const depMap = data.reduce((acc: Record<string, Departamento>, dep) => {
-            acc[dep.id] = dep;
-            return acc;
-          }, {});
-          setDepartamentos(depMap);
-        }
-      } catch (error) {
-        console.error('Erro ao buscar departamentos:', error);
-      }
-    };
-
-    fetchDepartamentos();
-  }, []);
-
-  // Função para obter a cor do departamento
-  const getDepartmentColor = (departmentName: string) => {
-    const department = Object.values(departamentos).find(d => d.nome === departmentName);
-    return department?.cor || null;
-  };
-
-  const handleAddMember = () => {
-    // Em uma aplicação real, aqui seria feita a chamada à API para adicionar o membro
-    if (!novoMembro.nome.trim() || !novoMembro.email.trim()) {
-      toast({
-        title: "Erro",
-        description: "Nome e email são obrigatórios",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    toast({
-      title: "Sucesso",
-      description: "Novo membro adicionado com sucesso!",
-      variant: "default"
-    });
-
-    // Limpa os campos e fecha o diálogo
-    setNovoMembro({
-      nome: '',
-      cargo: '',
-      departamento: '',
-      email: ''
-    });
-    setOpenDialog(false);
-  };
   
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Membros da Equipe</CardTitle>
         {isAdmin && (
-          <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8">
-                <Plus className="h-4 w-4 mr-1" /> Adicionar
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Adicionar Novo Membro</DialogTitle>
-                <DialogDescription>
-                  Preencha os detalhes para adicionar um novo membro à equipe.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="nome" className="text-right">
-                    Nome
-                  </Label>
-                  <Input
-                    id="nome"
-                    value={novoMembro.nome}
-                    onChange={(e) => setNovoMembro({...novoMembro, nome: e.target.value})}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="email" className="text-right">
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={novoMembro.email}
-                    onChange={(e) => setNovoMembro({...novoMembro, email: e.target.value})}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="cargo" className="text-right">
-                    Cargo
-                  </Label>
-                  <Input
-                    id="cargo"
-                    value={novoMembro.cargo}
-                    onChange={(e) => setNovoMembro({...novoMembro, cargo: e.target.value})}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="departamento" className="text-right">
-                    Departamento
-                  </Label>
-                  <Select
-                    value={novoMembro.departamento}
-                    onValueChange={(value) => setNovoMembro({...novoMembro, departamento: value})}
-                  >
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Selecione um departamento" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.values(departamentos).map((dep) => (
-                        <SelectItem key={dep.id} value={dep.nome}>
-                          {dep.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setOpenDialog(false)}>
-                  Cancelar
-                </Button>
-                <Button type="button" onClick={handleAddMember}>
-                  Adicionar
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <AddTeamMemberDialog 
+            open={openDialog} 
+            onOpenChange={setOpenDialog} 
+            departamentos={Object.values(departamentos)}
+          />
         )}
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {filteredMembers.map((member) => {
-            const assignedTasks = getTasksByAssignee(member.id);
-            const tasksCount = assignedTasks.length;
-            const completedTasks = assignedTasks.filter(task => task.status === 'completed').length;
-            const progress = tasksCount > 0 ? (completedTasks / tasksCount) * 100 : 0;
-            const departmentColor = getDepartmentColor(member.department);
-            
-            return (
-              <div key={member.id} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarImage src={member.avatar} />
-                      <AvatarFallback>{member.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-medium flex items-center gap-1">
-                        {member.name}
-                        {teamLeads.has(member.id) && <Star className="h-3 w-3 text-amber-500" fill="currentColor" />}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {member.role}
-                        <span className="inline-block ml-2">
-                          <Badge 
-                            variant="outline" 
-                            className={cn(
-                              "text-[10px] py-0 h-4",
-                              departmentColor 
-                                ? { backgroundColor: `${departmentColor}20`, borderColor: `${departmentColor}40`, color: departmentColor } 
-                                : {
-                                    "bg-blue-100 text-blue-800 border-blue-200": member.department === "Desenvolvimento",
-                                    "bg-pink-100 text-pink-800 border-pink-200": member.department === "Design",
-                                    "bg-green-100 text-green-800 border-green-200": member.department === "Marketing",
-                                    "bg-orange-100 text-orange-800 border-orange-200": member.department === "Vendas",
-                                    "bg-purple-100 text-purple-800 border-purple-200": member.department === "Recursos Humanos",
-                                  }
-                            )}
-                          >
-                            {member.department}
-                          </Badge>
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">{completedTasks}/{tasksCount}</p>
-                    <p className="text-xs text-muted-foreground">Tarefas</p>
-                  </div>
-                </div>
-                
-                {isManager && (
-                  <div className="flex items-center gap-2">
-                    <Progress value={progress} className="h-2 flex-1" />
-                    <div className="flex items-center gap-1">
-                      {isAdmin && (
-                        <Button variant="ghost" size="icon" className="h-7 w-7">
-                          <Eye className="h-3.5 w-3.5" />
-                        </Button>
-                      )}
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-green-600">
-                        <Check className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-          
-          {teamMembers.filter(member => member.status === 'active').length > 5 && (
-            <Button 
-              variant="ghost" 
-              className="w-full text-muted-foreground" 
-              onClick={() => setShowAll(!showAll)}
-            >
-              {showAll ? "Mostrar menos" : "Ver todos os membros"}
-            </Button>
-          )}
-        </div>
+        <TeamMembersList 
+          members={teamMembers}
+          isAdmin={isAdmin}
+          isManager={isManager}
+          getDepartmentColor={getDepartmentColor}
+        />
       </CardContent>
     </Card>
   );

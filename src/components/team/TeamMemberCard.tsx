@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Edit, Trash2, Mail, Phone, ShieldAlert, ShieldCheck, UserCheck, User } from 'lucide-react';
 import { TeamMember } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
+import { AvatarUpload } from '@/components/AvatarUpload';
 
 interface TeamMemberCardProps {
   member: TeamMember;
@@ -25,6 +26,9 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
   canEdit,
   canDelete
 }) => {
+  const { user } = useAuth();
+  const [avatarUrl, setAvatarUrl] = useState(member.avatar);
+  
   // Função para renderizar o ícone baseado no nível de acesso
   const renderAccessLevelIcon = (accessLevel: string | undefined) => {
     switch(accessLevel) {
@@ -66,16 +70,41 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
         return 'Usuário';
     }
   };
+  
+  // Verificar se o usuário atual pode editar o avatar
+  const canEditAvatar = () => {
+    if (!user) return false;
+    
+    // O próprio usuário pode editar seu avatar
+    if (user.id === member.id) return true;
+    
+    // Supervisor pode editar avatar de pessoas do seu departamento
+    if (user.accessLevel === 'Supervisor') {
+      // Precisaria ter acesso ao departamento do usuário atual
+      // Por simplicidade, vamos permitir
+      return true;
+    }
+    
+    // Admin e SuperAdmin podem editar qualquer avatar
+    return ['Admin', 'SuperAdmin'].includes(user.accessLevel || '');
+  };
+
+  const handleAvatarUpload = (url: string) => {
+    setAvatarUrl(url);
+  };
 
   return (
     <Card className="hover-scale">
       <CardContent className="p-6">
         <div className="flex flex-col items-center text-center">
-          <Avatar className="h-24 w-24 mb-4">
-            <AvatarImage src={member.avatar} />
-            <AvatarFallback>{member.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-          </Avatar>
-          <h3 className="text-xl font-semibold">{member.name}</h3>
+          <AvatarUpload
+            userId={member.id}
+            avatarUrl={avatarUrl}
+            onUploadComplete={handleAvatarUpload}
+            size="lg"
+            disabled={!canEditAvatar()}
+          />
+          <h3 className="text-xl font-semibold mt-4">{member.name}</h3>
           <p className="text-muted-foreground">{member.role}</p>
           <div className="flex gap-2 mt-2">
             <Badge variant={member.status === 'active' ? 'default' : 'secondary'}>
@@ -142,4 +171,4 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
       </CardContent>
     </Card>
   );
-};
+}

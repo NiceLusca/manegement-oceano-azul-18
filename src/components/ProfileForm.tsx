@@ -21,6 +21,7 @@ import { DepartmentSelector } from "@/components/DepartmentSelector";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { Shield, AlertTriangle } from "lucide-react";
+import { AvatarUpload } from "@/components/AvatarUpload";
 
 const profileFormSchema = z.object({
   nome: z.string().min(2, {
@@ -28,10 +29,10 @@ const profileFormSchema = z.object({
   }),
   cargo: z.string().min(2, {
     message: "O cargo deve ter pelo menos 2 caracteres.",
-  }),
-  departamento_id: z.string().uuid().nullable(),
+  }).optional().nullable(),
+  departamento_id: z.string().uuid().optional().nullable(),
   avatar_url: z.string().url().optional().nullable(),
-  nivel_acesso: z.enum(["admin", "manager", "user"]).optional(),
+  nivel_acesso: z.enum(["SuperAdmin", "Admin", "Supervisor", "user"]).optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -48,6 +49,7 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
   const [isLoading, setIsLoading] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(initialData?.avatar_url || null);
   
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -56,14 +58,15 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
       try {
         const { data, error } = await supabase
           .from("profiles")
-          .select("nivel_acesso")
+          .select("nivel_acesso, avatar_url")
           .eq("id", user.id)
           .single();
           
         if (error) throw error;
         
         setUserProfile(data);
-        setIsAdmin(data?.nivel_acesso === "admin");
+        setIsAdmin(data?.nivel_acesso === "Admin" || data?.nivel_acesso === "SuperAdmin");
+        if (data?.avatar_url) setAvatarUrl(data.avatar_url);
       } catch (error) {
         console.error("Erro ao buscar perfil do usuário:", error);
       }
@@ -74,9 +77,9 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
 
   const defaultValues: Partial<ProfileFormValues> = {
     nome: initialData?.nome || "",
-    cargo: initialData?.cargo || "",
+    cargo: initialData?.cargo || null,
     departamento_id: initialData?.departamento_id || null,
-    avatar_url: initialData?.avatar_url || null,
+    avatar_url: avatarUrl || null,
     nivel_acesso: initialData?.nivel_acesso || "user",
   };
 
@@ -94,6 +97,7 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
       const updateData: any = {
         id: userId,
         nome: data.nome,
+        avatar_url: avatarUrl,
       };
       
       // Apenas incluir estes campos se o usuário for admin
@@ -101,10 +105,6 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
         updateData.cargo = data.cargo;
         updateData.departamento_id = data.departamento_id;
         updateData.nivel_acesso = data.nivel_acesso;
-      }
-      
-      if (data.avatar_url) {
-        updateData.avatar_url = data.avatar_url;
       }
       
       const { error } = await supabase
@@ -137,6 +137,10 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
   const isCurrentUser = user?.id === userId;
   const canEditProtectedFields = isAdmin || !isCurrentUser;
 
+  const handleAvatarUpload = (url: string) => {
+    setAvatarUrl(url);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -151,6 +155,15 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
             </p>
           </div>
         )}
+        
+        <div className="flex justify-center mb-8">
+          <AvatarUpload
+            userId={userId}
+            avatarUrl={avatarUrl}
+            onUploadComplete={handleAvatarUpload}
+            size="lg"
+          />
+        </div>
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -186,6 +199,7 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
                     <Input 
                       placeholder="Seu cargo na empresa" 
                       {...field} 
+                      value={field.value || ''} 
                       disabled={!canEditProtectedFields}
                     />
                   </FormControl>
@@ -244,8 +258,11 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="admin">Administrador</SelectItem>
-                        <SelectItem value="manager">Gerente</SelectItem>
+                        {isAdmin && user?.nivel_acesso === 'SuperAdmin' && (
+                          <SelectItem value="SuperAdmin">Super Administrador</SelectItem>
+                        )}
+                        <SelectItem value="Admin">Administrador</SelectItem>
+                        <SelectItem value="Supervisor">Supervisor</SelectItem>
                         <SelectItem value="user">Usuário</SelectItem>
                       </SelectContent>
                     </Select>

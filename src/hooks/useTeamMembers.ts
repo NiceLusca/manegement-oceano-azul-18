@@ -71,17 +71,21 @@ export const useTeamMembers = () => {
       if (error) throw error;
       
       // Mapear os dados do Supabase para o formato da interface TeamMember
-      const formattedMembers: TeamMember[] = (data || []).map(profile => ({
-        id: profile.id,
-        name: profile.nome || 'Sem nome',
-        role: profile.cargo || 'Colaborador',
-        email: '',  // O Supabase não armazena emails no perfil
-        avatar: profile.avatar_url || '',
-        department: profile.departamento_id || '',
-        status: 'active' as 'active' | 'inactive', // Definindo como 'active' para corresponder ao tipo esperado
-        joinedDate: profile.created_at,
-        accessLevel: profile.nivel_acesso || 'user'
-      }));
+      const formattedMembers: TeamMember[] = (data || []).map(profile => {
+        const accessLevel = profile.nivel_acesso as 'SuperAdmin' | 'Admin' | 'Supervisor' | 'user' | undefined;
+        
+        return {
+          id: profile.id,
+          name: profile.nome || 'Sem nome',
+          role: profile.cargo || 'Colaborador',
+          email: '',  // O Supabase não armazena emails no perfil
+          avatar: profile.avatar_url || '',
+          department: profile.departamento_id || '',
+          status: 'active' as 'active' | 'inactive',
+          joinedDate: profile.created_at,
+          accessLevel: accessLevel || 'user'
+        };
+      });
       
       setTeamMembers(formattedMembers);
     } catch (error: any) {

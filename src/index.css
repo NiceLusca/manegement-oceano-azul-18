@@ -105,7 +105,7 @@
   @apply shadow-lg shadow-black/10 backdrop-blur-sm;
 }
 
-/* Fix for circular dependency */
+/* Fix for circular dependency - using direct styles instead of @apply */
 .dark .bg-card {
   background: linear-gradient(to bottom, hsl(var(--card)), hsl(var(--card) / 0.9));
 }
@@ -113,7 +113,8 @@
 .dark .dropdown-content, 
 .dark .popover-content, 
 .dark .select-content {
-  @apply bg-card shadow-xl border-border;
+  @apply shadow-xl border-border;
+  background-color: hsl(var(--card));
 }
 
 .dark .calendar-day {

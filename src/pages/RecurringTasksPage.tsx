@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -81,7 +82,7 @@ const RecurringTasksPage = () => {
         lastGenerated: task.last_generated || null,
         createdAt: task.created_at,
         updatedAt: task.updated_at,
-        projectId: task.project_id || 'default-project'
+        projectId: 'default-project' // Add default projectId
       }));
       
       setRecurringTasks(formattedRecurringTasks);
@@ -117,7 +118,7 @@ const RecurringTasksPage = () => {
         priority: instance.priority as 'low' | 'medium' | 'high',
         createdAt: instance.created_at,
         updatedAt: instance.updated_at,
-        projectId: instance.project_id || 'default-project'
+        projectId: 'default-project' // Add default projectId
       }));
       
       setTaskInstances(mappedInstances);

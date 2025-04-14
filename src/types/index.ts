@@ -36,7 +36,8 @@ export type Task = {
 export type Customer = {
   id: string;
   name: string;
-  origem: string; // Changed from company to origem
+  company: string; // Keep company for database compatibility
+  origem: string; // Add origem as an alias/additional field
   email: string;
   phone: string;
   status: 'lead' | 'prospect' | 'customer' | 'churned';
@@ -59,7 +60,7 @@ export type RecurringTask = {
   lastGenerated: string | null;
   createdAt: string;
   updatedAt: string;
-  projectId: string; // Added projectId for association with projects
+  projectId?: string; // Make projectId optional for database compatibility
 };
 
 export type TaskInstance = {
@@ -73,5 +74,5 @@ export type TaskInstance = {
   priority: 'low' | 'medium' | 'high';
   createdAt: string;
   updatedAt: string;
-  projectId: string; // Added projectId for association with projects
+  projectId?: string; // Make projectId optional for database compatibility
 };

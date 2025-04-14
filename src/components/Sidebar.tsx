@@ -7,7 +7,7 @@ import {
   PanelLeft,
   Users,
   Home,
-  FolderKanban,
+  CheckSquare,
   UserSquare2,
   Clock
 } from 'lucide-react';
@@ -22,7 +22,7 @@ export function Sidebar() {
   const links = [
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Equipe', href: '/team', icon: Users },
-    { name: 'Projetos', href: '/projects', icon: FolderKanban },
+    { name: 'Tarefas', href: '/projects', icon: CheckSquare }, // Changed icon and label
     { name: 'Clientes', href: '/customers', icon: UserSquare2 },
     { name: 'Calendário', href: '/calendar', icon: Calendar },
     { name: 'Tarefas Recorrentes', href: '/recurring-tasks', icon: Clock },
@@ -44,7 +44,7 @@ export function Sidebar() {
               alt="Oceano Azul" 
               className="h-8 w-auto" 
             />
-            <h1 className="font-bold text-xl whitespace-nowrap text-oceanoazul">
+            <h1 className="font-bold text-xl whitespace-nowrap text-primary">
               Oceano Azul
             </h1>
           </div>

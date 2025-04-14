@@ -1,3 +1,4 @@
+
 import { TeamMember, Project, Task, Customer } from '@/types';
 
 export const teamMembers: TeamMember[] = [
@@ -183,7 +184,7 @@ export const customers: Customer[] = [
   {
     id: '1',
     name: 'John Smith',
-    company: 'Acme Corp',
+    origem: 'Website Contact Form', // Changed from company to origem
     email: 'john.smith@acmecorp.com',
     phone: '(555) 123-4567',
     status: 'customer',
@@ -195,7 +196,7 @@ export const customers: Customer[] = [
   {
     id: '2',
     name: 'Sarah Johnson',
-    company: 'Globex Industries',
+    origem: 'LinkedIn', // Changed from company to origem
     email: 'sarah.j@globex.com',
     phone: '(555) 987-6543',
     status: 'lead',
@@ -207,7 +208,7 @@ export const customers: Customer[] = [
   {
     id: '3',
     name: 'Michael Brown',
-    company: 'Oceanic Airlines',
+    origem: 'Referral', // Changed from company to origem
     email: 'mbrown@oceanic.com',
     phone: '(555) 555-5555',
     status: 'prospect',
@@ -219,7 +220,7 @@ export const customers: Customer[] = [
   {
     id: '4',
     name: 'Lisa Chen',
-    company: 'Stark Industries',
+    origem: 'Trade Show', // Changed from company to origem
     email: 'lisa.chen@stark.com',
     phone: '(555) 333-2222',
     status: 'customer',
@@ -231,7 +232,7 @@ export const customers: Customer[] = [
   {
     id: '5',
     name: 'David Wilson',
-    company: 'Wayne Enterprises',
+    origem: 'Cold Call', // Changed from company to origem
     email: 'dwilson@wayne.com',
     phone: '(555) 777-8888',
     status: 'churned',
@@ -243,7 +244,7 @@ export const customers: Customer[] = [
   {
     id: '6',
     name: 'Emily Davis',
-    company: 'Umbrella Corporation',
+    origem: 'Email Campaign', // Changed from company to origem
     email: 'e.davis@umbrellacorp.com',
     phone: '(555) 444-1111',
     status: 'prospect',

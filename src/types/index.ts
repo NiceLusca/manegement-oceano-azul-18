@@ -1,3 +1,4 @@
+
 export type TeamMember = {
   id: string;
   name: string;
@@ -35,7 +36,7 @@ export type Task = {
 export type Customer = {
   id: string;
   name: string;
-  company: string;
+  origem: string; // Changed from company to origem
   email: string;
   phone: string;
   status: 'lead' | 'prospect' | 'customer' | 'churned';
@@ -58,6 +59,7 @@ export type RecurringTask = {
   lastGenerated: string | null;
   createdAt: string;
   updatedAt: string;
+  projectId: string; // Added projectId for association with projects
 };
 
 export type TaskInstance = {
@@ -71,4 +73,5 @@ export type TaskInstance = {
   priority: 'low' | 'medium' | 'high';
   createdAt: string;
   updatedAt: string;
+  projectId: string; // Added projectId for association with projects
 };

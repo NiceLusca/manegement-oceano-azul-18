@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { tasks, getTeamMemberById, projects } from '@/data/mock-data';
+import { tasks as mockTasks, getTeamMemberById, projects } from '@/data/mock-data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Task } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
 
 interface KanbanColumnProps {
   title: string;
@@ -14,7 +15,7 @@ interface KanbanColumnProps {
 
 const KanbanColumn = ({ title, tasks, color }: KanbanColumnProps) => {
   return (
-    <Card className="flex-1 min-w-[250px]">
+    <Card className="flex-1 min-w-[250px] shadow-md">
       <CardHeader className={`pb-2 ${color}`}>
         <CardTitle className="text-sm font-semibold">{title} ({tasks.length})</CardTitle>
       </CardHeader>
@@ -32,7 +33,7 @@ const KanbanColumn = ({ title, tasks, color }: KanbanColumnProps) => {
                   
                   <div className="flex justify-between items-center text-xs">
                     <Badge variant="outline" className="text-xs font-normal">
-                      {project?.name || "Sem projeto"}
+                      {project?.name || "Sem categoria"}
                     </Badge>
                     <Badge 
                       variant={
@@ -69,15 +70,66 @@ const KanbanColumn = ({ title, tasks, color }: KanbanColumnProps) => {
 };
 
 export function KanbanBoard() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('tasks')
+          .select('*');
+          
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          const formattedTasks = data.map(task => ({
+            id: task.id,
+            title: task.title,
+            description: task.description || '',
+            status: task.status as 'todo' | 'in-progress' | 'review' | 'completed',
+            assigneeId: task.assignee_id || '',
+            dueDate: task.due_date || new Date().toISOString(),
+            priority: task.priority as 'low' | 'medium' | 'high',
+            projectId: 'default-category'
+          }));
+          setTasks(formattedTasks);
+        } else {
+          // Use mock data if no data in database
+          setTasks(mockTasks);
+        }
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+        // Fallback to mock data
+        setTasks(mockTasks);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchTasks();
+  }, []);
+  
   // Group tasks by status
   const todoTasks = tasks.filter(task => task.status === 'todo');
   const inProgressTasks = tasks.filter(task => task.status === 'in-progress');
   const reviewTasks = tasks.filter(task => task.status === 'review');
   const completedTasks = tasks.filter(task => task.status === 'completed');
   
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold">Quadro de Tarefas</h2>
+        <div className="flex justify-center py-8">
+          <p>Carregando tarefas...</p>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold">Quadro Kanban</h2>
+      <h2 className="text-xl font-bold">Quadro de Tarefas</h2>
       <div className="flex gap-4 overflow-x-auto pb-4">
         <KanbanColumn 
           title="A Fazer" 
@@ -87,17 +139,17 @@ export function KanbanBoard() {
         <KanbanColumn 
           title="Em Progresso" 
           tasks={inProgressTasks} 
-          color="bg-blue-100 dark:bg-blue-900/30" 
+          color="bg-blue-100 dark:bg-blue-900/40" 
         />
         <KanbanColumn 
           title="Em Revisão" 
           tasks={reviewTasks} 
-          color="bg-yellow-100 dark:bg-yellow-900/30" 
+          color="bg-yellow-100 dark:bg-yellow-900/40" 
         />
         <KanbanColumn 
           title="Concluído" 
           tasks={completedTasks} 
-          color="bg-green-100 dark:bg-green-900/30" 
+          color="bg-green-100 dark:bg-green-900/40" 
         />
       </div>
     </div>

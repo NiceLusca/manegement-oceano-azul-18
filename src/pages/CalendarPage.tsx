@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Calendar } from '@/components/ui/calendar';
@@ -39,7 +40,7 @@ export default function CalendarPage() {
             assigneeId: task.assignee_id || '',
             dueDate: task.due_date || new Date().toISOString(),
             priority: task.priority as 'low' | 'medium' | 'high',
-            projectId: task.project_id || ''
+            projectId: task.project_id || '' // Map from snake_case to camelCase
           }));
           setAllTasks(formattedTasks);
         } else {

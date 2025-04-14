@@ -8,9 +8,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -18,31 +18,16 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-
-interface Department {
-  id: string;
-  nome: string;
-}
+import { EditMemberFormData } from '@/hooks/useTeamMembers';
 
 interface EditMemberDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onEditMember: () => void;
-  editMembro: {
-    id: string;
-    nome: string;
-    cargo: string;
-    departamento: string;
-    avatar_url: string;
-  };
-  setEditMembro: React.Dispatch<React.SetStateAction<{
-    id: string;
-    nome: string;
-    cargo: string;
-    departamento: string;
-    avatar_url: string;
-  }>>;
-  departamentos: Department[];
+  editMembro: EditMemberFormData;
+  setEditMembro: React.Dispatch<React.SetStateAction<EditMemberFormData>>;
+  departamentos: Array<{ id: string; nome: string }>;
+  userAccess?: string;
 }
 
 export const EditMemberDialog: React.FC<EditMemberDialogProps> = ({
@@ -51,15 +36,21 @@ export const EditMemberDialog: React.FC<EditMemberDialogProps> = ({
   onEditMember,
   editMembro,
   setEditMembro,
-  departamentos
+  departamentos,
+  userAccess = 'user'
 }) => {
+  const canEditAccessLevel = userAccess === 'SuperAdmin' || userAccess === 'Admin';
+  
+  // SuperAdmin pode editar todos os níveis, Admin não pode promover para SuperAdmin
+  const canPromoteToSuperAdmin = userAccess === 'SuperAdmin';
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Editar Membro</DialogTitle>
           <DialogDescription>
-            Atualize os detalhes do membro selecionado.
+            Atualize as informações do membro da equipe.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -86,6 +77,19 @@ export const EditMemberDialog: React.FC<EditMemberDialogProps> = ({
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="edit-avatar" className="text-right">
+              URL Avatar
+            </Label>
+            <Input
+              id="edit-avatar"
+              type="url"
+              value={editMembro.avatar_url}
+              onChange={(e) => setEditMembro({...editMembro, avatar_url: e.target.value})}
+              className="col-span-3"
+              placeholder="https://example.com/avatar.jpg"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="edit-departamento" className="text-right">
               Departamento
             </Label>
@@ -105,24 +109,38 @@ export const EditMemberDialog: React.FC<EditMemberDialogProps> = ({
               </SelectContent>
             </Select>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="edit-avatar" className="text-right">
-              URL do Avatar
-            </Label>
-            <Input
-              id="edit-avatar"
-              value={editMembro.avatar_url}
-              onChange={(e) => setEditMembro({...editMembro, avatar_url: e.target.value})}
-              className="col-span-3"
-            />
-          </div>
+          
+          {canEditAccessLevel && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-nivel-acesso" className="text-right">
+                Nível de Acesso
+              </Label>
+              <Select
+                value={editMembro.nivel_acesso}
+                onValueChange={(value: 'SuperAdmin' | 'Admin' | 'Supervisor' | 'user') => 
+                  setEditMembro({...editMembro, nivel_acesso: value})}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Selecione o nível de acesso" />
+                </SelectTrigger>
+                <SelectContent>
+                  {canPromoteToSuperAdmin && (
+                    <SelectItem value="SuperAdmin">Super Administrador</SelectItem>
+                  )}
+                  <SelectItem value="Admin">Administrador</SelectItem>
+                  <SelectItem value="Supervisor">Supervisor</SelectItem>
+                  <SelectItem value="user">Usuário</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button type="button" onClick={onEditMember}>
-            Salvar Alterações
+          <Button onClick={onEditMember}>
+            Salvar alterações
           </Button>
         </DialogFooter>
       </DialogContent>

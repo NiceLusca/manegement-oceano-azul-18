@@ -7,17 +7,20 @@ import { TeamMemberCard } from '@/components/team/TeamMemberCard';
 import { AddMemberDialog } from '@/components/team/AddMemberDialog';
 import { EditMemberDialog } from '@/components/team/EditMemberDialog';
 import { DeleteMemberDialog } from '@/components/team/DeleteMemberDialog';
-import { Plus } from 'lucide-react';
+import { Plus, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const TeamPage = () => {
   const {
     teamMembers,
     departamentos,
     loading,
+    userAccess,
     addMember,
     updateMember,
     deleteMember,
-    getDepartmentName
+    getDepartmentName,
+    canEditMember
   } = useTeamMembers();
 
   const [openDialog, setOpenDialog] = useState(false);
@@ -83,7 +86,8 @@ const TeamPage = () => {
       nome: member.name,
       cargo: member.role,
       departamento: member.department,
-      avatar_url: member.avatar
+      avatar_url: member.avatar,
+      nivel_acesso: member.accessLevel as 'SuperAdmin' | 'Admin' | 'Supervisor' | 'user'
     });
     setOpenEditDialog(true);
   };
@@ -91,6 +95,14 @@ const TeamPage = () => {
   const openDeleteDialogForMember = (memberId: string) => {
     setSelectedMemberId(memberId);
     setOpenDeleteDialog(true);
+  };
+
+  // Verificar se o usuário pode adicionar novos membros (Admin/SuperAdmin)
+  const canAddMembers = userAccess === 'SuperAdmin' || userAccess === 'Admin';
+
+  // Verificar se o usuário pode remover membros (Admin/SuperAdmin)
+  const canDeleteMember = (memberId: string) => {
+    return userAccess === 'SuperAdmin' || userAccess === 'Admin';
   };
 
   return (
@@ -101,15 +113,28 @@ const TeamPage = () => {
             <h1 className="text-3xl font-bold">Membros da Equipe</h1>
             <p className="text-muted-foreground">Gerencie os membros da sua equipe e suas funções.</p>
           </div>
-          <AddMemberDialog
-            open={openDialog}
-            onOpenChange={setOpenDialog}
-            onAddMember={handleAddMember}
-            novoMembro={novoMembro}
-            setNovoMembro={setNovoMembro}
-            departamentos={departamentos}
-          />
+          {canAddMembers && (
+            <AddMemberDialog
+              open={openDialog}
+              onOpenChange={setOpenDialog}
+              onAddMember={handleAddMember}
+              novoMembro={novoMembro}
+              setNovoMembro={setNovoMembro}
+              departamentos={departamentos}
+            />
+          )}
         </div>
+        
+        {userAccess === 'user' && (
+          <Alert variant="default">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Acesso Limitado</AlertTitle>
+            <AlertDescription>
+              Como usuário regular, você só tem acesso para visualizar seu próprio perfil. 
+              Para visualizar outros membros da equipe, você precisa de um nível de acesso mais alto.
+            </AlertDescription>
+          </Alert>
+        )}
         
         {loading ? (
           <div className="flex justify-center items-center h-40">
@@ -124,6 +149,8 @@ const TeamPage = () => {
                 departmentName={getDepartmentName(member.department)}
                 onEdit={openEditDialogForMember}
                 onDelete={openDeleteDialogForMember}
+                canEdit={canEditMember(member.id)}
+                canDelete={canDeleteMember(member.id)}
               />
             ))}
           </div>
@@ -138,6 +165,7 @@ const TeamPage = () => {
         editMembro={editMembro}
         setEditMembro={setEditMembro}
         departamentos={departamentos}
+        userAccess={userAccess || 'user'}
       />
 
       {/* Delete Member Confirmation Dialog */}

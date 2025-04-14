@@ -1,4 +1,3 @@
-
 export type TeamMember = {
   id: string;
   name: string;
@@ -8,6 +7,7 @@ export type TeamMember = {
   department: string;
   status: 'active' | 'inactive';
   joinedDate: string;
+  accessLevel?: 'SuperAdmin' | 'Admin' | 'Supervisor' | 'user';
 };
 
 export type Project = {

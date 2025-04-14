@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AddTeamMemberDialogProps {
   open: boolean;
@@ -39,10 +40,35 @@ export const AddTeamMemberDialog: React.FC<AddTeamMemberDialogProps> = ({
     cargo: '',
     departamento: '',
     email: '',
-    avatar_url: ''
+    avatar_url: '',
+    nivel_acesso: 'user' as 'SuperAdmin' | 'Admin' | 'Supervisor' | 'user'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [currentUserAccess, setCurrentUserAccess] = useState<string | null>(null);
+
+  // Buscar nível de acesso do usuário atual
+  React.useEffect(() => {
+    const fetchUserAccess = async () => {
+      if (user?.id) {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('nivel_acesso')
+            .eq('id', user.id)
+            .single();
+            
+          if (error) throw error;
+          setCurrentUserAccess(data?.nivel_acesso || null);
+        } catch (error) {
+          console.error('Erro ao buscar nível de acesso:', error);
+        }
+      }
+    };
+    
+    fetchUserAccess();
+  }, [user]);
 
   const handleAddMember = async () => {
     // Validate required fields
@@ -67,7 +93,7 @@ export const AddTeamMemberDialog: React.FC<AddTeamMemberDialogProps> = ({
             cargo: novoMembro.cargo || 'Colaborador',
             departamento_id: novoMembro.departamento || null,
             avatar_url: novoMembro.avatar_url || null,
-            nivel_acesso: 'user'
+            nivel_acesso: novoMembro.nivel_acesso
           }
         ])
         .select();
@@ -86,7 +112,8 @@ export const AddTeamMemberDialog: React.FC<AddTeamMemberDialogProps> = ({
         cargo: '',
         departamento: '',
         email: '',
-        avatar_url: ''
+        avatar_url: '',
+        nivel_acesso: 'user'
       });
       onOpenChange(false);
     } catch (error: any) {
@@ -100,6 +127,9 @@ export const AddTeamMemberDialog: React.FC<AddTeamMemberDialogProps> = ({
       setIsSubmitting(false);
     }
   };
+
+  // Verificar se o usuário atual tem acesso para alterar nível de acesso
+  const canManageAccessLevels = currentUserAccess === 'SuperAdmin' || currentUserAccess === 'Admin';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -183,6 +213,31 @@ export const AddTeamMemberDialog: React.FC<AddTeamMemberDialogProps> = ({
               </SelectContent>
             </Select>
           </div>
+          
+          {canManageAccessLevels && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="nivel_acesso" className="text-right">
+                Nível de Acesso
+              </Label>
+              <Select
+                value={novoMembro.nivel_acesso}
+                onValueChange={(value: 'SuperAdmin' | 'Admin' | 'Supervisor' | 'user') => 
+                  setNovoMembro({...novoMembro, nivel_acesso: value})}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Selecione o nível de acesso" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currentUserAccess === 'SuperAdmin' && (
+                    <SelectItem value="SuperAdmin">Super Administrador</SelectItem>
+                  )}
+                  <SelectItem value="Admin">Administrador</SelectItem>
+                  <SelectItem value="Supervisor">Supervisor</SelectItem>
+                  <SelectItem value="user">Usuário</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>

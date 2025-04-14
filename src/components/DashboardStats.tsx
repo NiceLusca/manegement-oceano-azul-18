@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Briefcase, CheckCircle, ClockIcon, BarChart, Target, TrendingUp, AlertTriangle, Calendar, CalendarIcon, CalendarDays } from 'lucide-react';
+import { Users, Briefcase, CheckCircle, ClockIcon, BarChart, Target, TrendingUp, AlertTriangle, Calendar, CalendarIcon as LucideCalendarIcon } from 'lucide-react';
 import { getTasksByStatus, teamMembers, projects, getTasksByAssignee, getTasksByProject, getTasksByDepartment } from '@/data/mock-data';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -72,12 +71,11 @@ export function DashboardStats() {
   const [nivelAcesso, setNivelAcesso] = useState("admin");
   const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
   
-  // Parse date input in format dd/MM/yyyy
   const parseDateInput = (dateString: string): Date | undefined => {
     const parts = dateString.split('/');
     if (parts.length === 3) {
       const day = parseInt(parts[0]);
-      const month = parseInt(parts[1]) - 1; // month is 0-indexed in JS Date
+      const month = parseInt(parts[1]) - 1;
       const year = parseInt(parts[2]);
       
       if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
@@ -88,7 +86,6 @@ export function DashboardStats() {
     return undefined;
   };
   
-  // Update dates when input changes
   useEffect(() => {
     const parsedDate = parseDateInput(startDateInput);
     if (parsedDate) {
@@ -103,7 +100,6 @@ export function DashboardStats() {
     }
   }, [endDateInput]);
   
-  // Update input when calendar selection changes
   useEffect(() => {
     if (startDate) {
       setStartDateInput(format(startDate, 'dd/MM/yyyy'));
@@ -149,7 +145,6 @@ export function DashboardStats() {
   const isAdmin = nivelAcesso === "admin";
   const isManager = nivelAcesso === "admin" || nivelAcesso === "manager";
   
-  // Filtra os departamentos com base no filtro selecionado
   const filteredDepartmentStats = departmentFilter 
     ? departmentStats.filter(dept => dept.department === departmentFilter)
     : departmentStats;
@@ -172,7 +167,7 @@ export function DashboardStats() {
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" size="icon" className="ml-2">
-                      <CalendarIcon className="h-4 w-4" />
+                      <LucideCalendarIcon className="h-4 w-4" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
@@ -202,7 +197,7 @@ export function DashboardStats() {
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" size="icon" className="ml-2">
-                      <CalendarIcon className="h-4 w-4" />
+                      <LucideCalendarIcon className="h-4 w-4" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
@@ -347,7 +342,7 @@ export function DashboardStats() {
                     .map(member => {
                       const tasks = getTasksByAssignee(member.id);
                       const workload = tasks.length;
-                      const maxWorkload = 10; // valor hipotético para o exemplo
+                      const maxWorkload = 10;
                       const percentage = Math.min(Math.round((workload / maxWorkload) * 100), 100);
                       
                       return (
@@ -367,11 +362,5 @@ export function DashboardStats() {
         </>
       )}
     </div>
-  );
-}
-
-function CalendarIcon({ className, ...props }: React.ComponentProps<typeof Calendar>) {
-  return (
-    <Calendar className={cn(className)} {...props} />
   );
 }

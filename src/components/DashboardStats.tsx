@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Briefcase, CheckCircle, ClockIcon, BarChart, Target, TrendingUp, AlertTriangle } from 'lucide-react';
@@ -71,7 +70,6 @@ export function DashboardStats() {
   const [nivelAcesso, setNivelAcesso] = useState("admin");
   const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
   
-  // Filtra tarefas com base na data selecionada
   const filteredTaskStats = getTasksByStatus(task => {
     const taskDate = new Date(task.dueDate);
     if (dateRange.from && dateRange.to) {
@@ -90,7 +88,6 @@ export function DashboardStats() {
   const totalProjects = projects.length;
   const inProgressProjects = projects.filter(project => project.status === 'in-progress').length;
   
-  // Calcular progresso por departamento
   const departmentStats = departments.map((dept, index) => {
     const departmentTasks = getTasksByDepartment(dept);
     const completedTasks = departmentTasks.filter(task => task.status === 'completed').length;
@@ -103,14 +100,12 @@ export function DashboardStats() {
     };
   });
   
-  // Apenas administradores podem ver certas informações
   const isAdmin = nivelAcesso === "admin";
   const isManager = nivelAcesso === "admin" || nivelAcesso === "manager";
   
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start">
-        {/* Filtro por data */}
         <div className="flex flex-wrap gap-4 items-center">
           <Popover>
             <PopoverTrigger asChild>
@@ -148,16 +143,15 @@ export function DashboardStats() {
             </PopoverContent>
           </Popover>
           
-          {/* Filtro por departamento */}
           <Select
-            value={departmentFilter || ""}
-            onValueChange={(value) => setDepartmentFilter(value === "" ? null : value)}
+            value={departmentFilter || "all"}
+            onValueChange={(value) => setDepartmentFilter(value === "all" ? null : value)}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Todos os departamentos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os departamentos</SelectItem>
+              <SelectItem value="all">Todos os departamentos</SelectItem>
               {departments.map((dept) => (
                 <SelectItem key={dept} value={dept}>{dept}</SelectItem>
               ))}
@@ -165,7 +159,6 @@ export function DashboardStats() {
           </Select>
         </div>
         
-        {/* Seletor de nível de acesso (apenas para demonstração) */}
         {isAdmin && (
           <Select value={nivelAcesso} onValueChange={setNivelAcesso}>
             <SelectTrigger className="w-[180px]">

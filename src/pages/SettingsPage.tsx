@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const SettingsPage = () => {
   return (
@@ -35,15 +36,17 @@ const SettingsPage = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="timezone">Timezone</Label>
-                  <select 
-                    id="timezone" 
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <option>Pacific Time (PT)</option>
-                    <option>Eastern Time (ET)</option>
-                    <option>Central European Time (CET)</option>
-                    <option>Greenwich Mean Time (GMT)</option>
-                  </select>
+                  <Select defaultValue="pacific">
+                    <SelectTrigger id="timezone">
+                      <SelectValue placeholder="Select timezone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pacific">Pacific Time (PT)</SelectItem>
+                      <SelectItem value="eastern">Eastern Time (ET)</SelectItem>
+                      <SelectItem value="central-eu">Central European Time (CET)</SelectItem>
+                      <SelectItem value="gmt">Greenwich Mean Time (GMT)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">

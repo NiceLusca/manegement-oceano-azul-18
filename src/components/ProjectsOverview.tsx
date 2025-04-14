@@ -87,14 +87,14 @@ export function ProjectsOverview() {
             />
           </div>
           <Select
-            value={statusFilter || ""}
-            onValueChange={(value) => setStatusFilter(value === "" ? null : value)}
+            value={statusFilter || "all"}
+            onValueChange={(value) => setStatusFilter(value === "all" ? null : value)}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Todos os status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os status</SelectItem>
+              <SelectItem value="all">Todos os status</SelectItem>
               <SelectItem value="planning">Planejamento</SelectItem>
               <SelectItem value="in-progress">Em Progresso</SelectItem>
               <SelectItem value="review">Em Revisão</SelectItem>

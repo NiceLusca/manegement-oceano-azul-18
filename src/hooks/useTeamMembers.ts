@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { TeamMember } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -30,18 +30,8 @@ export const useTeamMembers = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  useEffect(() => {
-    fetchUserAccessLevel();
-  }, [user]);
-
-  useEffect(() => {
-    if (userAccess) {
-      fetchTeamMembers();
-      fetchDepartamentos();
-    }
-  }, [userAccess]);
-
-  const fetchUserAccessLevel = async () => {
+  // Função para buscar o nível de acesso do usuário
+  const fetchUserAccessLevel = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -57,9 +47,29 @@ export const useTeamMembers = () => {
       console.error('Erro ao buscar nível de acesso:', error.message);
       setUserAccess('user'); // Padrão caso ocorra erro
     }
+  }, [user]);
+
+  // Função para formatar os membros recebidos do Supabase
+  const formatMembersData = (data: any[]): TeamMember[] => {
+    return (data || []).map(profile => {
+      const accessLevel = profile.nivel_acesso as 'SuperAdmin' | 'Admin' | 'Supervisor' | 'user' | undefined;
+      
+      return {
+        id: profile.id,
+        name: profile.nome || 'Sem nome',
+        role: profile.cargo || 'Colaborador',
+        email: '',  // O Supabase não armazena emails no perfil
+        avatar: profile.avatar_url || '',
+        department: profile.departamento_id || '',
+        status: 'active' as 'active' | 'inactive',
+        joinedDate: profile.created_at,
+        accessLevel: accessLevel || 'user'
+      };
+    });
   };
 
-  const fetchTeamMembers = async () => {
+  // Função para buscar membros da equipe
+  const fetchTeamMembers = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -71,21 +81,7 @@ export const useTeamMembers = () => {
       if (error) throw error;
       
       // Mapear os dados do Supabase para o formato da interface TeamMember
-      const formattedMembers: TeamMember[] = (data || []).map(profile => {
-        const accessLevel = profile.nivel_acesso as 'SuperAdmin' | 'Admin' | 'Supervisor' | 'user' | undefined;
-        
-        return {
-          id: profile.id,
-          name: profile.nome || 'Sem nome',
-          role: profile.cargo || 'Colaborador',
-          email: '',  // O Supabase não armazena emails no perfil
-          avatar: profile.avatar_url || '',
-          department: profile.departamento_id || '',
-          status: 'active' as 'active' | 'inactive',
-          joinedDate: profile.created_at,
-          accessLevel: accessLevel || 'user'
-        };
-      });
+      const formattedMembers = formatMembersData(data || []);
       
       setTeamMembers(formattedMembers);
     } catch (error: any) {
@@ -98,9 +94,10 @@ export const useTeamMembers = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
-  const fetchDepartamentos = async () => {
+  // Função para buscar departamentos
+  const fetchDepartamentos = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('departamentos')
@@ -112,9 +109,10 @@ export const useTeamMembers = () => {
     } catch (error: any) {
       console.error('Erro ao buscar departamentos:', error.message);
     }
-  };
+  }, []);
 
-  const addMember = async (memberData: MemberFormData) => {
+  // Função para adicionar um novo membro
+  const addMember = useCallback(async (memberData: MemberFormData) => {
     if (!memberData.nome.trim()) {
       toast({
         title: "Erro",
@@ -161,9 +159,34 @@ export const useTeamMembers = () => {
       });
       return false;
     }
+  }, [toast, fetchTeamMembers]);
+
+  // Função para construir os dados de atualização com base no nível de acesso
+  const buildUpdateData = (memberData: EditMemberFormData, currentUserAccess: string | null) => {
+    const updateData: any = {
+      nome: memberData.nome,
+      cargo: memberData.cargo,
+      departamento_id: memberData.departamento,
+      avatar_url: memberData.avatar_url
+    };
+    
+    // Apenas usuários SuperAdmin e Admin podem alterar nível de acesso
+    if ((currentUserAccess === 'SuperAdmin' || currentUserAccess === 'Admin') && memberData.nivel_acesso) {
+      // SuperAdmin pode promover qualquer nível
+      if (currentUserAccess === 'SuperAdmin') {
+        updateData.nivel_acesso = memberData.nivel_acesso;
+      } 
+      // Admin não pode promover para SuperAdmin
+      else if (currentUserAccess === 'Admin' && memberData.nivel_acesso !== 'SuperAdmin') {
+        updateData.nivel_acesso = memberData.nivel_acesso;
+      }
+    }
+    
+    return updateData;
   };
 
-  const updateMember = async (memberData: EditMemberFormData) => {
+  // Função para atualizar um membro existente
+  const updateMember = useCallback(async (memberData: EditMemberFormData) => {
     if (!memberData.nome.trim()) {
       toast({
         title: "Erro",
@@ -174,24 +197,7 @@ export const useTeamMembers = () => {
     }
 
     try {
-      const updateData: any = {
-        nome: memberData.nome,
-        cargo: memberData.cargo,
-        departamento_id: memberData.departamento,
-        avatar_url: memberData.avatar_url
-      };
-      
-      // Apenas usuários SuperAdmin e Admin podem alterar nível de acesso
-      if ((userAccess === 'SuperAdmin' || userAccess === 'Admin') && memberData.nivel_acesso) {
-        // SuperAdmin pode promover qualquer nível
-        if (userAccess === 'SuperAdmin') {
-          updateData.nivel_acesso = memberData.nivel_acesso;
-        } 
-        // Admin não pode promover para SuperAdmin
-        else if (userAccess === 'Admin' && memberData.nivel_acesso !== 'SuperAdmin') {
-          updateData.nivel_acesso = memberData.nivel_acesso;
-        }
-      }
+      const updateData = buildUpdateData(memberData, userAccess);
       
       const { error } = await supabase
         .from('profiles')
@@ -218,9 +224,10 @@ export const useTeamMembers = () => {
       });
       return false;
     }
-  };
+  }, [toast, fetchTeamMembers, userAccess]);
 
-  const deleteMember = async (memberId: string) => {
+  // Função para deletar um membro
+  const deleteMember = useCallback(async (memberId: string) => {
     try {
       const { error } = await supabase
         .from('profiles')
@@ -247,15 +254,16 @@ export const useTeamMembers = () => {
       });
       return false;
     }
-  };
+  }, [toast, fetchTeamMembers]);
 
-  const getDepartmentName = (departmentId: string) => {
+  // Função para obter o nome do departamento
+  const getDepartmentName = useCallback((departmentId: string) => {
     const department = departamentos.find(d => d.id === departmentId);
     return department ? department.nome : 'Sem departamento';
-  };
+  }, [departamentos]);
 
-  // Verificar se o usuário atual tem permissão para editar um membro
-  const canEditMember = (memberId: string) => {
+  // Função para verificar permissões de edição
+  const canEditMember = useCallback((memberId: string) => {
     if (!user || !userAccess) return false;
     
     // SuperAdmin e Admin podem editar qualquer membro
@@ -273,7 +281,29 @@ export const useTeamMembers = () => {
     
     // Usuário comum só pode editar a si mesmo
     return user.id === memberId;
-  };
+  }, [user, userAccess, teamMembers]);
+
+  // Verificar se o usuário pode adicionar novos membros (Admin/SuperAdmin)
+  const canAddMembers = useCallback(() => {
+    return userAccess === 'SuperAdmin' || userAccess === 'Admin';
+  }, [userAccess]);
+
+  // Verificar se o usuário pode remover membros (Admin/SuperAdmin)
+  const canDeleteMember = useCallback((memberId: string) => {
+    return userAccess === 'SuperAdmin' || userAccess === 'Admin';
+  }, [userAccess]);
+
+  // Efeitos para carregar dados iniciais
+  useEffect(() => {
+    fetchUserAccessLevel();
+  }, [fetchUserAccessLevel]);
+
+  useEffect(() => {
+    if (userAccess) {
+      fetchTeamMembers();
+      fetchDepartamentos();
+    }
+  }, [userAccess, fetchTeamMembers, fetchDepartamentos]);
 
   return {
     teamMembers,
@@ -285,6 +315,8 @@ export const useTeamMembers = () => {
     updateMember,
     deleteMember,
     getDepartmentName,
-    canEditMember
+    canEditMember,
+    canAddMembers,
+    canDeleteMember
   };
 };

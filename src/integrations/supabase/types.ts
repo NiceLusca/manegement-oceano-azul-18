@@ -105,7 +105,7 @@ export type Database = {
           cargo?: string | null
           created_at?: string
           departamento_id?: string | null
-          id: string
+          id?: string
           nivel_acesso?: string | null
           nome?: string | null
           updated_at?: string

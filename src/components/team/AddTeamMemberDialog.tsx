@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -21,6 +21,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AddTeamMemberDialogProps {
   open: boolean;
@@ -33,16 +34,18 @@ export const AddTeamMemberDialog: React.FC<AddTeamMemberDialogProps> = ({
   onOpenChange,
   departamentos
 }) => {
-  const [novoMembro, setNovoMembro] = React.useState({
+  const [novoMembro, setNovoMembro] = useState({
     nome: '',
     cargo: '',
     departamento: '',
-    email: ''
+    email: '',
+    avatar_url: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleAddMember = () => {
-    // Em uma aplicação real, aqui seria feita a chamada à API para adicionar o membro
+  const handleAddMember = async () => {
+    // Validate required fields
     if (!novoMembro.nome.trim() || !novoMembro.email.trim()) {
       toast({
         title: "Erro",
@@ -51,21 +54,51 @@ export const AddTeamMemberDialog: React.FC<AddTeamMemberDialogProps> = ({
       });
       return;
     }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Insert directly into profiles with a generated UUID
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert([
+          {
+            nome: novoMembro.nome,
+            cargo: novoMembro.cargo || 'Colaborador',
+            departamento_id: novoMembro.departamento || null,
+            avatar_url: novoMembro.avatar_url || null,
+            nivel_acesso: 'user'
+          }
+        ])
+        .select();
 
-    toast({
-      title: "Sucesso",
-      description: "Novo membro adicionado com sucesso!",
-      variant: "default"
-    });
+      if (error) throw error;
 
-    // Limpa os campos e fecha o diálogo
-    setNovoMembro({
-      nome: '',
-      cargo: '',
-      departamento: '',
-      email: ''
-    });
-    onOpenChange(false);
+      toast({
+        title: "Sucesso",
+        description: "Novo membro adicionado com sucesso!",
+        variant: "default"
+      });
+
+      // Limpa os campos e fecha o diálogo
+      setNovoMembro({
+        nome: '',
+        cargo: '',
+        departamento: '',
+        email: '',
+        avatar_url: ''
+      });
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error('Erro ao adicionar membro:', error.message);
+      toast({
+        title: "Erro",
+        description: "Não foi possível adicionar o membro: " + error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -118,6 +151,19 @@ export const AddTeamMemberDialog: React.FC<AddTeamMemberDialogProps> = ({
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="avatar" className="text-right">
+              URL Avatar
+            </Label>
+            <Input
+              id="avatar"
+              type="url"
+              value={novoMembro.avatar_url}
+              onChange={(e) => setNovoMembro({...novoMembro, avatar_url: e.target.value})}
+              className="col-span-3"
+              placeholder="https://example.com/avatar.jpg"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="departamento" className="text-right">
               Departamento
             </Label>
@@ -130,7 +176,7 @@ export const AddTeamMemberDialog: React.FC<AddTeamMemberDialogProps> = ({
               </SelectTrigger>
               <SelectContent>
                 {departamentos.map((dep) => (
-                  <SelectItem key={dep.id} value={dep.nome}>
+                  <SelectItem key={dep.id} value={dep.id}>
                     {dep.nome}
                   </SelectItem>
                 ))}
@@ -139,11 +185,11 @@ export const AddTeamMemberDialog: React.FC<AddTeamMemberDialogProps> = ({
           </div>
         </div>
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button type="button" onClick={handleAddMember}>
-            Adicionar
+          <Button type="button" onClick={handleAddMember} disabled={isSubmitting}>
+            {isSubmitting ? "Adicionando..." : "Adicionar"}
           </Button>
         </DialogFooter>
       </DialogContent>

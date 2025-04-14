@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { projects, getTasksByProject } from '@/data/mock-data';
@@ -37,9 +36,9 @@ export function ProjectsOverview() {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [nivelAcesso] = useState("admin"); // Em uma aplicação real, viria de um contexto de autenticação
   const [openDialog, setOpenDialog] = useState(false);
-  const [novoProjetoNome, setNovoProjetoNome] = useState('');
-  const [novoProjetoDescricao, setNovoProjetoDescricao] = useState('');
-  const [novoProjetoStatus, setNovoProjetoStatus] = useState('planning');
+  const [novaTarefaNome, setNovaTarefaNome] = useState('');
+  const [novaTarefaDescricao, setNovaTarefaDescricao] = useState('');
+  const [novaTarefaStatus, setNovaTarefaStatus] = useState('planning');
   const { toast } = useToast();
   
   const isAdmin = nivelAcesso === "admin";
@@ -82,9 +81,9 @@ export function ProjectsOverview() {
     }
   };
 
-  const handleAddProject = () => {
-    // Em uma aplicação real, aqui seria feita a chamada à API para adicionar o projeto
-    if (!novoProjetoNome.trim()) {
+  const handleAddTask = () => {
+    // Em uma aplicação real, aqui seria feita a chamada à API para adicionar a tarefa
+    if (!novaTarefaNome.trim()) {
       toast({
         title: "Erro",
         description: "O nome da tarefa é obrigatório",
@@ -100,9 +99,9 @@ export function ProjectsOverview() {
     });
 
     // Limpa os campos e fecha o diálogo
-    setNovoProjetoNome('');
-    setNovoProjetoDescricao('');
-    setNovoProjetoStatus('planning');
+    setNovaTarefaNome('');
+    setNovaTarefaDescricao('');
+    setNovaTarefaStatus('planning');
     setOpenDialog(false);
   };
   
@@ -131,8 +130,8 @@ export function ProjectsOverview() {
                   </Label>
                   <Input
                     id="nome"
-                    value={novoProjetoNome}
-                    onChange={(e) => setNovoProjetoNome(e.target.value)}
+                    value={novaTarefaNome}
+                    onChange={(e) => setNovaTarefaNome(e.target.value)}
                     className="col-span-3"
                   />
                 </div>
@@ -142,8 +141,8 @@ export function ProjectsOverview() {
                   </Label>
                   <Textarea
                     id="descricao"
-                    value={novoProjetoDescricao}
-                    onChange={(e) => setNovoProjetoDescricao(e.target.value)}
+                    value={novaTarefaDescricao}
+                    onChange={(e) => setNovaTarefaDescricao(e.target.value)}
                     className="col-span-3"
                   />
                 </div>
@@ -152,8 +151,8 @@ export function ProjectsOverview() {
                     Status
                   </Label>
                   <Select
-                    value={novoProjetoStatus}
-                    onValueChange={setNovoProjetoStatus}
+                    value={novaTarefaStatus}
+                    onValueChange={setNovaTarefaStatus}
                   >
                     <SelectTrigger className="col-span-3">
                       <SelectValue placeholder="Selecione um status" />
@@ -171,7 +170,7 @@ export function ProjectsOverview() {
                 <Button type="button" variant="outline" onClick={() => setOpenDialog(false)}>
                   Cancelar
                 </Button>
-                <Button type="button" onClick={handleAddProject}>
+                <Button type="button" onClick={handleAddTask}>
                   Adicionar
                 </Button>
               </DialogFooter>
@@ -243,10 +242,10 @@ export function ProjectsOverview() {
                     <h3 className="font-medium">{project.name}</h3>
                     <div className="flex items-center gap-2">
                       <span className={`rounded-full px-2 py-1 text-xs ${
-                        project.status === 'planning' ? 'bg-gray-100 text-gray-800' :
-                        project.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
-                        project.status === 'review' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-green-100 text-green-800'
+                        project.status === 'planning' ? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200' :
+                        project.status === 'in-progress' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                        project.status === 'review' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                       }`}>
                         {project.status === 'planning' ? 'Planejamento' :
                          project.status === 'in-progress' ? 'Em Progresso' :
@@ -281,7 +280,7 @@ export function ProjectsOverview() {
                         <span className="font-medium mr-1">Tarefas:</span> {completedTasks}/{tasks.length}
                       </span>
                     </div>
-                    <span className={deadline < now ? "text-red-600 font-medium" : ""}>
+                    <span className={deadline < now ? "text-red-600 dark:text-red-400 font-medium" : ""}>
                       {deadline < now ? "Atrasado há " : "Prazo em "}
                       {timeRemaining}
                     </span>

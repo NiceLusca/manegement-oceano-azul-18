@@ -22,7 +22,7 @@ export function Sidebar() {
   const links = [
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Equipe', href: '/team', icon: Users },
-    { name: 'Tarefas', href: '/projects', icon: CheckSquare }, // Changed icon and label
+    { name: 'Tarefas', href: '/projects', icon: CheckSquare },
     { name: 'Clientes', href: '/customers', icon: UserSquare2 },
     { name: 'Calendário', href: '/calendar', icon: Calendar },
     { name: 'Tarefas Recorrentes', href: '/recurring-tasks', icon: Clock },
@@ -32,11 +32,11 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "bg-card h-screen border-r transition-all duration-300 ease-in-out overflow-hidden",
+        "bg-sidebar-background text-sidebar-foreground h-screen border-sidebar-border transition-all duration-300 ease-in-out overflow-hidden",
         collapsed ? "w-16" : "w-64"
       )}
     >
-      <div className="flex items-center justify-between p-4 h-14 border-b">
+      <div className="flex items-center justify-between p-4 h-14 border-b border-sidebar-border">
         {!collapsed && (
           <div className="flex items-center gap-2">
             <img 
@@ -44,7 +44,7 @@ export function Sidebar() {
               alt="Oceano Azul" 
               className="h-8 w-auto" 
             />
-            <h1 className="font-bold text-xl whitespace-nowrap text-primary">
+            <h1 className="font-bold text-xl whitespace-nowrap text-sidebar-primary">
               Oceano Azul
             </h1>
           </div>
@@ -76,8 +76,8 @@ export function Sidebar() {
                   cn(
                     "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
                     isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-muted",
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                      : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                     collapsed && "justify-center"
                   )
                 }

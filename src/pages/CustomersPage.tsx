@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -70,12 +69,10 @@ const CustomersPage = () => {
 
       if (error) throw error;
       
-      // Mapear os dados do Supabase para o formato da interface Customer
       const mappedCustomers: Customer[] = (data || []).map(customer => ({
         id: customer.id,
         name: customer.name,
-        company: customer.company || '',
-        origem: customer.company || '', // Map company to origem for display purposes
+        origem: customer.company || '', // Map company from database to origem
         email: customer.email || '',
         phone: customer.phone || '',
         status: (customer.status || 'lead') as 'lead' | 'prospect' | 'customer' | 'churned',
@@ -106,7 +103,6 @@ const CustomersPage = () => {
 
       if (error) throw error;
       
-      // Mapear os dados do Supabase para o formato da interface TeamMember
       const formattedMembers: TeamMember[] = (data || []).map(profile => ({
         id: profile.id,
         name: profile.nome || 'Sem nome',
@@ -159,13 +155,11 @@ const CustomersPage = () => {
         variant: "default"
       });
 
-      // Mapear os dados retornados para o formato da interface Customer e adicionar à lista
       if (data && data.length > 0) {
         const newCustomer: Customer = {
           id: data[0].id,
           name: data[0].name,
-          company: data[0].company || '',
-          origem: data[0].company || '', // Map company to origem for display
+          origem: data[0].company || '', // Map company from database to origem
           email: data[0].email || '',
           phone: data[0].phone || '',
           status: (data[0].status || 'lead') as 'lead' | 'prospect' | 'customer' | 'churned',
@@ -178,7 +172,6 @@ const CustomersPage = () => {
         setCustomers(prev => [...prev, newCustomer]);
       }
 
-      // Limpar o formulário e fechar o diálogo
       setNovoCliente({
         name: '',
         origem: '',

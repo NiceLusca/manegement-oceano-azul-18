@@ -183,7 +183,6 @@ export const customers: Customer[] = [
   {
     id: '1',
     name: 'John Smith',
-    company: 'Acme Corp', // Added company property
     origem: 'Website Contact Form',
     email: 'john.smith@acmecorp.com',
     phone: '(555) 123-4567',
@@ -196,7 +195,6 @@ export const customers: Customer[] = [
   {
     id: '2',
     name: 'Sarah Johnson',
-    company: 'Globex Inc', // Added company property
     origem: 'LinkedIn',
     email: 'sarah.j@globex.com',
     phone: '(555) 987-6543',
@@ -209,7 +207,6 @@ export const customers: Customer[] = [
   {
     id: '3',
     name: 'Michael Brown',
-    company: 'Oceanic Solutions', // Added company property
     origem: 'Referral',
     email: 'mbrown@oceanic.com',
     phone: '(555) 555-5555',
@@ -222,7 +219,6 @@ export const customers: Customer[] = [
   {
     id: '4',
     name: 'Lisa Chen',
-    company: 'Stark Enterprises', // Added company property
     origem: 'Trade Show',
     email: 'lisa.chen@stark.com',
     phone: '(555) 333-2222',
@@ -235,7 +231,6 @@ export const customers: Customer[] = [
   {
     id: '5',
     name: 'David Wilson',
-    company: 'Wayne Industries', // Added company property
     origem: 'Cold Call',
     email: 'dwilson@wayne.com',
     phone: '(555) 777-8888',
@@ -248,7 +243,6 @@ export const customers: Customer[] = [
   {
     id: '6',
     name: 'Emily Davis',
-    company: 'Umbrella Corporation', // Added company property
     origem: 'Email Campaign',
     email: 'e.davis@umbrellacorp.com',
     phone: '(555) 444-1111',

@@ -100,25 +100,30 @@
   @apply transition-transform duration-200 hover:scale-105;
 }
 
-/* Additional dark mode improvements */
+/* Dark mode improvements */
 .dark .card {
-  @apply shadow-lg shadow-black/10 backdrop-blur-sm;
-}
-
-/* Fix for circular dependency - using direct styles instead of @apply */
-.dark .bg-card {
-  background: linear-gradient(to bottom, hsl(var(--card)), hsl(var(--card) / 0.9));
+  @apply shadow-lg shadow-black/10 backdrop-blur-sm border-border/50;
 }
 
 .dark .dropdown-content, 
 .dark .popover-content, 
 .dark .select-content {
-  @apply shadow-xl border-border;
-  background-color: hsl(var(--card));
+  @apply bg-background/95 shadow-xl backdrop-blur-md border-border/80;
 }
 
 .dark .calendar-day {
   @apply hover:bg-accent hover:text-accent-foreground;
+}
+
+/* Better form controls in dark mode */
+.dark input, 
+.dark textarea, 
+.dark select {
+  @apply bg-background/80 border-border/80;
+}
+
+.dark .badge {
+  @apply font-normal text-xs border-border/50;
 }
 
 /* Animation utilities */

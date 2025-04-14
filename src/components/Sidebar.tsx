@@ -9,14 +9,13 @@ import {
   Home,
   FolderKanban,
   UserSquare2,
+  Clock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { useMobileBreakpoint } from '@/hooks/use-mobile';
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = React.useState(false);
-  const isMobile = useMobileBreakpoint();
   
   const toggleSidebar = () => setCollapsed(!collapsed);
   
@@ -26,37 +25,37 @@ export function Sidebar() {
     { name: 'Projetos', href: '/projects', icon: FolderKanban },
     { name: 'Clientes', href: '/customers', icon: UserSquare2 },
     { name: 'Calendário', href: '/calendar', icon: Calendar },
+    { name: 'Tarefas Recorrentes', href: '/recurring-tasks', icon: Clock },
     { name: 'Configurações', href: '/settings', icon: Settings },
   ];
-
-  if (isMobile && !collapsed) {
-    return (
-      <div className="fixed bottom-4 right-4 z-50">
-        <Button
-          variant="default"
-          size="icon"
-          className="h-12 w-12 rounded-full shadow-lg"
-          onClick={toggleSidebar}
-        >
-          <PanelLeft className="h-6 w-6" />
-        </Button>
-      </div>
-    );
-  }
 
   return (
     <aside
       className={cn(
         "bg-card h-screen border-r transition-all duration-300 ease-in-out overflow-hidden",
-        collapsed ? "w-16" : "w-64",
-        isMobile && collapsed ? "fixed left-0 top-0 z-50 shadow-lg" : "",
-        isMobile && !collapsed ? "hidden" : ""
+        collapsed ? "w-16" : "w-64"
       )}
     >
       <div className="flex items-center justify-between p-4 h-14 border-b">
-        <h1 className={cn("font-bold text-xl whitespace-nowrap", collapsed && "hidden")}>
-          Gerenciador de Equipe
-        </h1>
+        {!collapsed && (
+          <div className="flex items-center gap-2">
+            <img 
+              src="/lovable-uploads/1a19e937-b0a5-45b2-8e63-f4f3993e46a4.png" 
+              alt="Oceano Azul" 
+              className="h-8 w-auto" 
+            />
+            <h1 className="font-bold text-xl whitespace-nowrap text-oceanoazul">
+              Oceano Azul
+            </h1>
+          </div>
+        )}
+        {collapsed && (
+          <img 
+            src="/lovable-uploads/1a19e937-b0a5-45b2-8e63-f4f3993e46a4.png" 
+            alt="Oceano Azul" 
+            className="h-8 w-auto mx-auto" 
+          />
+        )}
         <Button
           variant="ghost"
           size="icon"

@@ -62,6 +62,11 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				oceanoazul: {
+					light: '#7AC7FF',
+					DEFAULT: '#0085D4',
+					dark: '#006CB0',
 				}
 			},
 			borderRadius: {

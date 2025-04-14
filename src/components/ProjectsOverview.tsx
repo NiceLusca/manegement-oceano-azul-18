@@ -4,19 +4,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { projects } from '@/data/mock-data';
 import { Progress } from '@/components/ui/progress';
 import { formatDistance } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export function ProjectsOverview() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Projects Overview</CardTitle>
+        <CardTitle>Visão Geral dos Projetos</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
           {projects.map((project) => {
             const now = new Date();
             const deadline = new Date(project.deadline);
-            const timeRemaining = formatDistance(deadline, now, { addSuffix: false });
+            const timeRemaining = formatDistance(deadline, now, { addSuffix: false, locale: ptBR });
             
             return (
               <div key={project.id} className="space-y-2">
@@ -28,13 +29,16 @@ export function ProjectsOverview() {
                     project.status === 'review' ? 'bg-yellow-100 text-yellow-800' :
                     'bg-green-100 text-green-800'
                   }`}>
-                    {project.status.charAt(0).toUpperCase() + project.status.slice(1).replace('-', ' ')}
+                    {project.status === 'planning' ? 'Planejamento' :
+                     project.status === 'in-progress' ? 'Em Progresso' :
+                     project.status === 'review' ? 'Em Revisão' : 
+                     'Concluído'}
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground">{project.description}</p>
                 <div className="flex items-center justify-between text-xs">
-                  <span>{project.progress}% complete</span>
-                  <span>Due in {timeRemaining}</span>
+                  <span>{project.progress}% completo</span>
+                  <span>Prazo em {timeRemaining}</span>
                 </div>
                 <Progress value={project.progress} className="h-2" />
               </div>

@@ -8,7 +8,7 @@ export function TeamOverview() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Team Members</CardTitle>
+        <CardTitle>Membros da Equipe</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -34,7 +34,7 @@ export function TeamOverview() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-medium">{completedTasks}/{tasksCount}</p>
-                    <p className="text-xs text-muted-foreground">Tasks</p>
+                    <p className="text-xs text-muted-foreground">Tarefas</p>
                   </div>
                 </div>
               );

@@ -14,12 +14,12 @@ const TeamPage = () => {
       <div className="space-y-6 animate-fade-in">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Team Members</h1>
-            <p className="text-muted-foreground">Manage your team members and their roles.</p>
+            <h1 className="text-3xl font-bold">Membros da Equipe</h1>
+            <p className="text-muted-foreground">Gerencie os membros da sua equipe e suas funções.</p>
           </div>
           <Button className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
-            Add Member
+            Adicionar Membro
           </Button>
         </div>
         
@@ -41,13 +41,13 @@ const TeamPage = () => {
                     <p className="text-muted-foreground">{member.role}</p>
                     <div className="flex gap-2 mt-2">
                       <Badge variant={member.status === 'active' ? 'default' : 'secondary'}>
-                        {member.status === 'active' ? 'Active' : 'Inactive'}
+                        {member.status === 'active' ? 'Ativo' : 'Inativo'}
                       </Badge>
                       <Badge variant="outline">{member.department}</Badge>
                     </div>
                     <div className="w-full mt-4 border-t pt-4">
                       <div className="flex justify-between text-sm">
-                        <span>Tasks:</span>
+                        <span>Tarefas:</span>
                         <span>{completedTasks} / {tasksCount}</span>
                       </div>
                     </div>
@@ -58,7 +58,7 @@ const TeamPage = () => {
                       </Button>
                       <Button variant="outline" size="sm" className="w-full">
                         <Phone className="h-4 w-4 mr-2" />
-                        Call
+                        Ligar
                       </Button>
                     </div>
                   </div>

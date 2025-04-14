@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus, Calendar, Users, CheckSquare } from 'lucide-react';
+import { KanbanBoard } from '@/components/KanbanBoard';
 
 const ProjectsPage = () => {
   return (
@@ -15,15 +16,18 @@ const ProjectsPage = () => {
       <div className="space-y-6 animate-fade-in">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Projects</h1>
-            <p className="text-muted-foreground">Manage your team's projects.</p>
+            <h1 className="text-3xl font-bold">Projetos</h1>
+            <p className="text-muted-foreground">Gerencie os projetos da sua equipe.</p>
           </div>
           <Button className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
-            New Project
+            Novo Projeto
           </Button>
         </div>
         
+        <KanbanBoard />
+        
+        <h2 className="text-xl font-bold mt-8">Visão Geral de Projetos</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {projects.map((project) => {
             const projectMembers = project.teamMembers.map(memberId => 
@@ -43,7 +47,10 @@ const ProjectsPage = () => {
                         'default'
                       }
                     >
-                      {project.status.replace('-', ' ')}
+                      {project.status === 'planning' ? 'Planejamento' :
+                       project.status === 'in-progress' ? 'Em Progresso' :
+                       project.status === 'review' ? 'Em Revisão' :
+                       'Concluído'}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -51,7 +58,7 @@ const ProjectsPage = () => {
                   <p className="text-muted-foreground mb-4">{project.description}</p>
                   
                   <div className="flex justify-between mb-2">
-                    <span className="text-sm">Progress</span>
+                    <span className="text-sm">Progresso</span>
                     <span className="text-sm font-medium">{project.progress}%</span>
                   </div>
                   <Progress value={project.progress} className="h-2 mb-6" />
@@ -59,15 +66,15 @@ const ProjectsPage = () => {
                   <div className="flex flex-wrap gap-4">
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <Calendar className="h-4 w-4" />
-                      <span>Due: {new Date(project.deadline).toLocaleDateString()}</span>
+                      <span>Prazo: {new Date(project.deadline).toLocaleDateString('pt-BR')}</span>
                     </div>
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <CheckSquare className="h-4 w-4" />
-                      <span>{project.tasks.length} tasks</span>
+                      <span>{project.tasks.length} tarefas</span>
                     </div>
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <Users className="h-4 w-4" />
-                      <span>{project.teamMembers.length} members</span>
+                      <span>{project.teamMembers.length} membros</span>
                     </div>
                   </div>
                   
@@ -85,7 +92,7 @@ const ProjectsPage = () => {
                         </div>
                       )}
                     </div>
-                    <Button variant="outline" size="sm">View Details</Button>
+                    <Button variant="outline" size="sm">Ver Detalhes</Button>
                   </div>
                 </CardContent>
               </Card>

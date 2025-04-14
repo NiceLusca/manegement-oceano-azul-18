@@ -39,30 +39,30 @@ export function DashboardStats() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <StatCard
-        title="Team Members"
+        title="Membros da Equipe"
         value={activeTeamMembers}
-        description={`${teamMembers.length} total members`}
+        description={`${teamMembers.length} membros no total`}
         icon={<Users className="h-4 w-4 text-white" />}
         iconBg="bg-blue-500"
       />
       <StatCard
-        title="Projects"
+        title="Projetos"
         value={totalProjects}
-        description={`${inProgressProjects} in progress`}
+        description={`${inProgressProjects} em progresso`}
         icon={<Briefcase className="h-4 w-4 text-white" />}
         iconBg="bg-green-500"
       />
       <StatCard
-        title="Completed Tasks"
+        title="Tarefas Concluídas"
         value={taskStats.completed}
-        description={`${taskStats.completed + taskStats.todo + taskStats.inProgress + taskStats.review} total tasks`}
+        description={`${taskStats.completed + taskStats.todo + taskStats.inProgress + taskStats.review} tarefas no total`}
         icon={<CheckCircle className="h-4 w-4 text-white" />}
         iconBg="bg-purple-500"
       />
       <StatCard
-        title="In Progress"
+        title="Em Progresso"
         value={taskStats.inProgress + taskStats.review}
-        description="Tasks currently being worked on"
+        description="Tarefas atualmente em andamento"
         icon={<ClockIcon className="h-4 w-4 text-white" />}
         iconBg="bg-orange-500"
       />

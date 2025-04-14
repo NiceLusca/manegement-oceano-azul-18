@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFetchTeamMembers } from './useFetchTeamMembers';
@@ -38,7 +37,6 @@ export const useTeamMembers = (): UseTeamMembersReturn => {
     deleteMember 
   } = useMemberOperations(userAccess, fetchTeamMembers);
 
-  // Fetch user access level
   useEffect(() => {
     const getUserAccessLevel = async () => {
       const accessLevel = await fetchUserAccessLevel(user?.id);
@@ -48,7 +46,6 @@ export const useTeamMembers = (): UseTeamMembersReturn => {
     getUserAccessLevel();
   }, [user]);
 
-  // Fetch initial data when user access level is available
   useEffect(() => {
     if (userAccess) {
       fetchTeamMembers();
@@ -56,7 +53,6 @@ export const useTeamMembers = (): UseTeamMembersReturn => {
     }
   }, [userAccess, fetchTeamMembers, fetchDepartamentos]);
 
-  // Wrapper functions using utilities
   const getDepartmentName = useCallback((departmentId: string) => {
     return getDepartmentNameUtil(departmentId, departamentos);
   }, [departamentos]);

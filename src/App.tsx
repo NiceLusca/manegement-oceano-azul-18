@@ -9,7 +9,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import TeamPage from "./pages/TeamPage";
-import ProjectsPage from "./pages/ProjectsPage";
+import TasksPage from "./pages/ProjectsPage";
 import CalendarPage from "./pages/CalendarPage";
 import SettingsPage from "./pages/SettingsPage";
 import CustomersPage from "./pages/CustomersPage";
@@ -31,7 +31,8 @@ const App = () => (
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/team" element={<ProtectedRoute><TeamPage /></ProtectedRoute>} />
-              <Route path="/projects" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />
+              <Route path="/projects" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
+              <Route path="/tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
               <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
               <Route path="/customers" element={<ProtectedRoute><CustomersPage /></ProtectedRoute>} />

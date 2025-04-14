@@ -14,9 +14,10 @@ import { UseFormReturn } from "react-hook-form";
 interface RoleFieldProps {
   form: UseFormReturn<any>;
   canEdit: boolean;
+  disabled?: boolean;
 }
 
-export function RoleField({ form, canEdit }: RoleFieldProps) {
+export function RoleField({ form, canEdit, disabled = false }: RoleFieldProps) {
   return (
     <FormField
       control={form.control}
@@ -34,7 +35,7 @@ export function RoleField({ form, canEdit }: RoleFieldProps) {
               placeholder="Seu cargo na empresa" 
               {...field} 
               value={field.value || ''} 
-              disabled={!canEdit}
+              disabled={!canEdit || disabled}
             />
           </FormControl>
           <FormDescription>

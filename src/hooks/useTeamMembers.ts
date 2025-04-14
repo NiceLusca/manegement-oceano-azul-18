@@ -27,6 +27,7 @@ export const useTeamMembers = () => {
   const [departamentos, setDepartamentos] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [userAccess, setUserAccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -72,6 +73,7 @@ export const useTeamMembers = () => {
   const fetchTeamMembers = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       
       // As políticas RLS já aplicam as restrições de visualização
       const { data, error } = await supabase
@@ -86,6 +88,7 @@ export const useTeamMembers = () => {
       setTeamMembers(formattedMembers);
     } catch (error: any) {
       console.error('Erro ao buscar equipe:', error.message);
+      setError(error.message);
       toast({
         title: "Erro",
         description: "Não foi possível carregar a equipe: " + error.message,
@@ -310,6 +313,7 @@ export const useTeamMembers = () => {
     departamentos,
     loading,
     userAccess,
+    error,
     fetchTeamMembers,
     addMember,
     updateMember,

@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { TeamMember } from '@/types';
 import { useTeamMembers, MemberFormData, EditMemberFormData } from '@/hooks/useTeamMembers';
@@ -9,6 +8,7 @@ import { EditMemberDialog } from '@/components/team/EditMemberDialog';
 import { DeleteMemberDialog } from '@/components/team/DeleteMemberDialog';
 import { Plus, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { PermissionAlert } from '@/components/profile/PermissionAlert';
 
 const TeamPage = () => {
   const {
@@ -20,7 +20,8 @@ const TeamPage = () => {
     updateMember,
     deleteMember,
     getDepartmentName,
-    canEditMember
+    canEditMember,
+    error
   } = useTeamMembers();
 
   const [openDialog, setOpenDialog] = useState(false);
@@ -43,10 +44,11 @@ const TeamPage = () => {
     avatar_url: ''
   });
 
+  const hasRecursionError = error && error.includes('infinite recursion detected in policy');
+
   const handleAddMember = async () => {
     const success = await addMember(novoMembro);
     if (success) {
-      // Limpar os campos e fechar o diálogo
       setNovoMembro({
         nome: '',
         cargo: '',
@@ -60,7 +62,6 @@ const TeamPage = () => {
   const handleEditMember = async () => {
     const success = await updateMember(editMembro);
     if (success) {
-      // Limpar os campos e fechar o diálogo
       setEditMembro({
         id: '',
         nome: '',
@@ -75,7 +76,6 @@ const TeamPage = () => {
   const handleDeleteMember = async () => {
     const success = await deleteMember(selectedMemberId);
     if (success) {
-      // Fechar o diálogo
       setOpenDeleteDialog(false);
     }
   };
@@ -97,10 +97,8 @@ const TeamPage = () => {
     setOpenDeleteDialog(true);
   };
 
-  // Verificar se o usuário pode adicionar novos membros (Admin/SuperAdmin)
   const canAddMembers = userAccess === 'SuperAdmin' || userAccess === 'Admin';
 
-  // Verificar se o usuário pode remover membros (Admin/SuperAdmin)
   const canDeleteMember = (memberId: string) => {
     return userAccess === 'SuperAdmin' || userAccess === 'Admin';
   };
@@ -113,7 +111,7 @@ const TeamPage = () => {
             <h1 className="text-3xl font-bold">Membros da Equipe</h1>
             <p className="text-muted-foreground">Gerencie os membros da sua equipe e suas funções.</p>
           </div>
-          {canAddMembers && (
+          {canAddMembers && !hasRecursionError && (
             <AddMemberDialog
               open={openDialog}
               onOpenChange={setOpenDialog}
@@ -125,7 +123,11 @@ const TeamPage = () => {
           )}
         </div>
         
-        {userAccess === 'user' && (
+        {hasRecursionError && (
+          <PermissionAlert show={true} errorType="recursion" />
+        )}
+        
+        {userAccess === 'user' && !hasRecursionError && (
           <Alert variant="default">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Acesso Limitado</AlertTitle>
@@ -136,13 +138,13 @@ const TeamPage = () => {
           </Alert>
         )}
         
-        {loading ? (
+        {loading && !hasRecursionError ? (
           <div className="flex justify-center items-center h-40">
             <p>Carregando membros da equipe...</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {teamMembers.map((member) => (
+            {!hasRecursionError && teamMembers.map((member) => (
               <TeamMemberCard
                 key={member.id}
                 member={member}
@@ -157,7 +159,6 @@ const TeamPage = () => {
         )}
       </div>
 
-      {/* Edit Member Dialog */}
       <EditMemberDialog
         open={openEditDialog}
         onOpenChange={setOpenEditDialog}
@@ -168,7 +169,6 @@ const TeamPage = () => {
         userAccess={userAccess || 'user'}
       />
 
-      {/* Delete Member Confirmation Dialog */}
       <DeleteMemberDialog
         open={openDeleteDialog}
         onOpenChange={setOpenDeleteDialog}

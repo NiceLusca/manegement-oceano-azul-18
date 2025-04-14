@@ -132,10 +132,14 @@ const TeamPage = () => {
         .from('profiles')
         .insert([
           {
+            id: crypto.randomUUID(), // Generate a unique ID
             nome: novoMembro.nome,
             cargo: novoMembro.cargo,
             departamento_id: novoMembro.departamento,
-            avatar_url: novoMembro.avatar_url
+            avatar_url: novoMembro.avatar_url,
+            nivel_acesso: 'user', // Default access level
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           }
         ])
         .select();

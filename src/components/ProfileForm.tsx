@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -18,6 +18,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DepartmentSelector } from "@/components/DepartmentSelector";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
+import { Shield, AlertTriangle } from "lucide-react";
 
 const profileFormSchema = z.object({
   nome: z.string().min(2, {
@@ -28,6 +31,7 @@ const profileFormSchema = z.object({
   }),
   departamento_id: z.string().uuid().nullable(),
   avatar_url: z.string().url().optional().nullable(),
+  nivel_acesso: z.enum(["admin", "manager", "user"]).optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -40,13 +44,40 @@ interface ProfileFormProps {
 
 export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("nivel_acesso")
+          .eq("id", user.id)
+          .single();
+          
+        if (error) throw error;
+        
+        setUserProfile(data);
+        setIsAdmin(data?.nivel_acesso === "admin");
+      } catch (error) {
+        console.error("Erro ao buscar perfil do usuário:", error);
+      }
+    };
+    
+    fetchUserProfile();
+  }, [user]);
 
   const defaultValues: Partial<ProfileFormValues> = {
     nome: initialData?.nome || "",
     cargo: initialData?.cargo || "",
     departamento_id: initialData?.departamento_id || null,
     avatar_url: initialData?.avatar_url || null,
+    nivel_acesso: initialData?.nivel_acesso || "user",
   };
 
   const form = useForm<ProfileFormValues>({
@@ -59,15 +90,26 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
     try {
       setIsLoading(true);
       
+      // Construir objeto de atualização
+      const updateData: any = {
+        id: userId,
+        nome: data.nome,
+      };
+      
+      // Apenas incluir estes campos se o usuário for admin
+      if (isAdmin || user?.id !== userId) {
+        updateData.cargo = data.cargo;
+        updateData.departamento_id = data.departamento_id;
+        updateData.nivel_acesso = data.nivel_acesso;
+      }
+      
+      if (data.avatar_url) {
+        updateData.avatar_url = data.avatar_url;
+      }
+      
       const { error } = await supabase
         .from("profiles")
-        .upsert({
-          id: userId,
-          nome: data.nome,
-          cargo: data.cargo,
-          departamento_id: data.departamento_id,
-          avatar_url: data.avatar_url,
-        });
+        .upsert(updateData);
 
       if (error) {
         throw error;
@@ -92,12 +134,24 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
     }
   };
 
+  const isCurrentUser = user?.id === userId;
+  const canEditProtectedFields = isAdmin || !isCurrentUser;
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Perfil</CardTitle>
       </CardHeader>
       <CardContent>
+        {isCurrentUser && !isAdmin && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-md flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-amber-700">
+              Apenas administradores podem alterar cargos e níveis de acesso. As alterações que você fizer em campos restritos não serão salvas.
+            </p>
+          </div>
+        )}
+        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
@@ -116,14 +170,24 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
                 </FormItem>
               )}
             />
+            
             <FormField
               control={form.control}
               name="cargo"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Cargo</FormLabel>
+                  <div className="flex items-center gap-2">
+                    <FormLabel>Cargo</FormLabel>
+                    {!canEditProtectedFields && (
+                      <Shield className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
                   <FormControl>
-                    <Input placeholder="Seu cargo na empresa" {...field} />
+                    <Input 
+                      placeholder="Seu cargo na empresa" 
+                      {...field} 
+                      disabled={!canEditProtectedFields}
+                    />
                   </FormControl>
                   <FormDescription>
                     Cargo ou função que você exerce na empresa.
@@ -132,17 +196,23 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
                 </FormItem>
               )}
             />
+            
             <FormField
               control={form.control}
               name="departamento_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Departamento</FormLabel>
+                  <div className="flex items-center gap-2">
+                    <FormLabel>Departamento</FormLabel>
+                    {!canEditProtectedFields && (
+                      <Shield className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
                   <FormControl>
                     <DepartmentSelector 
                       value={field.value} 
                       onChange={field.onChange} 
-                      disabled={isLoading}
+                      disabled={isLoading || !canEditProtectedFields}
                     />
                   </FormControl>
                   <FormDescription>
@@ -152,6 +222,42 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
                 </FormItem>
               )}
             />
+            
+            {canEditProtectedFields && (
+              <FormField
+                control={form.control}
+                name="nivel_acesso"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center gap-2">
+                      <FormLabel>Nível de Acesso</FormLabel>
+                      <Shield className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                      disabled={isLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o nível de acesso" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="admin">Administrador</SelectItem>
+                        <SelectItem value="manager">Gerente</SelectItem>
+                        <SelectItem value="user">Usuário</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Define o nível de permissões do usuário no sistema.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            
             <Button type="submit" disabled={isLoading}>
               {isLoading ? "Salvando..." : "Salvar alterações"}
             </Button>

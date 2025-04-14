@@ -43,6 +43,7 @@ export type Database = {
           created_at: string
           departamento_id: string | null
           id: string
+          nivel_acesso: string | null
           nome: string | null
           updated_at: string
         }
@@ -52,6 +53,7 @@ export type Database = {
           created_at?: string
           departamento_id?: string | null
           id: string
+          nivel_acesso?: string | null
           nome?: string | null
           updated_at?: string
         }
@@ -61,6 +63,7 @@ export type Database = {
           created_at?: string
           departamento_id?: string | null
           id?: string
+          nivel_acesso?: string | null
           nome?: string | null
           updated_at?: string
         }

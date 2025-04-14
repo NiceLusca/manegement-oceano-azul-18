@@ -19,31 +19,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { TeamMember } from '@/types';
+import { Customer, TeamMember } from '@/types';
 
 interface CustomerFormDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  novoCliente: {
-    name: string;
-    origem: string;
-    email: string;
-    phone: string;
-    status: string;
-    notes: string;
-    assignedTo: string;
-    value: number;
-  };
-  setNovoCliente: React.Dispatch<React.SetStateAction<{
-    name: string;
-    origem: string;
-    email: string;
-    phone: string;
-    status: string;
-    notes: string;
-    assignedTo: string;
-    value: number;
-  }>>;
+  novoCliente: Omit<Customer, 'id' | 'lastContact'>;
+  setNovoCliente: React.Dispatch<React.SetStateAction<Omit<Customer, 'id' | 'lastContact'>>>;
   teamMembers: TeamMember[];
   handleAddCustomer: () => Promise<void>;
 }
@@ -115,7 +97,9 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
             <Label htmlFor="status" className="text-right">Status</Label>
             <Select
               value={novoCliente.status}
-              onValueChange={(value) => setNovoCliente({...novoCliente, status: value})}
+              onValueChange={(value: 'lead' | 'prospect' | 'customer' | 'churned') => 
+                setNovoCliente({...novoCliente, status: value})
+              }
             >
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="Selecione um status" />

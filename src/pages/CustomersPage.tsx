@@ -10,12 +10,13 @@ import CustomerTableView from '@/components/customers/CustomerTableView';
 import CustomerGridView from '@/components/customers/CustomerGridView';
 import CustomerFormDialog from '@/components/customers/CustomerFormDialog';
 import { getStatusColor, translateStatus } from '@/components/customers/CustomerUtils';
+import { Customer } from '@/types';
 
 const CustomersPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [openDialog, setOpenDialog] = useState(false);
-  const [novoCliente, setNovoCliente] = useState({
+  const [novoCliente, setNovoCliente] = useState<Omit<Customer, 'id' | 'lastContact'>>({
     name: '',
     origem: '',
     email: '',

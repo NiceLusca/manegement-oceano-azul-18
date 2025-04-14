@@ -2,7 +2,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
-  CalendarIcon,
+  Calendar,
   Settings,
   PanelLeft,
   Users,
@@ -22,11 +22,11 @@ export function Sidebar() {
   
   const links = [
     { name: 'Dashboard', href: '/', icon: Home },
-    { name: 'Team', href: '/team', icon: Users },
-    { name: 'Projects', href: '/projects', icon: FolderKanban },
-    { name: 'Customers', href: '/customers', icon: UserSquare2 },
-    { name: 'Calendar', href: '/calendar', icon: CalendarIcon },
-    { name: 'Settings', href: '/settings', icon: Settings },
+    { name: 'Equipe', href: '/team', icon: Users },
+    { name: 'Projetos', href: '/projects', icon: FolderKanban },
+    { name: 'Clientes', href: '/customers', icon: UserSquare2 },
+    { name: 'Calendário', href: '/calendar', icon: Calendar },
+    { name: 'Configurações', href: '/settings', icon: Settings },
   ];
 
   if (isMobile && !collapsed) {
@@ -55,7 +55,7 @@ export function Sidebar() {
     >
       <div className="flex items-center justify-between p-4 h-14 border-b">
         <h1 className={cn("font-bold text-xl whitespace-nowrap", collapsed && "hidden")}>
-          Team Manager
+          Gerenciador de Equipe
         </h1>
         <Button
           variant="ghost"

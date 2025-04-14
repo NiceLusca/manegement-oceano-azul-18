@@ -1,8 +1,6 @@
 
 import { useTeamMembers } from './team/useTeamMembers';
-import type { UseTeamMembersReturn, Department } from './team/types';
-import { MemberFormData } from './team/useTeamMembers';
-import type { EditMemberFormData } from './team/useTeamMembers';
+import type { UseTeamMembersReturn, Department, MemberFormData, EditMemberFormData } from './team/types';
 
-export { useTeamMembers, MemberFormData };
-export type { Department, UseTeamMembersReturn, EditMemberFormData };
+export { useTeamMembers };
+export type { Department, UseTeamMembersReturn, MemberFormData, EditMemberFormData };

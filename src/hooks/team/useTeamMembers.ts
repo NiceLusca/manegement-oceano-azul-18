@@ -13,8 +13,8 @@ import {
 } from './teamUtils';
 import type { MemberFormData, EditMemberFormData, UseTeamMembersReturn } from './types';
 
-export { MemberFormData };
-export type { EditMemberFormData, UseTeamMembersReturn };
+// Re-export the type from types.ts
+export type { MemberFormData, EditMemberFormData, UseTeamMembersReturn };
 
 export const useTeamMembers = (): UseTeamMembersReturn => {
   const { user } = useAuth();

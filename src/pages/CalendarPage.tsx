@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Calendar } from '@/components/ui/calendar';
@@ -44,12 +43,10 @@ export default function CalendarPage() {
           }));
           setAllTasks(formattedTasks);
         } else {
-          // Use mock data if no data in database
           setAllTasks(tasks);
         }
       } catch (error) {
         console.error('Error fetching tasks:', error);
-        // Fallback to mock data
         setAllTasks(tasks);
       } finally {
         setLoading(false);
@@ -67,7 +64,6 @@ export default function CalendarPage() {
         return isSameDay(taskDate, date);
       });
       
-      // Apply active filter if set
       if (activeFilter) {
         filteredTasks = filteredTasks.filter(task => {
           if (activeFilter === 'todo') return task.status === 'todo';
@@ -172,9 +168,9 @@ export default function CalendarPage() {
                 locale={ptBR}
                 className="rounded-md border"
                 components={{
-                  Day: ({ day, ...props }) => (
+                  Day: (props) => (
                     <button {...props}>
-                      {renderDay(day)}
+                      {renderDay(props.date)}
                     </button>
                   ),
                 }}

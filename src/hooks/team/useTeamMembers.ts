@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFetchTeamMembers } from './useFetchTeamMembers';
@@ -10,10 +11,10 @@ import {
   canDeleteMember as canDeleteMemberUtil,
   fetchUserAccessLevel
 } from './teamUtils';
-import { MemberFormData, EditMemberFormData, UseTeamMembersReturn } from './types';
+import type { MemberFormData, EditMemberFormData, UseTeamMembersReturn } from './types';
 
-export { MemberFormData, EditMemberFormData };
-export type { UseTeamMembersReturn };
+export { MemberFormData };
+export type { EditMemberFormData, UseTeamMembersReturn };
 
 export const useTeamMembers = (): UseTeamMembersReturn => {
   const { user } = useAuth();

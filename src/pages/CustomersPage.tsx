@@ -46,7 +46,7 @@ const CustomersPage = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [novoCliente, setNovoCliente] = useState({
     name: '',
-    company: '',
+    origem: '',
     email: '',
     phone: '',
     status: 'lead',
@@ -74,7 +74,7 @@ const CustomersPage = () => {
       const mappedCustomers: Customer[] = (data || []).map(customer => ({
         id: customer.id,
         name: customer.name,
-        company: customer.company || '',
+        origem: customer.origem || '',
         email: customer.email || '',
         phone: customer.phone || '',
         status: (customer.status || 'lead') as 'lead' | 'prospect' | 'customer' | 'churned',
@@ -139,7 +139,7 @@ const CustomersPage = () => {
         .insert([
           {
             name: novoCliente.name,
-            company: novoCliente.company,
+            origem: novoCliente.origem,
             email: novoCliente.email,
             phone: novoCliente.phone,
             status: novoCliente.status,
@@ -163,7 +163,7 @@ const CustomersPage = () => {
         const newCustomer: Customer = {
           id: data[0].id,
           name: data[0].name,
-          company: data[0].company || '',
+          origem: data[0].origem || '',
           email: data[0].email || '',
           phone: data[0].phone || '',
           status: (data[0].status || 'lead') as 'lead' | 'prospect' | 'customer' | 'churned',
@@ -179,7 +179,7 @@ const CustomersPage = () => {
       // Limpar o formulário e fechar o diálogo
       setNovoCliente({
         name: '',
-        company: '',
+        origem: '',
         email: '',
         phone: '',
         status: 'lead',
@@ -210,7 +210,7 @@ const CustomersPage = () => {
 
   const filteredCustomers = customers.filter(customer => 
     customer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    customer.origem?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -259,13 +259,13 @@ const CustomersPage = () => {
                 </div>
                 
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="company" className="text-right">Empresa</Label>
+                  <Label htmlFor="origem" className="text-right">Origem</Label>
                   <Input
-                    id="company"
-                    value={novoCliente.company}
-                    onChange={(e) => setNovoCliente({...novoCliente, company: e.target.value})}
+                    id="origem"
+                    value={novoCliente.origem}
+                    onChange={(e) => setNovoCliente({...novoCliente, origem: e.target.value})}
                     className="col-span-3"
-                    placeholder="Nome da empresa"
+                    placeholder="Como o cliente chegou até você"
                   />
                 </div>
                 
@@ -408,7 +408,7 @@ const CustomersPage = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nome</TableHead>
-                    <TableHead>Empresa</TableHead>
+                    <TableHead>Origem</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Telefone</TableHead>
@@ -432,7 +432,7 @@ const CustomersPage = () => {
                       return (
                         <TableRow key={customer.id}>
                           <TableCell className="font-medium">{customer.name}</TableCell>
-                          <TableCell>{customer.company || '-'}</TableCell>
+                          <TableCell>{customer.origem || '-'}</TableCell>
                           <TableCell>
                             <Badge variant="outline" className={getStatusColor(customer.status)}>
                               {translateStatus(customer.status)}
@@ -501,7 +501,7 @@ const CustomersPage = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground mb-2">{customer.company || 'Sem empresa'}</p>
+                    <p className="text-muted-foreground mb-2">{customer.origem || 'Origem não informada'}</p>
                     
                     <div className="flex flex-col gap-2 mb-4">
                       <div className="flex items-center gap-2">

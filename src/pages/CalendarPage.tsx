@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { tasks, getTeamMemberById } from '@/data/mock-data';
 import { Task } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
+import { DayContentProps } from 'react-day-picker';
 
 const CalendarPage = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -80,17 +81,20 @@ const CalendarPage = () => {
   }, [] as string[]);
 
   // Custom renderer for days with tasks
-  const renderDay = (day: Date) => {
-    const dateStr = day.toISOString().split('T')[0];
+  const renderDay = (props: DayContentProps) => {
+    const dateStr = props.date.toISOString().split('T')[0];
     const hasTasksForDate = datesWithTasks.includes(dateStr);
     
     return hasTasksForDate ? (
       <div className="relative">
+        {props.date.getDate()}
         <div className="absolute bottom-0 left-0 right-0 flex justify-center">
           <div className="h-1 w-1 rounded-full bg-primary"></div>
         </div>
       </div>
-    ) : null;
+    ) : (
+      <div>{props.date.getDate()}</div>
+    );
   };
 
   return (
@@ -108,12 +112,7 @@ const CalendarPage = () => {
                 onSelect={setDate}
                 className="rounded-md border"
                 components={{
-                  DayContent: ({ day }) => (
-                    <>
-                      {day.getDate()}
-                      {renderDay(day)}
-                    </>
-                  )
+                  DayContent: renderDay
                 }}
               />
             </CardContent>
@@ -164,10 +163,10 @@ const CalendarPage = () => {
                               task.status === 'todo' ? 'outline' :
                               task.status === 'in-progress' ? 'default' :
                               task.status === 'review' ? 'secondary' :
-                              'success'
+                              'outline'
                             }
                             className={
-                              task.status === 'completed' ? 'bg-green-500 hover:bg-green-600' : ''
+                              task.status === 'completed' ? 'bg-green-500 hover:bg-green-600 text-white' : ''
                             }
                           >
                             {task.status === 'todo' ? 'A Fazer' : 

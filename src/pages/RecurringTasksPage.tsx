@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -69,23 +68,23 @@ const RecurringTasksPage = () => {
 
       if (error) throw error;
       
-      // Explicitly validate the recurrence_type to ensure it matches our allowed values
-      const formattedData: RecurringTask[] = data.map(task => ({
+      const formattedRecurringTasks = data.map(task => ({
         id: task.id,
         title: task.title,
-        description: task.description,
-        assigneeId: task.assignee_id,
-        recurrenceType: validateRecurrenceType(task.recurrence_type),
-        customDays: task.custom_days,
-        customMonths: task.custom_months,
+        description: task.description || '',
+        assigneeId: task.assignee_id || '',
+        recurrenceType: task.recurrence_type as 'daily' | 'weekly' | 'monthly' | 'custom',
+        customDays: task.custom_days || [],
+        customMonths: task.custom_months || [],
         startDate: task.start_date,
-        endDate: task.end_date,
-        lastGenerated: task.last_generated,
+        endDate: task.end_date || null,
+        lastGenerated: task.last_generated || null,
         createdAt: task.created_at,
-        updatedAt: task.updated_at
+        updatedAt: task.updated_at,
+        projectId: task.project_id || 'default-project'
       }));
       
-      setRecurringTasks(formattedData);
+      setRecurringTasks(formattedRecurringTasks);
     } catch (error: any) {
       console.error('Erro ao buscar tarefas recorrentes:', error);
       toast({
@@ -107,21 +106,21 @@ const RecurringTasksPage = () => {
 
       if (error) throw error;
       
-      // Explicitly validate status and priority to ensure they match our allowed values
-      const formattedData: TaskInstance[] = data.map(task => ({
-        id: task.id,
-        recurringTaskId: task.recurring_task_id,
-        title: task.title,
-        description: task.description,
-        assigneeId: task.assignee_id,
-        dueDate: task.due_date,
-        status: validateTaskStatus(task.status),
-        priority: validateTaskPriority(task.priority),
-        createdAt: task.created_at,
-        updatedAt: task.updated_at
+      const mappedInstances = data.map(instance => ({
+        id: instance.id,
+        recurringTaskId: instance.recurring_task_id || null,
+        title: instance.title,
+        description: instance.description || '',
+        assigneeId: instance.assignee_id || '',
+        dueDate: instance.due_date,
+        status: instance.status as 'todo' | 'in-progress' | 'review' | 'completed',
+        priority: instance.priority as 'low' | 'medium' | 'high',
+        createdAt: instance.created_at,
+        updatedAt: instance.updated_at,
+        projectId: instance.project_id || 'default-project'
       }));
       
-      setTaskInstances(formattedData);
+      setTaskInstances(mappedInstances);
     } catch (error: any) {
       console.error('Erro ao buscar instâncias de tarefas:', error);
       toast({
@@ -131,30 +130,6 @@ const RecurringTasksPage = () => {
       });
     }
   }
-
-  // Helper function to validate recurrence type
-  const validateRecurrenceType = (type: string): RecurringTask['recurrenceType'] => {
-    const validTypes: RecurringTask['recurrenceType'][] = ['daily', 'weekly', 'monthly', 'custom'];
-    return validTypes.includes(type as any) 
-      ? (type as RecurringTask['recurrenceType']) 
-      : 'daily'; // Default to daily if invalid
-  };
-
-  // Helper function to validate task status
-  const validateTaskStatus = (status: string): TaskInstance['status'] => {
-    const validStatuses: TaskInstance['status'][] = ['todo', 'in-progress', 'review', 'completed'];
-    return validStatuses.includes(status as any) 
-      ? (status as TaskInstance['status']) 
-      : 'todo'; // Default to todo if invalid
-  };
-
-  // Helper function to validate task priority
-  const validateTaskPriority = (priority: string): TaskInstance['priority'] => {
-    const validPriorities: TaskInstance['priority'][] = ['low', 'medium', 'high'];
-    return validPriorities.includes(priority as any) 
-      ? (priority as TaskInstance['priority']) 
-      : 'medium'; // Default to medium if invalid
-  };
 
   const onSubmit = async (values: RecurringTaskFormValues) => {
     try {

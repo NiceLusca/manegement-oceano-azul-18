@@ -105,8 +105,9 @@
   @apply shadow-lg shadow-black/10 backdrop-blur-sm;
 }
 
+/* Fix for circular dependency */
 .dark .bg-card {
-  @apply bg-gradient-to-b from-card to-card/90;
+  background: linear-gradient(to bottom, hsl(var(--card)), hsl(var(--card) / 0.9));
 }
 
 .dark .dropdown-content, 

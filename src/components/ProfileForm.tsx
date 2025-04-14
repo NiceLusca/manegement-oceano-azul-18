@@ -6,22 +6,15 @@ import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Form } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DepartmentSelector } from "@/components/DepartmentSelector";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
-import { Shield, AlertTriangle } from "lucide-react";
 import { AvatarUpload } from "@/components/AvatarUpload";
+import { PermissionAlert } from "@/components/profile/PermissionAlert";
+import { NameField } from "@/components/profile/NameField";
+import { RoleField } from "@/components/profile/RoleField";
+import { DepartmentField } from "@/components/profile/DepartmentField";
+import { AccessLevelField } from "@/components/profile/AccessLevelField";
 
 const profileFormSchema = z.object({
   nome: z.string().min(2, {
@@ -136,6 +129,7 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
 
   const isCurrentUser = user?.id === userId;
   const canEditProtectedFields = isAdmin || !isCurrentUser;
+  const isSuperAdmin = userProfile?.nivel_acesso === 'SuperAdmin';
 
   const handleAvatarUpload = (url: string) => {
     setAvatarUrl(url);
@@ -147,14 +141,7 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
         <CardTitle>Perfil</CardTitle>
       </CardHeader>
       <CardContent>
-        {isCurrentUser && !isAdmin && (
-          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-md flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-amber-700">
-              Apenas administradores podem alterar cargos e níveis de acesso. As alterações que você fizer em campos restritos não serão salvas.
-            </p>
-          </div>
-        )}
+        <PermissionAlert show={isCurrentUser && !isAdmin} />
         
         <div className="flex justify-center mb-8">
           <AvatarUpload
@@ -167,113 +154,15 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="nome"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Seu nome completo" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Este é o seu nome que será exibido para outros usuários.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <NameField form={form} />
+            <RoleField form={form} canEdit={canEditProtectedFields} />
+            <DepartmentField form={form} canEdit={canEditProtectedFields} isLoading={isLoading} />
+            <AccessLevelField 
+              form={form} 
+              isAdmin={canEditProtectedFields} 
+              isSuperAdmin={isSuperAdmin} 
+              isLoading={isLoading} 
             />
-            
-            <FormField
-              control={form.control}
-              name="cargo"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center gap-2">
-                    <FormLabel>Cargo</FormLabel>
-                    {!canEditProtectedFields && (
-                      <Shield className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </div>
-                  <FormControl>
-                    <Input 
-                      placeholder="Seu cargo na empresa" 
-                      {...field} 
-                      value={field.value || ''} 
-                      disabled={!canEditProtectedFields}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Cargo ou função que você exerce na empresa.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="departamento_id"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center gap-2">
-                    <FormLabel>Departamento</FormLabel>
-                    {!canEditProtectedFields && (
-                      <Shield className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </div>
-                  <FormControl>
-                    <DepartmentSelector 
-                      value={field.value} 
-                      onChange={field.onChange} 
-                      disabled={isLoading || !canEditProtectedFields}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Selecione o departamento ao qual você pertence.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {canEditProtectedFields && (
-              <FormField
-                control={form.control}
-                name="nivel_acesso"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex items-center gap-2">
-                      <FormLabel>Nível de Acesso</FormLabel>
-                      <Shield className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                      disabled={isLoading}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o nível de acesso" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {isAdmin && userProfile?.nivel_acesso === 'SuperAdmin' && (
-                          <SelectItem value="SuperAdmin">Super Administrador</SelectItem>
-                        )}
-                        <SelectItem value="Admin">Administrador</SelectItem>
-                        <SelectItem value="Supervisor">Supervisor</SelectItem>
-                        <SelectItem value="user">Usuário</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      Define o nível de permissões do usuário no sistema.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
             
             <Button type="submit" disabled={isLoading}>
               {isLoading ? "Salvando..." : "Salvar alterações"}
@@ -284,4 +173,3 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
     </Card>
   );
 }
-

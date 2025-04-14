@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { TeamMember } from '@/types';
@@ -88,7 +87,7 @@ export const useTeamMembers = () => {
       setTeamMembers(formattedMembers);
     } catch (error: any) {
       console.error('Erro ao buscar equipe:', error.message);
-      setError(error.message);
+      setError(`Erro ao carregar equipe: ${error.message}`);
       toast({
         title: "Erro",
         description: "Não foi possível carregar a equipe: " + error.message,

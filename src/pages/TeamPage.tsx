@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { TeamMember } from '@/types';
@@ -8,7 +9,6 @@ import { EditMemberDialog } from '@/components/team/EditMemberDialog';
 import { DeleteMemberDialog } from '@/components/team/DeleteMemberDialog';
 import { Plus, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { PermissionAlert } from '@/components/profile/PermissionAlert';
 
 const TeamPage = () => {
   const {
@@ -43,8 +43,6 @@ const TeamPage = () => {
     departamento: '',
     avatar_url: ''
   });
-
-  const hasRecursionError = error && error.includes('infinite recursion detected in policy');
 
   const handleAddMember = async () => {
     const success = await addMember(novoMembro);
@@ -111,7 +109,7 @@ const TeamPage = () => {
             <h1 className="text-3xl font-bold">Membros da Equipe</h1>
             <p className="text-muted-foreground">Gerencie os membros da sua equipe e suas funções.</p>
           </div>
-          {canAddMembers && !hasRecursionError && (
+          {canAddMembers && (
             <AddMemberDialog
               open={openDialog}
               onOpenChange={setOpenDialog}
@@ -123,11 +121,7 @@ const TeamPage = () => {
           )}
         </div>
         
-        {hasRecursionError && (
-          <PermissionAlert show={true} errorType="recursion" />
-        )}
-        
-        {userAccess === 'user' && !hasRecursionError && (
+        {userAccess === 'user' && (
           <Alert variant="default">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Acesso Limitado</AlertTitle>
@@ -138,13 +132,23 @@ const TeamPage = () => {
           </Alert>
         )}
         
-        {loading && !hasRecursionError ? (
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Erro ao carregar</AlertTitle>
+            <AlertDescription>
+              {error}
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {loading ? (
           <div className="flex justify-center items-center h-40">
             <p>Carregando membros da equipe...</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {!hasRecursionError && teamMembers.map((member) => (
+            {teamMembers.map((member) => (
               <TeamMemberCard
                 key={member.id}
                 member={member}

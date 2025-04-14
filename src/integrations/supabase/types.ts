@@ -271,7 +271,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_department: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_user_nivel_acesso: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      is_admin_or_superadmin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_supervisor: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

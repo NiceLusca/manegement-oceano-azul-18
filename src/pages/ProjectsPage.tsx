@@ -116,15 +116,15 @@ const TasksPage = () => {
 
       if (error) throw error;
       
-      // Adaptar o formato dos dados do Supabase para o formato esperado pelo componente
-      const formattedMembers = data.map(profile => ({
+      // Mapear os dados do Supabase para o formato da interface TeamMember
+      const formattedMembers: TeamMember[] = (data || []).map(profile => ({
         id: profile.id,
         name: profile.nome || 'Sem nome',
         role: profile.cargo || 'Colaborador',
         email: '',  // O Supabase não armazena emails no perfil
         avatar: profile.avatar_url || '',
-        department: '',  // Poderia buscar o departamento também
-        status: 'active',
+        department: profile.departamento_id || '',
+        status: 'active' as 'active' | 'inactive', // Definindo como 'active' para corresponder ao tipo esperado
         joinedDate: profile.created_at
       }));
       

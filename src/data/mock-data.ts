@@ -1,4 +1,3 @@
-
 import { TeamMember, Project, Task, Customer } from '@/types';
 
 export const teamMembers: TeamMember[] = [
@@ -184,7 +183,8 @@ export const customers: Customer[] = [
   {
     id: '1',
     name: 'John Smith',
-    origem: 'Website Contact Form', // Changed from company to origem
+    company: 'Acme Corp', // Added company property
+    origem: 'Website Contact Form',
     email: 'john.smith@acmecorp.com',
     phone: '(555) 123-4567',
     status: 'customer',
@@ -196,7 +196,8 @@ export const customers: Customer[] = [
   {
     id: '2',
     name: 'Sarah Johnson',
-    origem: 'LinkedIn', // Changed from company to origem
+    company: 'Globex Inc', // Added company property
+    origem: 'LinkedIn',
     email: 'sarah.j@globex.com',
     phone: '(555) 987-6543',
     status: 'lead',
@@ -208,7 +209,8 @@ export const customers: Customer[] = [
   {
     id: '3',
     name: 'Michael Brown',
-    origem: 'Referral', // Changed from company to origem
+    company: 'Oceanic Solutions', // Added company property
+    origem: 'Referral',
     email: 'mbrown@oceanic.com',
     phone: '(555) 555-5555',
     status: 'prospect',
@@ -220,7 +222,8 @@ export const customers: Customer[] = [
   {
     id: '4',
     name: 'Lisa Chen',
-    origem: 'Trade Show', // Changed from company to origem
+    company: 'Stark Enterprises', // Added company property
+    origem: 'Trade Show',
     email: 'lisa.chen@stark.com',
     phone: '(555) 333-2222',
     status: 'customer',
@@ -232,7 +235,8 @@ export const customers: Customer[] = [
   {
     id: '5',
     name: 'David Wilson',
-    origem: 'Cold Call', // Changed from company to origem
+    company: 'Wayne Industries', // Added company property
+    origem: 'Cold Call',
     email: 'dwilson@wayne.com',
     phone: '(555) 777-8888',
     status: 'churned',
@@ -244,7 +248,8 @@ export const customers: Customer[] = [
   {
     id: '6',
     name: 'Emily Davis',
-    origem: 'Email Campaign', // Changed from company to origem
+    company: 'Umbrella Corporation', // Added company property
+    origem: 'Email Campaign',
     email: 'e.davis@umbrellacorp.com',
     phone: '(555) 444-1111',
     status: 'prospect',

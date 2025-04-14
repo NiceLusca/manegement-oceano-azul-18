@@ -17,6 +17,18 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/components/ui/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 export function ProjectsOverview() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,6 +36,11 @@ export function ProjectsOverview() {
   const [sortBy, setSortBy] = useState<'name' | 'deadline' | 'progress'>('deadline');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [nivelAcesso] = useState("admin"); // Em uma aplicação real, viria de um contexto de autenticação
+  const [openDialog, setOpenDialog] = useState(false);
+  const [novoProjetoNome, setNovoProjetoNome] = useState('');
+  const [novoProjetoDescricao, setNovoProjetoDescricao] = useState('');
+  const [novoProjetoStatus, setNovoProjetoStatus] = useState('planning');
+  const { toast } = useToast();
   
   const isAdmin = nivelAcesso === "admin";
   
@@ -64,15 +81,102 @@ export function ProjectsOverview() {
       setSortDirection('asc');
     }
   };
+
+  const handleAddProject = () => {
+    // Em uma aplicação real, aqui seria feita a chamada à API para adicionar o projeto
+    if (!novoProjetoNome.trim()) {
+      toast({
+        title: "Erro",
+        description: "O nome da tarefa é obrigatório",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    toast({
+      title: "Sucesso",
+      description: "Nova tarefa adicionada com sucesso!",
+      variant: "default"
+    });
+
+    // Limpa os campos e fecha o diálogo
+    setNovoProjetoNome('');
+    setNovoProjetoDescricao('');
+    setNovoProjetoStatus('planning');
+    setOpenDialog(false);
+  };
   
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Visão Geral dos Projetos</CardTitle>
+        <CardTitle>Visão Geral das Tarefas</CardTitle>
         {isAdmin && (
-          <Button variant="outline" size="sm" className="h-8">
-            <Plus className="h-4 w-4 mr-1" /> Novo Projeto
-          </Button>
+          <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8">
+                <Plus className="h-4 w-4 mr-1" /> Nova Tarefa
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Adicionar Nova Tarefa</DialogTitle>
+                <DialogDescription>
+                  Preencha os detalhes para criar uma nova tarefa.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="nome" className="text-right">
+                    Nome
+                  </Label>
+                  <Input
+                    id="nome"
+                    value={novoProjetoNome}
+                    onChange={(e) => setNovoProjetoNome(e.target.value)}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="descricao" className="text-right">
+                    Descrição
+                  </Label>
+                  <Textarea
+                    id="descricao"
+                    value={novoProjetoDescricao}
+                    onChange={(e) => setNovoProjetoDescricao(e.target.value)}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="status" className="text-right">
+                    Status
+                  </Label>
+                  <Select
+                    value={novoProjetoStatus}
+                    onValueChange={setNovoProjetoStatus}
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Selecione um status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="planning">Planejamento</SelectItem>
+                      <SelectItem value="in-progress">Em Progresso</SelectItem>
+                      <SelectItem value="review">Em Revisão</SelectItem>
+                      <SelectItem value="completed">Concluído</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setOpenDialog(false)}>
+                  Cancelar
+                </Button>
+                <Button type="button" onClick={handleAddProject}>
+                  Adicionar
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         )}
       </CardHeader>
       <CardContent>
@@ -80,7 +184,7 @@ export function ProjectsOverview() {
           <div className="relative flex-1">
             <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Pesquisar projetos..."
+              placeholder="Pesquisar tarefas..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-8"
@@ -157,11 +261,11 @@ export function ProjectsOverview() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Editar projeto</DropdownMenuItem>
+                            <DropdownMenuItem>Editar tarefa</DropdownMenuItem>
                             <DropdownMenuItem>Ver detalhes</DropdownMenuItem>
                             <DropdownMenuItem>Atribuir equipe</DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600">Arquivar projeto</DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600">Arquivar tarefa</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       )}
@@ -188,7 +292,7 @@ export function ProjectsOverview() {
             })
           ) : (
             <div className="text-center py-4 text-muted-foreground">
-              Nenhum projeto encontrado com os filtros aplicados.
+              Nenhuma tarefa encontrada com os filtros aplicados.
             </div>
           )}
         </div>

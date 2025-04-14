@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { projects, teamMembers } from '@/data/mock-data';
@@ -9,8 +9,62 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus, Calendar, Users, CheckSquare } from 'lucide-react';
 import { KanbanBoard } from '@/components/KanbanBoard';
+import { useToast } from '@/components/ui/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 
 const ProjectsPage = () => {
+  const [openDialog, setOpenDialog] = useState(false);
+  const [novoProjeto, setNovoProjeto] = useState({
+    nome: '',
+    descricao: '',
+    status: 'planning',
+  });
+  const { toast } = useToast();
+
+  const handleAddProject = () => {
+    // Em uma aplicação real, aqui seria feita a chamada à API para adicionar o projeto
+    if (!novoProjeto.nome.trim()) {
+      toast({
+        title: "Erro",
+        description: "O nome do projeto é obrigatório",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    toast({
+      title: "Sucesso",
+      description: "Novo projeto adicionado com sucesso!",
+      variant: "default"
+    });
+
+    // Limpa os campos e fecha o diálogo
+    setNovoProjeto({
+      nome: '',
+      descricao: '',
+      status: 'planning',
+    });
+    setOpenDialog(false);
+  };
+
   return (
     <Layout>
       <div className="space-y-6 animate-fade-in">
@@ -19,10 +73,73 @@ const ProjectsPage = () => {
             <h1 className="text-3xl font-bold">Projetos</h1>
             <p className="text-muted-foreground">Gerencie os projetos da sua equipe.</p>
           </div>
-          <Button className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Novo Projeto
-          </Button>
+          <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+            <DialogTrigger asChild>
+              <Button className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Novo Projeto
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Adicionar Novo Projeto</DialogTitle>
+                <DialogDescription>
+                  Preencha os detalhes para criar um novo projeto.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="nome" className="text-right">
+                    Nome
+                  </Label>
+                  <Input
+                    id="nome"
+                    value={novoProjeto.nome}
+                    onChange={(e) => setNovoProjeto({...novoProjeto, nome: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="descricao" className="text-right">
+                    Descrição
+                  </Label>
+                  <Textarea
+                    id="descricao"
+                    value={novoProjeto.descricao}
+                    onChange={(e) => setNovoProjeto({...novoProjeto, descricao: e.target.value})}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="status" className="text-right">
+                    Status
+                  </Label>
+                  <Select
+                    value={novoProjeto.status}
+                    onValueChange={(value) => setNovoProjeto({...novoProjeto, status: value})}
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Selecione um status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="planning">Planejamento</SelectItem>
+                      <SelectItem value="in-progress">Em Progresso</SelectItem>
+                      <SelectItem value="review">Em Revisão</SelectItem>
+                      <SelectItem value="completed">Concluído</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setOpenDialog(false)}>
+                  Cancelar
+                </Button>
+                <Button type="button" onClick={handleAddProject}>
+                  Adicionar
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
         
         <KanbanBoard />

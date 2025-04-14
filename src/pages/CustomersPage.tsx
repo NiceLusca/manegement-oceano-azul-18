@@ -18,17 +18,28 @@ const CustomersPage = () => {
     customer.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Tradução dos status de clientes
+  const translateStatus = (status: string) => {
+    switch (status) {
+      case 'lead': return 'lead';
+      case 'prospect': return 'prospecto';
+      case 'customer': return 'cliente';
+      case 'churned': return 'perdido';
+      default: return status;
+    }
+  };
+
   return (
     <Layout>
       <div className="space-y-6 animate-fade-in">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Customers</h1>
-            <p className="text-muted-foreground">Manage your customer relationships</p>
+            <h1 className="text-3xl font-bold">Clientes</h1>
+            <p className="text-muted-foreground">Gerencie seus relacionamentos com clientes</p>
           </div>
           <Button className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
-            Add Customer
+            Adicionar Cliente
           </Button>
         </div>
 
@@ -37,7 +48,7 @@ const CustomersPage = () => {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search customers..."
+                placeholder="Buscar clientes..."
                 className="pl-9"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -61,7 +72,7 @@ const CustomersPage = () => {
                   <div className="flex justify-between items-start">
                     <CardTitle>{customer.name}</CardTitle>
                     <Badge variant="outline" className={statusColor}>
-                      {customer.status}
+                      {translateStatus(customer.status)}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -85,12 +96,12 @@ const CustomersPage = () => {
                   
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm">Last Contact</span>
+                      <span className="text-sm">Último Contato</span>
                       <span className="text-sm">{new Date(customer.lastContact).toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm">Value</span>
-                      <span className="text-sm font-semibold">${customer.value.toLocaleString()}</span>
+                      <span className="text-sm">Valor</span>
+                      <span className="text-sm font-semibold">R$ {customer.value.toLocaleString()}</span>
                     </div>
                   </div>
                   
@@ -102,7 +113,7 @@ const CustomersPage = () => {
                           <AvatarFallback>{assignedTeamMember.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="text-sm font-medium">Assigned to</p>
+                          <p className="text-sm font-medium">Responsável</p>
                           <p className="text-xs text-muted-foreground">{assignedTeamMember.name}</p>
                         </div>
                       </div>

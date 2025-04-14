@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -72,7 +73,7 @@ const CustomersPage = () => {
       const mappedCustomers: Customer[] = (data || []).map(customer => ({
         id: customer.id,
         name: customer.name,
-        origem: customer.company || '', // Map company from database to origem
+        origem: customer.origem || '', // Updated to use origem field
         email: customer.email || '',
         phone: customer.phone || '',
         status: (customer.status || 'lead') as 'lead' | 'prospect' | 'customer' | 'churned',
@@ -136,7 +137,7 @@ const CustomersPage = () => {
         .insert([
           {
             name: novoCliente.name,
-            company: novoCliente.origem, // Save origem as company in the database
+            origem: novoCliente.origem, // Update here to use origem
             email: novoCliente.email,
             phone: novoCliente.phone,
             status: novoCliente.status,
@@ -159,7 +160,7 @@ const CustomersPage = () => {
         const newCustomer: Customer = {
           id: data[0].id,
           name: data[0].name,
-          origem: data[0].company || '', // Map company from database to origem
+          origem: data[0].origem || '', // Update here to use origem
           email: data[0].email || '',
           phone: data[0].phone || '',
           status: (data[0].status || 'lead') as 'lead' | 'prospect' | 'customer' | 'churned',

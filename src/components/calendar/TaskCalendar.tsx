@@ -30,10 +30,40 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
   
   const datesWithTasks = getDatesWithTasks();
   
+  // Get priority colors for tasks
+  const getTaskPriorityColors = () => {
+    const taskPriorities: { [key: string]: string } = {};
+    
+    allTasks.forEach(task => {
+      const dateKey = startOfDay(new Date(task.dueDate)).toISOString();
+      
+      // Determine highest priority for the day
+      if (!taskPriorities[dateKey] || 
+          (task.priority === 'high' && taskPriorities[dateKey] !== 'high') || 
+          (task.priority === 'medium' && taskPriorities[dateKey] === 'low')) {
+        taskPriorities[dateKey] = task.priority;
+      }
+    });
+    
+    return taskPriorities;
+  };
+  
+  const taskPriorityColors = getTaskPriorityColors();
+  
+  // Get color based on priority
+  const getPriorityColor = (dateKey: string) => {
+    const priority = taskPriorityColors[dateKey];
+    
+    if (priority === 'high') return 'bg-red-500';
+    if (priority === 'medium') return 'bg-amber-500';
+    return 'bg-blue-500';
+  };
+  
   // Custom day renderer for the calendar
   const renderDay = (day: Date) => {
     const dateKey = startOfDay(day).toISOString();
     const taskCount = datesWithTasks[dateKey] || 0;
+    const priorityColor = getPriorityColor(dateKey);
     
     return (
       <div className="relative p-0 calendar-day">
@@ -41,8 +71,11 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
           {format(day, 'd')}
         </time>
         {taskCount > 0 && (
-          <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2">
-            <Badge variant="outline" className="h-1.5 w-1.5 p-0 rounded-full bg-primary" />
+          <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-1">
+            <Badge variant="outline" className={`h-1.5 w-1.5 p-0 rounded-full ${priorityColor}`} />
+            {taskCount > 1 && (
+              <span className="text-[10px] font-medium">{taskCount}</span>
+            )}
           </div>
         )}
       </div>

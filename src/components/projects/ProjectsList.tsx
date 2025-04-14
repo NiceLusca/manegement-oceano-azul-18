@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, CheckSquare, Users } from 'lucide-react';
 import { Project, TeamMember } from '@/types';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface ProjectsListProps {
   projects: Project[];

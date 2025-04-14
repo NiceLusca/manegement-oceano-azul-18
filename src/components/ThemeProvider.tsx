@@ -24,7 +24,7 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 export function ThemeProvider({
   children,
   defaultTheme = "system",
-  storageKey = "oceano-azul-ui-theme",
+  storageKey = "app-theme",
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(
@@ -33,7 +33,6 @@ export function ThemeProvider({
 
   useEffect(() => {
     const root = window.document.documentElement;
-
     root.classList.remove("light", "dark");
 
     if (theme === "system") {
@@ -43,10 +42,28 @@ export function ThemeProvider({
         : "light";
 
       root.classList.add(systemTheme);
+      
+      // Adiciona classes customizadas para modo escuro
+      if (systemTheme === "dark") {
+        root.style.setProperty("--background", "240 10% 3.9%");
+        root.style.setProperty("--card", "240 10% 3.9%");
+        root.style.setProperty("--popover", "240 10% 3.9%");
+        root.style.setProperty("--primary", "0 0% 98%");
+        root.style.setProperty("--secondary", "240 3.7% 15.9%");
+      }
       return;
     }
 
     root.classList.add(theme);
+    
+    // Adiciona classes customizadas para modo escuro
+    if (theme === "dark") {
+      root.style.setProperty("--background", "240 10% 3.9%");
+      root.style.setProperty("--card", "240 10% 3.9%");
+      root.style.setProperty("--popover", "240 10% 3.9%");
+      root.style.setProperty("--primary", "0 0% 98%");
+      root.style.setProperty("--secondary", "240 3.7% 15.9%");
+    }
   }, [theme]);
 
   const value = {

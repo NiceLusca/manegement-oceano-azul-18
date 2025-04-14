@@ -1,121 +1,143 @@
 
-import React from 'react';
-import { Layout } from '@/components/Layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useState, useEffect } from "react";
+import { Layout } from "@/components/Layout";
+import { ProfileForm } from "@/components/ProfileForm";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+type UserProfile = {
+  id: string;
+  nome: string | null;
+  cargo: string | null;
+  departamento_id: string | null;
+  avatar_url: string | null;
+};
 
 const SettingsPage = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+      
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+        
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
+        
+        setProfile(data);
+      } catch (error: any) {
+        toast({
+          title: "Erro ao carregar perfil",
+          description: error.message || "Ocorreu um erro ao buscar suas informações.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [user, toast]);
+
+  const handleProfileUpdate = () => {
+    // Poderia recarregar os dados do perfil aqui, se necessário
+  };
+
   return (
     <Layout>
       <div className="space-y-6 animate-fade-in">
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground">Manage your team and account settings.</p>
-        
-        <Tabs defaultValue="general">
+        <div>
+          <h1 className="text-3xl font-bold">Configurações</h1>
+          <p className="text-muted-foreground">
+            Gerencie suas configurações de perfil e preferências.
+          </p>
+        </div>
+
+        <Tabs defaultValue="profile">
           <TabsList>
-            <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="profile">Perfil</TabsTrigger>
+            <TabsTrigger value="account">Conta</TabsTrigger>
+            <TabsTrigger value="appearance">Aparência</TabsTrigger>
+            <TabsTrigger value="notifications">Notificações</TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="general">
+          <TabsContent value="profile" className="mt-4">
+            {loading ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle><Skeleton className="h-8 w-32" /></CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-1/3" />
+                </CardContent>
+              </Card>
+            ) : (
+              <ProfileForm 
+                userId={user?.id || ''} 
+                initialData={profile || undefined} 
+                onSuccess={handleProfileUpdate}
+              />
+            )}
+          </TabsContent>
+          <TabsContent value="account" className="mt-4">
             <Card>
               <CardHeader>
-                <CardTitle>General Settings</CardTitle>
-                <CardDescription>Manage your general account settings.</CardDescription>
+                <CardTitle>Conta</CardTitle>
+                <CardDescription>
+                  Gerencie suas informações de conta e segurança.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="company-name">Company Name</Label>
-                  <Input id="company-name" defaultValue="Acme Inc." />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="timezone">Timezone</Label>
-                  <Select defaultValue="pacific">
-                    <SelectTrigger id="timezone">
-                      <SelectValue placeholder="Select timezone" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pacific">Pacific Time (PT)</SelectItem>
-                      <SelectItem value="eastern">Eastern Time (ET)</SelectItem>
-                      <SelectItem value="central-eu">Central European Time (CET)</SelectItem>
-                      <SelectItem value="gmt">Greenwich Mean Time (GMT)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="dark-mode">Dark Mode</Label>
-                    <p className="text-sm text-muted-foreground">Toggle dark mode on or off</p>
-                  </div>
-                  <Switch id="dark-mode" />
-                </div>
-                <Button>Save Changes</Button>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Configurações de conta ainda não implementadas.
+                </p>
               </CardContent>
             </Card>
           </TabsContent>
-          
-          <TabsContent value="profile">
+          <TabsContent value="appearance" className="mt-4">
             <Card>
               <CardHeader>
-                <CardTitle>Profile Settings</CardTitle>
-                <CardDescription>Update your personal information.</CardDescription>
+                <CardTitle>Aparência</CardTitle>
+                <CardDescription>
+                  Personalize a aparência e tema da interface.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input id="name" defaultValue="Admin User" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" defaultValue="admin@example.com" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
-                  <Input id="role" defaultValue="Administrator" />
-                </div>
-                <Button>Update Profile</Button>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Configurações de aparência ainda não implementadas.
+                </p>
               </CardContent>
             </Card>
           </TabsContent>
-          
-          <TabsContent value="notifications">
+          <TabsContent value="notifications" className="mt-4">
             <Card>
               <CardHeader>
-                <CardTitle>Notification Settings</CardTitle>
-                <CardDescription>Manage how you receive notifications.</CardDescription>
+                <CardTitle>Notificações</CardTitle>
+                <CardDescription>
+                  Configure suas preferências de notificações.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="email-notifications">Email Notifications</Label>
-                    <p className="text-sm text-muted-foreground">Receive notifications via email</p>
-                  </div>
-                  <Switch id="email-notifications" defaultChecked />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="task-notifications">Task Updates</Label>
-                    <p className="text-sm text-muted-foreground">Get notified about task changes</p>
-                  </div>
-                  <Switch id="task-notifications" defaultChecked />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="project-notifications">Project Updates</Label>
-                    <p className="text-sm text-muted-foreground">Get notified about project changes</p>
-                  </div>
-                  <Switch id="project-notifications" defaultChecked />
-                </div>
-                
-                <Button>Save Preferences</Button>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Configurações de notificações ainda não implementadas.
+                </p>
               </CardContent>
             </Card>
           </TabsContent>

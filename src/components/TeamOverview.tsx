@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { teamMembers, getTasksByAssignee } from '@/data/mock-data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -8,10 +8,18 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Check, Eye, Plus, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { supabase } from "@/integrations/supabase/client";
+
+type Departamento = {
+  id: string;
+  nome: string;
+  cor: string | null;
+};
 
 export function TeamOverview() {
   const [nivelAcesso] = React.useState("admin"); // Em uma aplicação real, viria de um contexto de autenticação
   const [showAll, setShowAll] = React.useState(false);
+  const [departamentos, setDepartamentos] = useState<Record<string, Departamento>>({});
   
   const filteredMembers = teamMembers
     .filter(member => member.status === 'active')
@@ -22,6 +30,34 @@ export function TeamOverview() {
   
   // Mapeamento dos membros da equipe que são líderes (para exibir o ícone de estrela)
   const teamLeads = new Set(teamMembers.filter(member => member.role.toLowerCase().includes('lead')).map(member => member.id));
+  
+  useEffect(() => {
+    const fetchDepartamentos = async () => {
+      try {
+        const { data } = await supabase
+          .from('departamentos')
+          .select('*');
+        
+        if (data) {
+          const depMap = data.reduce((acc: Record<string, Departamento>, dep) => {
+            acc[dep.id] = dep;
+            return acc;
+          }, {});
+          setDepartamentos(depMap);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar departamentos:', error);
+      }
+    };
+
+    fetchDepartamentos();
+  }, []);
+
+  // Função para obter a cor do departamento
+  const getDepartmentColor = (departmentName: string) => {
+    const department = Object.values(departamentos).find(d => d.nome === departmentName);
+    return department?.cor || null;
+  };
   
   return (
     <Card>
@@ -40,6 +76,7 @@ export function TeamOverview() {
             const tasksCount = assignedTasks.length;
             const completedTasks = assignedTasks.filter(task => task.status === 'completed').length;
             const progress = tasksCount > 0 ? (completedTasks / tasksCount) * 100 : 0;
+            const departmentColor = getDepartmentColor(member.department);
             
             return (
               <div key={member.id} className="space-y-2">
@@ -61,11 +98,15 @@ export function TeamOverview() {
                             variant="outline" 
                             className={cn(
                               "text-[10px] py-0 h-4",
-                              member.department === "Desenvolvimento" ? "bg-blue-100 text-blue-800 border-blue-200" :
-                              member.department === "Design" ? "bg-pink-100 text-pink-800 border-pink-200" :
-                              member.department === "Marketing" ? "bg-green-100 text-green-800 border-green-200" :
-                              member.department === "Vendas" ? "bg-orange-100 text-orange-800 border-orange-200" :
-                              "bg-purple-100 text-purple-800 border-purple-200"
+                              departmentColor 
+                                ? { backgroundColor: `${departmentColor}20`, borderColor: `${departmentColor}40`, color: departmentColor } 
+                                : {
+                                    "bg-blue-100 text-blue-800 border-blue-200": member.department === "Desenvolvimento",
+                                    "bg-pink-100 text-pink-800 border-pink-200": member.department === "Design",
+                                    "bg-green-100 text-green-800 border-green-200": member.department === "Marketing",
+                                    "bg-orange-100 text-orange-800 border-orange-200": member.department === "Vendas",
+                                    "bg-purple-100 text-purple-800 border-purple-200": member.department === "Recursos Humanos",
+                                  }
                             )}
                           >
                             {member.department}

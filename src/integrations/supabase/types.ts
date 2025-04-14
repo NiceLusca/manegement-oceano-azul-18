@@ -9,11 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      departamentos: {
+        Row: {
+          cor: string | null
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          cor?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          cor?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           cargo: string | null
           created_at: string
+          departamento_id: string | null
           id: string
           nome: string | null
           updated_at: string
@@ -22,6 +50,7 @@ export type Database = {
           avatar_url?: string | null
           cargo?: string | null
           created_at?: string
+          departamento_id?: string | null
           id: string
           nome?: string | null
           updated_at?: string
@@ -30,11 +59,20 @@ export type Database = {
           avatar_url?: string | null
           cargo?: string | null
           created_at?: string
+          departamento_id?: string | null
           id?: string
           nome?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_departamento_id_fkey"
+            columns: ["departamento_id"]
+            isOneToOne: false
+            referencedRelation: "departamentos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recurring_tasks: {
         Row: {

@@ -9,6 +9,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -52,13 +53,15 @@ export function DepartmentSelector({ value, onChange, disabled = false }: Depart
           throw error;
         }
         
-        setDepartments(data);
+        setDepartments(data || []);
       } catch (error: any) {
         toast({
           title: "Erro ao carregar departamentos",
           description: error.message || "Ocorreu um erro ao buscar a lista de departamentos.",
           variant: "destructive",
         });
+        // Make sure departments is never undefined
+        setDepartments([]);
       } finally {
         setLoading(false);
       }
@@ -98,35 +101,37 @@ export function DepartmentSelector({ value, onChange, disabled = false }: Depart
       <PopoverContent className="p-0 w-[300px]">
         <Command>
           <CommandInput placeholder="Buscar departamento..." />
-          <CommandEmpty>Nenhum departamento encontrado.</CommandEmpty>
-          <CommandGroup>
-            {departments.map((dept) => (
-              <CommandItem
-                key={dept.id}
-                value={dept.nome}
-                onSelect={() => {
-                  onChange(dept.id === value ? null : dept.id);
-                  setOpen(false);
-                }}
-              >
-                <div className="flex items-center">
-                  {dept.cor && (
-                    <div 
-                      className="w-3 h-3 rounded-full mr-2" 
-                      style={{ backgroundColor: dept.cor }}
-                    />
-                  )}
-                  {dept.nome}
-                </div>
-                <Check
-                  className={cn(
-                    "ml-auto h-4 w-4",
-                    value === dept.id ? "opacity-100" : "opacity-0"
-                  )}
-                />
-              </CommandItem>
-            ))}
-          </CommandGroup>
+          <CommandList>
+            <CommandEmpty>Nenhum departamento encontrado.</CommandEmpty>
+            <CommandGroup>
+              {departments.map((dept) => (
+                <CommandItem
+                  key={dept.id}
+                  value={dept.nome}
+                  onSelect={() => {
+                    onChange(dept.id === value ? null : dept.id);
+                    setOpen(false);
+                  }}
+                >
+                  <div className="flex items-center">
+                    {dept.cor && (
+                      <div 
+                        className="w-3 h-3 rounded-full mr-2" 
+                        style={{ backgroundColor: dept.cor }}
+                      />
+                    )}
+                    {dept.nome}
+                  </div>
+                  <Check
+                    className={cn(
+                      "ml-auto h-4 w-4",
+                      value === dept.id ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
         </Command>
       </PopoverContent>
     </Popover>

@@ -133,7 +133,7 @@ export function DashboardStats() {
   const isAdmin = nivelAcesso === "admin";
   const isManager = nivelAcesso === "admin" || nivelAcesso === "manager";
   const filteredDepartmentStats = departmentFilter ? departmentStats.filter(dept => dept.department === departmentFilter) : departmentStats;
-  return <div className="space-y-6 bg-zinc-50">
+  return <div className="space-y-6 bg-gray-950">
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start">
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex flex-col sm:flex-row gap-4">

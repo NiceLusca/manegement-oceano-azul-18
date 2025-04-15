@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { Customer, TeamMember } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -40,20 +41,46 @@ export const useCustomers = () => {
         setOriginOptions(originData[0].origem_options);
       }
       
-      // Map the data
-      setCustomers(customersData || []);
+      // Map the database fields to our TypeScript interface
+      const mappedCustomers: Customer[] = (customersData || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        origem: item.origem || '',
+        email: item.email || '',
+        phone: item.phone || '',
+        status: (item.status || 'lead') as 'lead' | 'prospect' | 'customer' | 'churned',
+        lastContact: item.last_contact || '',
+        notes: item.notes || '',
+        assignedTo: item.assigned_to || '',
+        value: item.value || 0
+      }));
       
-      setTeamMembers(teamData?.map(member => ({
-        id: member.id,
-        name: member.nome || 'Sem nome',
-        role: member.cargo || 'Colaborador',
-        email: '',
-        avatar: member.avatar_url || '',
-        department: '',
-        status: 'active',
-        joinedDate: '',
-        accessLevel: member.nivel_acesso
-      })) || []);
+      setCustomers(mappedCustomers);
+      
+      // Map team members with correct accessLevel type
+      const mappedTeamMembers: TeamMember[] = (teamData || []).map(member => {
+        // Ensure accessLevel is one of the allowed values
+        let accessLevel: 'SuperAdmin' | 'Admin' | 'Supervisor' | 'user' = 'user';
+        if (member.nivel_acesso === 'SuperAdmin' || 
+            member.nivel_acesso === 'Admin' || 
+            member.nivel_acesso === 'Supervisor') {
+          accessLevel = member.nivel_acesso;
+        }
+        
+        return {
+          id: member.id,
+          name: member.nome || 'Sem nome',
+          role: member.cargo || 'Colaborador',
+          email: '',
+          avatar: member.avatar_url || '',
+          department: '',
+          status: 'active',
+          joinedDate: '',
+          accessLevel
+        };
+      });
+      
+      setTeamMembers(mappedTeamMembers);
     } catch (error: any) {
       console.error('Erro ao buscar dados:', error.message);
       toast({
@@ -93,8 +120,24 @@ export const useCustomers = () => {
 
       if (error) throw error;
 
-      // Update the customer list with the new customer
-      setCustomers(prev => [...prev, data[0] as Customer]);
+      if (data && data.length > 0) {
+        // Map the returned data to our Customer type
+        const newCustomer: Customer = {
+          id: data[0].id,
+          name: data[0].name,
+          origem: data[0].origem || '',
+          email: data[0].email || '',
+          phone: data[0].phone || '',
+          status: (data[0].status || 'lead') as 'lead' | 'prospect' | 'customer' | 'churned',
+          lastContact: data[0].last_contact || '',
+          notes: data[0].notes || '',
+          assignedTo: data[0].assigned_to || '',
+          value: data[0].value || 0
+        };
+        
+        // Update the customer list with the new customer
+        setCustomers(prev => [...prev, newCustomer]);
+      }
       
       toast({
         title: "Sucesso",

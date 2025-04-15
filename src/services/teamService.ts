@@ -18,12 +18,14 @@ export const fetchTeamMembers = async (): Promise<TeamMember[]> => {
       avatar: profile.avatar_url || '',
       department: profile.departamento_id || '',
       status: 'active' as 'active' | 'inactive',
-      joinedDate: profile.created_at
+      joinedDate: profile.created_at,
+      accessLevel: profile.nivel_acesso as 'SuperAdmin' | 'Admin' | 'Supervisor' | 'user' || 'user'
     }));
     
     return formattedMembers;
   } catch (error: any) {
     console.error('Erro ao buscar equipe:', error.message);
+    // If there's an error, fallback to mock data temporarily
     const { teamMembers } = await import('@/data/mock-data');
     return teamMembers;
   }

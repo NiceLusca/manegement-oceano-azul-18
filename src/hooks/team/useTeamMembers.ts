@@ -40,19 +40,26 @@ export const useTeamMembers = (): UseTeamMembersReturn => {
 
   useEffect(() => {
     const getUserAccessLevel = async () => {
-      const accessLevel = await fetchUserAccessLevel(user?.id);
-      setUserAccess(accessLevel);
+      if (user?.id) {
+        try {
+          const accessLevel = await fetchUserAccessLevel(user.id);
+          setUserAccess(accessLevel);
+        } catch (error) {
+          console.error('Error fetching user access level:', error);
+          setUserAccess('user'); // Fallback to basic user access
+        }
+      } else {
+        setUserAccess(null);
+      }
     };
     
     getUserAccessLevel();
   }, [user]);
 
   useEffect(() => {
-    if (userAccess) {
-      fetchTeamMembers();
-      fetchDepartamentos();
-    }
-  }, [userAccess, fetchTeamMembers, fetchDepartamentos]);
+    fetchTeamMembers();
+    fetchDepartamentos();
+  }, [fetchTeamMembers, fetchDepartamentos]);
 
   const getDepartmentName = useCallback((departmentId: string) => {
     return getDepartmentNameUtil(departmentId, departamentos);

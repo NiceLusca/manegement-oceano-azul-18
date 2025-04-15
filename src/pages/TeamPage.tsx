@@ -3,19 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { TeamMember } from '@/types';
 import { useTeamMembers, MemberFormData, EditMemberFormData } from '@/hooks/useTeamMembers';
-import { TeamMemberCard } from '@/components/team/TeamMemberCard';
-import { AddMemberDialog } from '@/components/team/AddMemberDialog';
 import { EditMemberDialog } from '@/components/team/EditMemberDialog';
 import { DeleteMemberDialog } from '@/components/team/DeleteMemberDialog';
-import { Plus, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from '@/components/ui/tabs';
-import { DepartmentTeamView } from '@/components/team/DepartmentTeamView';
+import { TeamPageHeader } from '@/components/team/TeamPageHeader';
+import { TeamTabs } from '@/components/team/TeamTabs';
 import { supabase } from '@/integrations/supabase/client';
 
 const TeamPage = () => {
@@ -133,88 +124,30 @@ const TeamPage = () => {
   return (
     <Layout>
       <div className="space-y-6 animate-fade-in">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">Membros da Equipe</h1>
-            <p className="text-muted-foreground">Gerencie os membros da sua equipe e suas funções.</p>
-          </div>
-          {canAddMembers() && (
-            <AddMemberDialog
-              open={openDialog}
-              onOpenChange={setOpenDialog}
-              onAddMember={handleAddMember}
-              novoMembro={novoMembro}
-              setNovoMembro={setNovoMembro}
-              departamentos={departamentos}
-            />
-          )}
-        </div>
-        
-        {userAccess === 'user' && (
-          <Alert variant="default">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Acesso Limitado</AlertTitle>
-            <AlertDescription>
-              Como usuário regular, você só tem acesso para visualizar seu próprio perfil. 
-              Para visualizar outros membros da equipe, você precisa de um nível de acesso mais alto.
-            </AlertDescription>
-          </Alert>
-        )}
-        
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Erro ao carregar</AlertTitle>
-            <AlertDescription>
-              {error}
-            </AlertDescription>
-          </Alert>
-        )}
+        <TeamPageHeader
+          userAccess={userAccess}
+          error={error}
+          canAddMembers={canAddMembers}
+          openDialog={openDialog}
+          setOpenDialog={setOpenDialog}
+          novoMembro={novoMembro}
+          setNovoMembro={setNovoMembro}
+          departamentos={departamentos}
+        />
 
-        <Tabs defaultValue="all" className="w-full" onValueChange={(value) => setViewMode(value as 'all' | 'departments')}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="all">Todos os Membros</TabsTrigger>
-            <TabsTrigger value="departments">Por Departamento</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="all">
-            {loading ? (
-              <div className="flex justify-center items-center h-40">
-                <p>Carregando membros da equipe...</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {teamMembers.map((member) => (
-                  <TeamMemberCard
-                    key={member.id}
-                    member={member}
-                    departmentName={getDepartmentName(member.department)}
-                    onEdit={openEditDialogForMember}
-                    onDelete={openDeleteDialogForMember}
-                    canEdit={canEditMember(member.id)}
-                    canDelete={canDeleteMember(member.id)}
-                  />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="departments">
-            {loadingDepartments ? (
-              <div className="flex justify-center items-center h-40">
-                <p>Carregando departamentos...</p>
-              </div>
-            ) : (
-              <DepartmentTeamView
-                departmentsData={teamByDepartment}
-                onEditMember={openEditDialogForMember}
-                onDeleteMember={openDeleteDialogForMember}
-                canEditMember={canEditMember}
-                canDeleteMember={canDeleteMember}
-              />
-            )}
-          </TabsContent>
-        </Tabs>
+        <TeamTabs
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          loading={loading}
+          loadingDepartments={loadingDepartments}
+          teamMembers={teamMembers}
+          teamByDepartment={teamByDepartment}
+          getDepartmentName={getDepartmentName}
+          canEditMember={canEditMember}
+          canDeleteMember={canDeleteMember}
+          openEditDialogForMember={openEditDialogForMember}
+          openDeleteDialogForMember={openDeleteDialogForMember}
+        />
       </div>
 
       <EditMemberDialog

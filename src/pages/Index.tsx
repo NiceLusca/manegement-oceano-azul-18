@@ -10,7 +10,6 @@ import { Settings } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { ProjectCarousel } from '@/components/dashboard/ProjectCarousel';
 import { DashboardCards } from '@/components/dashboard/DashboardCards';
-import { MetricsCards } from '@/components/dashboard/MetricsCards';
 import { teamMembers, getTasksByAssignee } from '@/data/mock-data';
 
 const Index = () => {
@@ -42,18 +41,11 @@ const Index = () => {
         />}
         
         {isAdmin && (
-          <>
-            <MetricsCards 
-              teamMembers={teamMembers}
-              getTasksByAssignee={getTasksByAssignee}
-            />
-            
-            <div className="flex justify-end mt-8">
-              <Button variant="outline" className="gap-2 border-primary/30 text-primary hover:bg-primary/10 hover:border-primary">
-                <Settings className="h-4 w-4" /> Configurar Dashboard
-              </Button>
-            </div>
-          </>
+          <div className="flex justify-end mt-8">
+            <Button variant="outline" className="gap-2 border-primary/30 text-primary hover:bg-primary/10 hover:border-primary">
+              <Settings className="h-4 w-4" /> Configurar Dashboard
+            </Button>
+          </div>
         )}
       </div>
     </Layout>

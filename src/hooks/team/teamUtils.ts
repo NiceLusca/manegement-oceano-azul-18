@@ -88,31 +88,28 @@ export const canDeleteMember = (userAccess: string | null) => {
   return userAccess === 'SuperAdmin' || userAccess === 'Admin';
 };
 
-// Fetch user access level with improved error handling
+// Fetch user access level with simplified access using security definer function
 export const fetchUserAccessLevel = async (userId: string | undefined) => {
   if (!userId) return null;
   
   try {
-    // Use a simple query that doesn't rely on complex RLS policies
+    // Use the RPC function to avoid direct querying which could trigger RLS
     const { data, error } = await supabase
-      .from('profiles')
-      .select('nivel_acesso')
-      .eq('id', userId)
-      .maybeSingle();
+      .rpc('get_user_nivel_acesso', { user_id: userId });
       
     if (error) {
       console.error('Error fetching access level:', error.message);
       return 'user'; // Default access level on error
     }
     
-    return data?.nivel_acesso || 'user';
+    return data || 'user';
   } catch (error: any) {
     console.error('Error in fetchUserAccessLevel:', error.message);
     return 'user'; // Default in case of error
   }
 };
 
-// Verify SuperAdmin role
+// Verify SuperAdmin role using the secure method
 export const isUserSuperAdmin = async (userId: string | undefined) => {
   const accessLevel = await fetchUserAccessLevel(userId);
   return accessLevel === 'SuperAdmin';

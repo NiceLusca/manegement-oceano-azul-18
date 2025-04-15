@@ -66,7 +66,7 @@ export default {
 				oceanoazul: {
 					light: '#7AC7FF',
 					DEFAULT: '#0085D4',
-					dark: '#006CB0',
+					dark: '#005C93',
 				}
 			},
 			borderRadius: {

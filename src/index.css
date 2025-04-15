@@ -5,43 +5,44 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Light mode - Ocean blue inspired theme */
+    --background: 210 50% 98%;
+    --foreground: 215 25% 27%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 215 25% 27%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 215 25% 27%;
 
     --primary: 201 100% 42%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 201 70% 96%;
+    --secondary-foreground: 215 25% 27%;
 
     --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted-foreground: 215 25% 46.9%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 201 80% 92%;
+    --accent-foreground: 215 25% 27%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 201 30% 90%;
+    --input: 201 30% 90%;
     --ring: 201 100% 42%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 210 50% 98%;
+    --sidebar-background: 201 70% 96%;
     --sidebar-foreground: 215 25% 27%;
     --sidebar-primary: 201 100% 42%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 210 40% 96.1%;
+    --sidebar-accent: 201 50% 90%;
     --sidebar-accent-foreground: 215 25% 27%;
-    --sidebar-border: 214.3 31.8% 91.4%;
+    --sidebar-border: 201 30% 90%;
     --sidebar-ring: 201 100% 42%;
   }
 
@@ -50,39 +51,39 @@
     --background: 0 0% 0%;
     --foreground: 0 0% 100%;
 
-    --card: 0 0% 0%;
+    --card: 201 100% 10%;
     --card-foreground: 0 0% 100%;
 
     --popover: 0 0% 0%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 210 100% 25%;
+    --primary: 201 100% 35%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 100% 15%;
+    --secondary: 201 100% 15%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 0 0% 10%;
+    --muted: 201 50% 10%;
     --muted-foreground: 0 0% 70%;
 
-    --accent: 210 100% 15%;
+    --accent: 201 100% 20%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 70% 40%;
+    --destructive: 0 70% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 100% 15%;
-    --input: 0 0% 10%;
-    --ring: 210 100% 30%;
+    --border: 201 70% 20%;
+    --input: 201 50% 10%;
+    --ring: 201 100% 35%;
 
-    --sidebar-background: 0 0% 5%;
+    --sidebar-background: 201 100% 5%;
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 210 100% 25%;
+    --sidebar-primary: 201 100% 35%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 100% 15%;
+    --sidebar-accent: 201 100% 15%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 210 100% 15%;
-    --sidebar-ring: 210 100% 30%;
+    --sidebar-border: 201 100% 15%;
+    --sidebar-ring: 201 100% 35%;
   }
 }
 
@@ -148,4 +149,21 @@
     from { transform: scale(0.95); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
   }
+}
+
+/* Ocean blue specific styles */
+.ocean-gradient {
+  @apply bg-gradient-to-br from-oceanoazul-light via-oceanoazul to-oceanoazul-dark;
+}
+
+.ocean-text-gradient {
+  @apply bg-gradient-to-br from-oceanoazul-light via-oceanoazul to-oceanoazul-dark bg-clip-text text-transparent;
+}
+
+.ocean-card {
+  @apply bg-card border border-border/50 shadow-sm hover:shadow-md transition-shadow duration-200;
+}
+
+.ocean-button {
+  @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-colors;
 }

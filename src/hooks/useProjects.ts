@@ -161,6 +161,80 @@ export const useProjects = () => {
     }
   };
 
+  const addRecurringTask = async (taskData: {
+    title: string;
+    description: string;
+    assigneeId: string;
+    startDate: string;
+    endDate?: string;
+    recurrenceType: string;
+    customDays?: number[];
+    customMonths?: number[];
+    priority: string;
+  }) => {
+    if (!taskData.title.trim()) {
+      toast({
+        title: "Erro",
+        description: "O título da tarefa é obrigatório",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    try {
+      // Inserir a tarefa recorrente
+      const { data, error } = await supabase
+        .from('recurring_tasks')
+        .insert([
+          {
+            title: taskData.title,
+            description: taskData.description,
+            assignee_id: taskData.assigneeId,
+            recurrence_type: taskData.recurrenceType,
+            start_date: taskData.startDate ? new Date(taskData.startDate).toISOString() : new Date().toISOString(),
+            end_date: taskData.endDate ? new Date(taskData.endDate).toISOString() : null,
+            custom_days: taskData.customDays,
+            custom_months: taskData.customMonths
+          }
+        ])
+        .select();
+
+      if (error) throw error;
+
+      // Também criar a primeira instância da tarefa
+      await supabase
+        .from('task_instances')
+        .insert([
+          {
+            title: taskData.title,
+            description: taskData.description,
+            assignee_id: taskData.assigneeId,
+            due_date: taskData.startDate ? new Date(taskData.startDate).toISOString() : new Date().toISOString(),
+            status: 'todo',
+            priority: taskData.priority,
+            recurring_task_id: data?.[0]?.id
+          }
+        ]);
+
+      toast({
+        title: "Sucesso",
+        description: "Nova tarefa recorrente adicionada com sucesso!",
+        variant: "default"
+      });
+
+      await fetchProjects();
+      return true;
+    } catch (error: any) {
+      console.error('Erro ao adicionar tarefa recorrente:', error.message);
+      toast({
+        title: "Erro",
+        description: "Não foi possível adicionar a tarefa recorrente: " + error.message,
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
   return {
     projects,
     teamMembers,
@@ -169,6 +243,7 @@ export const useProjects = () => {
     fetchProjects,
     fetchTeamMembers,
     fetchDepartamentos,
-    addTask
+    addTask,
+    addRecurringTask
   };
 };

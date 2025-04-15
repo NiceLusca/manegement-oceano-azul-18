@@ -43,7 +43,7 @@ export function ThemeProvider({
 
       root.classList.add(systemTheme);
       
-      // Add custom CSS variables for dark mode
+      // Aplicar variáveis CSS personalizadas
       if (systemTheme === "dark") {
         applyDarkTheme(root);
       } else {
@@ -54,7 +54,7 @@ export function ThemeProvider({
 
     root.classList.add(theme);
     
-    // Add custom CSS variables for dark mode
+    // Aplicar variáveis CSS personalizadas
     if (theme === "dark") {
       applyDarkTheme(root);
     } else {
@@ -63,30 +63,48 @@ export function ThemeProvider({
   }, [theme]);
 
   const applyDarkTheme = (root: HTMLElement) => {
-    // Improved dark mode color palette
-    root.style.setProperty("--background", "240 10% 3.9%");
-    root.style.setProperty("--foreground", "0 0% 98%");
-    root.style.setProperty("--card", "240 10% 3.9%");
-    root.style.setProperty("--card-foreground", "0 0% 98%");
-    root.style.setProperty("--popover", "240 10% 3.9%");
-    root.style.setProperty("--popover-foreground", "0 0% 98%");
-    root.style.setProperty("--primary", "252 59% 65%");  // Improved primary color
-    root.style.setProperty("--primary-foreground", "0 0% 98%");
-    root.style.setProperty("--secondary", "240 5% 18%"); // Slightly lighter secondary
-    root.style.setProperty("--secondary-foreground", "0 0% 98%");
-    root.style.setProperty("--muted", "240 5% 16%");     // Improved muted background
-    root.style.setProperty("--muted-foreground", "240 5% 64.9%");
-    root.style.setProperty("--accent", "240 4.8% 20%");  // Improved accent
-    root.style.setProperty("--accent-foreground", "0 0% 98%");
-    root.style.setProperty("--destructive", "0 62.8% 40.6%"); // More visible destructive
-    root.style.setProperty("--destructive-foreground", "0 0% 98%");
-    root.style.setProperty("--border", "240 5% 15.9%");  // More visible border
-    root.style.setProperty("--input", "240 5% 15.9%");
-    root.style.setProperty("--ring", "252 59% 65%");     // Match primary
+    // Tema escuro com fundo preto, elementos azul escuro e texto branco
+    root.style.setProperty("--background", "0 0% 0%"); // Fundo preto puro
+    root.style.setProperty("--foreground", "0 0% 100%"); // Texto branco puro
+    
+    root.style.setProperty("--card", "0 0% 0%"); // Cards com fundo preto
+    root.style.setProperty("--card-foreground", "0 0% 100%"); // Texto branco nos cards
+    
+    root.style.setProperty("--popover", "0 0% 0%"); // Popovers com fundo preto
+    root.style.setProperty("--popover-foreground", "0 0% 100%"); // Texto branco nos popovers
+    
+    root.style.setProperty("--primary", "210 100% 30%"); // Azul escuro para elementos primários
+    root.style.setProperty("--primary-foreground", "0 0% 100%"); // Texto branco sobre elementos primários
+    
+    root.style.setProperty("--secondary", "210 100% 15%"); // Tons mais escuros para elementos secundários
+    root.style.setProperty("--secondary-foreground", "0 0% 100%"); // Texto branco sobre elementos secundários
+    
+    root.style.setProperty("--muted", "0 0% 10%"); // Elementos mutados em tom de cinza muito escuro
+    root.style.setProperty("--muted-foreground", "0 0% 70%"); // Texto cinza claro para elementos mutados
+    
+    root.style.setProperty("--accent", "210 100% 20%"); // Azul escuro para elementos de destaque
+    root.style.setProperty("--accent-foreground", "0 0% 100%"); // Texto branco para elementos de destaque
+    
+    root.style.setProperty("--destructive", "0 70% 40%"); // Vermelho mais escuro para ações destrutivas
+    root.style.setProperty("--destructive-foreground", "0 0% 100%"); // Texto branco sobre botões destrutivos
+    
+    root.style.setProperty("--border", "210 100% 15%"); // Bordas em azul escuro
+    root.style.setProperty("--input", "0 0% 10%"); // Campos de entrada com fundo preto
+    root.style.setProperty("--ring", "210 100% 30%"); // Destaque de foco em azul escuro
+    
+    // Atualizar variáveis específicas da barra lateral também
+    root.style.setProperty("--sidebar-background", "0 0% 5%"); // Sidebar ligeiramente mais clara que o fundo principal
+    root.style.setProperty("--sidebar-foreground", "0 0% 100%");
+    root.style.setProperty("--sidebar-primary", "210 100% 30%");
+    root.style.setProperty("--sidebar-primary-foreground", "0 0% 100%");
+    root.style.setProperty("--sidebar-accent", "210 100% 15%");
+    root.style.setProperty("--sidebar-accent-foreground", "0 0% 100%");
+    root.style.setProperty("--sidebar-border", "210 100% 15%");
+    root.style.setProperty("--sidebar-ring", "210 100% 30%");
   };
 
   const applyLightTheme = (root: HTMLElement) => {
-    // Reset to default light theme values
+    // Resetar para valores padrão do tema claro
     root.style.removeProperty("--background");
     root.style.removeProperty("--foreground");
     root.style.removeProperty("--card");
@@ -106,6 +124,14 @@ export function ThemeProvider({
     root.style.removeProperty("--border");
     root.style.removeProperty("--input");
     root.style.removeProperty("--ring");
+    root.style.removeProperty("--sidebar-background");
+    root.style.removeProperty("--sidebar-foreground");
+    root.style.removeProperty("--sidebar-primary");
+    root.style.removeProperty("--sidebar-primary-foreground");
+    root.style.removeProperty("--sidebar-accent");
+    root.style.removeProperty("--sidebar-accent-foreground");
+    root.style.removeProperty("--sidebar-border");
+    root.style.removeProperty("--sidebar-ring");
   };
 
   const value = {

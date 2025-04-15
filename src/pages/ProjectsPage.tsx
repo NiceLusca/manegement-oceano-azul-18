@@ -18,7 +18,12 @@ const ProjectsPage = () => {
     prioridade: 'medium',
     responsavel: '',
     departamento: '',
-    dataVencimento: ''
+    dataVencimento: '',
+    isRecurring: false,
+    recurrenceType: 'daily',
+    endDate: '',
+    customDays: [],
+    customMonths: []
   });
   const [membrosFiltrados, setMembrosFiltrados] = useState<TeamMember[]>([]);
   
@@ -27,7 +32,8 @@ const ProjectsPage = () => {
     teamMembers, 
     departamentos, 
     loading, 
-    addTask 
+    addTask,
+    addRecurringTask
   } = useProjects();
 
   useEffect(() => {
@@ -48,7 +54,23 @@ const ProjectsPage = () => {
   };
 
   const handleAddTask = async () => {
-    const success = await addTask(novaTarefa);
+    let success = false;
+    
+    if (novaTarefa.isRecurring) {
+      success = await addRecurringTask({
+        title: novaTarefa.titulo,
+        description: novaTarefa.descricao,
+        assigneeId: novaTarefa.responsavel,
+        startDate: novaTarefa.dataVencimento,
+        endDate: novaTarefa.endDate,
+        recurrenceType: novaTarefa.recurrenceType,
+        customDays: novaTarefa.customDays,
+        customMonths: novaTarefa.customMonths,
+        priority: novaTarefa.prioridade
+      });
+    } else {
+      success = await addTask(novaTarefa);
+    }
     
     if (success) {
       setNovaTarefa({
@@ -58,7 +80,12 @@ const ProjectsPage = () => {
         prioridade: 'medium',
         responsavel: '',
         departamento: '',
-        dataVencimento: ''
+        dataVencimento: '',
+        isRecurring: false,
+        recurrenceType: 'daily',
+        endDate: '',
+        customDays: [],
+        customMonths: []
       });
       setOpenDialog(false);
     }

@@ -76,6 +76,9 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
 }) => {
   const [showRecurringOptions, setShowRecurringOptions] = useState(false);
 
+  // Business days (Monday to Friday) for the workweek option
+  const businessDays = [1, 2, 3, 4, 5]; // Monday to Friday
+
   const handleRecurringChange = (checked: boolean) => {
     setShowRecurringOptions(checked);
     setNovaTarefa({
@@ -85,6 +88,14 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
       endDate: checked ? '' : undefined,
       customDays: checked ? [] : undefined,
       customMonths: checked ? [] : undefined
+    });
+  };
+
+  const handleWorkweekSelection = () => {
+    setNovaTarefa({
+      ...novaTarefa,
+      recurrenceType: 'workweek',
+      customDays: businessDays
     });
   };
 
@@ -309,6 +320,10 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
                     <Label htmlFor="daily">Diária</Label>
                   </div>
                   <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="workweek" id="workweek" onClick={handleWorkweekSelection} />
+                    <Label htmlFor="workweek">Dias úteis (Seg-Sex)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
                     <RadioGroupItem value="weekly" id="weekly" />
                     <Label htmlFor="weekly">Semanal</Label>
                   </div>
@@ -317,15 +332,57 @@ export const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({
                     <Label htmlFor="monthly">Mensal</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="yearly" id="yearly" />
-                    <Label htmlFor="yearly">Anual</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
                     <RadioGroupItem value="custom" id="custom" />
                     <Label htmlFor="custom">Personalizada</Label>
                   </div>
                 </RadioGroup>
               </div>
+
+              {novaTarefa.recurrenceType === 'weekly' && (
+                <div className="grid grid-cols-4 items-start gap-4">
+                  <Label className="text-right mt-2">
+                    Dia da Semana
+                  </Label>
+                  <div className="flex flex-wrap gap-2 col-span-3">
+                    {daysOfWeek.map(day => (
+                      <div key={day.value} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`day-${day.value}`} 
+                          checked={(novaTarefa.customDays || []).includes(day.value)}
+                          onCheckedChange={() => toggleDay(day.value)}
+                        />
+                        <Label htmlFor={`day-${day.value}`}>{day.label}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {novaTarefa.recurrenceType === 'monthly' && (
+                <div className="grid grid-cols-4 items-start gap-4">
+                  <Label className="text-right mt-2">
+                    Dia do Mês
+                  </Label>
+                  <div className="col-span-3">
+                    <Input 
+                      type="number" 
+                      min="1" 
+                      max="31" 
+                      placeholder="Dia do mês (1-31)" 
+                      onChange={(e) => {
+                        const day = parseInt(e.target.value);
+                        if (day >= 1 && day <= 31) {
+                          setNovaTarefa({
+                            ...novaTarefa,
+                            customDays: [day]
+                          });
+                        }
+                      }}
+                      value={(novaTarefa.customDays || [])[0] || ''}
+                    />
+                  </div>
+                </div>
+              )}
 
               {novaTarefa.recurrenceType === 'custom' && (
                 <>

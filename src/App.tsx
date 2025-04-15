@@ -12,11 +12,10 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import AuthPage from "@/pages/AuthPage";
 import Index from "@/pages/Index";
 import TeamPage from "@/pages/TeamPage";
-import ProjectsPage from "@/pages/ProjectsPage";  // Changed from TasksPage
+import ProjectsPage from "@/pages/ProjectsPage";
 import CalendarPage from "@/pages/CalendarPage";
 import SettingsPage from "@/pages/SettingsPage";
 import CustomersPage from "@/pages/CustomersPage";
-import RecurringTasksPage from "@/pages/RecurringTasksPage";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,7 +37,6 @@ const App = () => (
               <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
               <Route path="/customers" element={<ProtectedRoute><CustomersPage /></ProtectedRoute>} />
-              <Route path="/recurring-tasks" element={<ProtectedRoute><RecurringTasksPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
@@ -49,4 +47,3 @@ const App = () => (
 );
 
 export default App;
-

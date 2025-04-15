@@ -9,7 +9,6 @@ import {
   Home,
   CheckSquare,
   UserSquare2,
-  Clock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -25,7 +24,6 @@ export function Sidebar() {
     { name: 'Tarefas', href: '/projects', icon: CheckSquare },
     { name: 'Clientes', href: '/customers', icon: UserSquare2 },
     { name: 'Calendário', href: '/calendar', icon: Calendar },
-    { name: 'Tarefas Recorrentes', href: '/recurring-tasks', icon: Clock },
     { name: 'Configurações', href: '/settings', icon: Settings },
   ];
 

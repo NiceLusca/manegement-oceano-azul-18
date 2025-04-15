@@ -1,74 +1,74 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { Customer, TeamMember } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Customer, TeamMember } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useCustomers = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [originOptions, setOriginOptions] = useState<string[]>(['Naie', '1k por Dia', 'Outro']);
 
-  const fetchCustomers = async () => {
+  const fetchCustomers = useCallback(async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // Fetch customers
+      const { data: customersData, error: customersError } = await supabase
         .from('customers')
         .select('*');
-
-      if (error) throw error;
       
-      const mappedCustomers: Customer[] = (data || []).map(customer => ({
-        id: customer.id,
-        name: customer.name,
-        origem: customer.origem || '',
-        email: customer.email || '',
-        phone: customer.phone || '',
-        status: (customer.status || 'lead') as 'lead' | 'prospect' | 'customer' | 'churned',
-        lastContact: customer.last_contact || '',
-        notes: customer.notes || '',
-        assignedTo: customer.assigned_to || '',
-        value: customer.value || 0
-      }));
+      if (customersError) throw customersError;
       
-      setCustomers(mappedCustomers);
+      // Fetch team members for assignment
+      const { data: teamData, error: teamError } = await supabase
+        .from('profiles')
+        .select('id, nome, cargo, avatar_url, nivel_acesso');
+      
+      if (teamError) throw teamError;
+      
+      // Fetch origin options
+      const { data: originData, error: originError } = await supabase
+        .from('customers')
+        .select('origem_options')
+        .limit(1);
+        
+      if (!originError && originData && originData.length > 0 && originData[0].origem_options) {
+        setOriginOptions(originData[0].origem_options);
+      }
+      
+      // Map the data
+      setCustomers(customersData || []);
+      
+      setTeamMembers(teamData?.map(member => ({
+        id: member.id,
+        name: member.nome || 'Sem nome',
+        role: member.cargo || 'Colaborador',
+        email: '',
+        avatar: member.avatar_url || '',
+        department: '',
+        status: 'active',
+        joinedDate: '',
+        accessLevel: member.nivel_acesso
+      })) || []);
     } catch (error: any) {
-      console.error('Erro ao buscar clientes:', error.message);
+      console.error('Erro ao buscar dados:', error.message);
       toast({
         title: "Erro",
-        description: "Não foi possível carregar os clientes.",
+        description: "Não foi possível carregar os dados: " + error.message,
         variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
-  const fetchTeamMembers = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*');
-
-      if (error) throw error;
-      
-      const formattedMembers: TeamMember[] = (data || []).map(profile => ({
-        id: profile.id,
-        name: profile.nome || 'Sem nome',
-        role: profile.cargo || 'Colaborador',
-        email: '',  // O Supabase não armazena emails no perfil
-        avatar: profile.avatar_url || '',
-        department: profile.departamento_id || '',
-        status: 'active', // Definindo como 'active' para corresponder ao tipo esperado
-        joinedDate: profile.created_at
-      }));
-      
-      setTeamMembers(formattedMembers);
-    } catch (error: any) {
-      console.error('Erro ao buscar equipe:', error.message);
-    }
-  };
+  useEffect(() => {
+    fetchCustomers();
+  }, [fetchCustomers]);
 
   const addCustomer = async (customerData: Omit<Customer, 'id' | 'lastContact'>) => {
     try {
@@ -82,37 +82,46 @@ export const useCustomers = () => {
             phone: customerData.phone,
             status: customerData.status,
             notes: customerData.notes,
-            assigned_to: customerData.assignedTo || null,
-            value: customerData.value || 0
+            assigned_to: customerData.assignedTo,
+            value: customerData.value,
+            last_contact: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           }
         ])
         .select();
 
       if (error) throw error;
 
+      // Update the customer list with the new customer
+      setCustomers(prev => [...prev, data[0] as Customer]);
+      
       toast({
         title: "Sucesso",
         description: "Cliente adicionado com sucesso!",
         variant: "default"
       });
-
-      if (data && data.length > 0) {
-        const newCustomer: Customer = {
-          id: data[0].id,
-          name: data[0].name,
-          origem: data[0].origem || '',
-          email: data[0].email || '',
-          phone: data[0].phone || '',
-          status: (data[0].status || 'lead') as 'lead' | 'prospect' | 'customer' | 'churned',
-          lastContact: data[0].last_contact || '',
-          notes: data[0].notes || '',
-          assignedTo: data[0].assigned_to || '',
-          value: data[0].value || 0
-        };
+      
+      // If customer has a custom origin, update the origin options
+      if (customerData.origem && 
+          !originOptions.includes(customerData.origem) && 
+          customerData.origem !== 'Outro') {
         
-        setCustomers(prev => [...prev, newCustomer]);
+        const newOriginOptions = [...originOptions];
+        // Keep "Outro" at the end
+        newOriginOptions.pop();
+        newOriginOptions.push(customerData.origem);
+        newOriginOptions.push('Outro');
+        
+        // Update the origin options in the database
+        await supabase
+          .from('customers')
+          .update({ origem_options: newOriginOptions })
+          .eq('id', data[0].id);
+          
+        setOriginOptions(newOriginOptions);
       }
-
+      
       return true;
     } catch (error: any) {
       console.error('Erro ao adicionar cliente:', error.message);
@@ -125,16 +134,86 @@ export const useCustomers = () => {
     }
   };
 
-  useEffect(() => {
-    fetchCustomers();
-    fetchTeamMembers();
-  }, []);
+  const updateCustomer = async (customerData: Customer) => {
+    try {
+      const { error } = await supabase
+        .from('customers')
+        .update({
+          name: customerData.name,
+          origem: customerData.origem,
+          email: customerData.email,
+          phone: customerData.phone,
+          status: customerData.status,
+          notes: customerData.notes,
+          assigned_to: customerData.assignedTo,
+          value: customerData.value,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', customerData.id);
+
+      if (error) throw error;
+
+      // Update the customer list
+      setCustomers(prev => prev.map(customer => 
+        customer.id === customerData.id ? customerData : customer
+      ));
+      
+      toast({
+        title: "Sucesso",
+        description: "Cliente atualizado com sucesso!",
+        variant: "default"
+      });
+      
+      return true;
+    } catch (error: any) {
+      console.error('Erro ao atualizar cliente:', error.message);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o cliente: " + error.message,
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
+  const deleteCustomer = async (customerId: string) => {
+    try {
+      const { error } = await supabase
+        .from('customers')
+        .delete()
+        .eq('id', customerId);
+
+      if (error) throw error;
+
+      // Update the customer list
+      setCustomers(prev => prev.filter(customer => customer.id !== customerId));
+      
+      toast({
+        title: "Sucesso",
+        description: "Cliente removido com sucesso!",
+        variant: "default"
+      });
+      
+      return true;
+    } catch (error: any) {
+      console.error('Erro ao excluir cliente:', error.message);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o cliente: " + error.message,
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
 
   return {
     customers,
     teamMembers,
     loading,
+    originOptions,
+    fetchCustomers,
     addCustomer,
-    refreshCustomers: fetchCustomers
+    updateCustomer,
+    deleteCustomer
   };
 };

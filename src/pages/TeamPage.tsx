@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { TeamMember } from '@/types';
@@ -8,6 +9,14 @@ import { EditMemberDialog } from '@/components/team/EditMemberDialog';
 import { DeleteMemberDialog } from '@/components/team/DeleteMemberDialog';
 import { Plus, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from '@/components/ui/tabs';
+import { DepartmentTeamView } from '@/components/team/DepartmentTeamView';
+import { supabase } from '@/integrations/supabase/client';
 
 const TeamPage = () => {
   const {
@@ -20,6 +29,8 @@ const TeamPage = () => {
     deleteMember,
     getDepartmentName,
     canEditMember,
+    canAddMembers,
+    canDeleteMember,
     error
   } = useTeamMembers();
 
@@ -27,6 +38,9 @@ const TeamPage = () => {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState('');
+  const [viewMode, setViewMode] = useState<'all' | 'departments'>('all');
+  const [teamByDepartment, setTeamByDepartment] = useState<any[]>([]);
+  const [loadingDepartments, setLoadingDepartments] = useState(true);
   
   const [novoMembro, setNovoMembro] = useState<MemberFormData>({
     nome: '',
@@ -42,6 +56,28 @@ const TeamPage = () => {
     departamento: '',
     avatar_url: ''
   });
+
+  // Fetch team by department view
+  useEffect(() => {
+    const fetchDepartmentView = async () => {
+      try {
+        setLoadingDepartments(true);
+        const { data, error } = await supabase
+          .from('team_by_department')
+          .select('*');
+        
+        if (error) throw error;
+        
+        setTeamByDepartment(data || []);
+      } catch (error) {
+        console.error('Error fetching department view:', error);
+      } finally {
+        setLoadingDepartments(false);
+      }
+    };
+    
+    fetchDepartmentView();
+  }, [teamMembers]);
 
   const handleAddMember = async () => {
     const success = await addMember(novoMembro);
@@ -94,12 +130,6 @@ const TeamPage = () => {
     setOpenDeleteDialog(true);
   };
 
-  const canAddMembers = userAccess === 'SuperAdmin' || userAccess === 'Admin';
-
-  const canDeleteMember = (memberId: string) => {
-    return userAccess === 'SuperAdmin' || userAccess === 'Admin';
-  };
-
   return (
     <Layout>
       <div className="space-y-6 animate-fade-in">
@@ -108,7 +138,7 @@ const TeamPage = () => {
             <h1 className="text-3xl font-bold">Membros da Equipe</h1>
             <p className="text-muted-foreground">Gerencie os membros da sua equipe e suas funções.</p>
           </div>
-          {canAddMembers && (
+          {canAddMembers() && (
             <AddMemberDialog
               open={openDialog}
               onOpenChange={setOpenDialog}
@@ -140,26 +170,51 @@ const TeamPage = () => {
             </AlertDescription>
           </Alert>
         )}
-        
-        {loading ? (
-          <div className="flex justify-center items-center h-40">
-            <p>Carregando membros da equipe...</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {teamMembers.map((member) => (
-              <TeamMemberCard
-                key={member.id}
-                member={member}
-                departmentName={getDepartmentName(member.department)}
-                onEdit={openEditDialogForMember}
-                onDelete={openDeleteDialogForMember}
-                canEdit={canEditMember(member.id)}
-                canDelete={canDeleteMember(member.id)}
+
+        <Tabs defaultValue="all" className="w-full" onValueChange={(value) => setViewMode(value as 'all' | 'departments')}>
+          <TabsList className="mb-4">
+            <TabsTrigger value="all">Todos os Membros</TabsTrigger>
+            <TabsTrigger value="departments">Por Departamento</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="all">
+            {loading ? (
+              <div className="flex justify-center items-center h-40">
+                <p>Carregando membros da equipe...</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {teamMembers.map((member) => (
+                  <TeamMemberCard
+                    key={member.id}
+                    member={member}
+                    departmentName={getDepartmentName(member.department)}
+                    onEdit={openEditDialogForMember}
+                    onDelete={openDeleteDialogForMember}
+                    canEdit={canEditMember(member.id)}
+                    canDelete={canDeleteMember(member.id)}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="departments">
+            {loadingDepartments ? (
+              <div className="flex justify-center items-center h-40">
+                <p>Carregando departamentos...</p>
+              </div>
+            ) : (
+              <DepartmentTeamView
+                departmentsData={teamByDepartment}
+                onEditMember={openEditDialogForMember}
+                onDeleteMember={openDeleteDialogForMember}
+                canEditMember={canEditMember}
+                canDeleteMember={canDeleteMember}
               />
-            ))}
-          </div>
-        )}
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
       <EditMemberDialog

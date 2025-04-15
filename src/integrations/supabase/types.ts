@@ -19,6 +19,7 @@ export type Database = {
           name: string
           notes: string | null
           origem: string | null
+          origem_options: string[] | null
           phone: string | null
           status: string
           updated_at: string | null
@@ -33,6 +34,7 @@ export type Database = {
           name: string
           notes?: string | null
           origem?: string | null
+          origem_options?: string[] | null
           phone?: string | null
           status?: string
           updated_at?: string | null
@@ -47,6 +49,7 @@ export type Database = {
           name?: string
           notes?: string | null
           origem?: string | null
+          origem_options?: string[] | null
           phone?: string | null
           status?: string
           updated_at?: string | null
@@ -127,6 +130,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "departamentos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_departamento_id_fkey"
+            columns: ["departamento_id"]
+            isOneToOne: false
+            referencedRelation: "team_by_department"
+            referencedColumns: ["department_id"]
           },
         ]
       }
@@ -268,24 +278,25 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      team_by_department: {
+        Row: {
+          department_color: string | null
+          department_id: string | null
+          department_name: string | null
+          member_count: number | null
+          members: Json | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_user_department: {
-        Args: Record<PropertyKey, never>
+        Args: { user_id: string }
         Returns: string
       }
       get_user_nivel_acesso: {
-        Args: Record<PropertyKey, never>
+        Args: { user_id: string }
         Returns: string
-      }
-      is_admin_or_superadmin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_supervisor: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
       }
     }
     Enums: {

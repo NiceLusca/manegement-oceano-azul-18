@@ -111,3 +111,32 @@ export const fetchUserAccessLevel = async (userId: string | undefined) => {
     return 'user'; // Default in case of error
   }
 };
+
+// Verify SuperAdmin role
+export const isUserSuperAdmin = async (userId: string | undefined) => {
+  const accessLevel = await fetchUserAccessLevel(userId);
+  return accessLevel === 'SuperAdmin';
+};
+
+// Get department color
+export const getDepartmentColor = async (departmentId: string | null) => {
+  if (!departmentId) return null;
+  
+  try {
+    const { data, error } = await supabase
+      .from('departamentos')
+      .select('cor')
+      .eq('id', departmentId)
+      .maybeSingle();
+      
+    if (error) {
+      console.error('Error fetching department color:', error.message);
+      return null;
+    }
+    
+    return data?.cor || null;
+  } catch (error) {
+    console.error('Error in getDepartmentColor:', error);
+    return null;
+  }
+};

@@ -63,10 +63,11 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				oceanoazul: {
-					light: '#7AC7FF',
-					DEFAULT: '#0085D4',
-					dark: '#005C93',
+				oceano: {
+					claro: 'hsl(var(--oceano-claro))',
+					medio: 'hsl(var(--oceano-medio))',
+					escuro: 'hsl(var(--oceano-escuro))',
+					profundo: 'hsl(var(--oceano-profundo))',
 				}
 			},
 			borderRadius: {

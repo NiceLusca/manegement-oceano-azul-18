@@ -23,7 +23,7 @@ const ProjectsPage = () => {
     recurrenceType: 'daily',
     endDate: '',
     customDays: [],
-    customMonths: []
+    // Remove customMonths as it's not in the type definition
   });
   const [membrosFiltrados, setMembrosFiltrados] = useState<TeamMember[]>([]);
   
@@ -65,8 +65,8 @@ const ProjectsPage = () => {
         endDate: novaTarefa.endDate,
         recurrenceType: novaTarefa.recurrenceType,
         customDays: novaTarefa.customDays,
-        customMonths: novaTarefa.customMonths,
         priority: novaTarefa.prioridade
+        // customMonths removed from here
       });
     } else {
       success = await addTask(novaTarefa);
@@ -85,7 +85,7 @@ const ProjectsPage = () => {
         recurrenceType: 'daily',
         endDate: '',
         customDays: [],
-        customMonths: []
+        // Remove customMonths here as well
       });
       setOpenDialog(false);
     }

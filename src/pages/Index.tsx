@@ -17,8 +17,8 @@ const Index = () => {
   const isAdmin = nivelAcesso === "admin";
   const isManager = nivelAcesso === "admin" || nivelAcesso === "manager";
   return <Layout>
-      <div className="space-y-6 animate-fade-in bg-gray-900">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="space-y-6 animate-fade-in bg-slate-50">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-zinc-50">
           <div>
             <h1 className="text-3xl font-bold">Dashboard</h1>
             <p className="text-muted-foreground">Bem-vindo ao seu painel de gerenciamento de equipe.</p>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Layout } from '@/components/Layout';
 import { DashboardStats } from '@/components/DashboardStats';
@@ -6,41 +5,19 @@ import { RecentActivity } from '@/components/RecentActivity';
 import { ProjectsOverview } from '@/components/ProjectsOverview';
 import { TeamOverview } from '@/components/TeamOverview';
 import { Button } from '@/components/ui/button';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { 
-  Menubar,
-  MenubarContent,
-  MenubarItem,
-  MenubarMenu,
-  MenubarSeparator,
-  MenubarTrigger
-} from '@/components/ui/menubar';
-import { 
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious
-} from '@/components/ui/carousel';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarTrigger } from '@/components/ui/menubar';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Briefcase, Users, Bell, Calendar, Settings, ChevronDown } from 'lucide-react';
-
 const Index = () => {
   const [nivelAcesso] = React.useState("admin"); // Em uma aplicação real, viria de um contexto de autenticação
-  
+
   const isAdmin = nivelAcesso === "admin";
   const isManager = nivelAcesso === "admin" || nivelAcesso === "manager";
-  
-  return (
-    <Layout>
-      <div className="space-y-6 animate-fade-in">
+  return <Layout>
+      <div className="space-y-6 animate-fade-in bg-gray-900">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold">Dashboard</h1>
@@ -78,8 +55,7 @@ const Index = () => {
                   <MenubarItem>
                     Nível de Acesso: 
                     <Badge className="ml-2">
-                      {nivelAcesso === "admin" ? "Administrador" : 
-                       nivelAcesso === "manager" ? "Gerente" : "Usuário"}
+                      {nivelAcesso === "admin" ? "Administrador" : nivelAcesso === "manager" ? "Gerente" : "Usuário"}
                     </Badge>
                   </MenubarItem>
                   <MenubarSeparator />
@@ -92,13 +68,11 @@ const Index = () => {
         
         <DashboardStats />
         
-        {isAdmin && (
-          <div className="relative px-4 -mx-4">
+        {isAdmin && <div className="relative px-4 -mx-4">
             <h2 className="text-xl font-semibold mb-4">Resumo de Projetos em Destaque</h2>
             <Carousel className="w-full">
               <CarouselContent>
-                {[1, 2, 3, 4].map((item) => (
-                  <CarouselItem key={item} className="basis-full sm:basis-1/2 lg:basis-1/3">
+                {[1, 2, 3, 4].map(item => <CarouselItem key={item} className="basis-full sm:basis-1/2 lg:basis-1/3">
                     <Card>
                       <CardHeader className="pb-2">
                         <CardTitle className="text-lg">Projeto {item}</CardTitle>
@@ -118,14 +92,12 @@ const Index = () => {
                         </div>
                       </CardContent>
                     </Card>
-                  </CarouselItem>
-                ))}
+                  </CarouselItem>)}
               </CarouselContent>
               <CarouselPrevious className="left-0" />
               <CarouselNext className="right-0" />
             </Carousel>
-          </div>
-        )}
+          </div>}
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ProjectsOverview />
@@ -135,8 +107,7 @@ const Index = () => {
           </div>
         </div>
         
-        {isManager && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {isManager && <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -211,19 +182,14 @@ const Index = () => {
                 <Button variant="outline" className="w-full mt-4">Ver calendário</Button>
               </CardContent>
             </Card>
-          </div>
-        )}
+          </div>}
         
-        {isAdmin && (
-          <div className="flex justify-end">
+        {isAdmin && <div className="flex justify-end">
             <Button variant="outline" className="gap-2">
               <Settings className="h-4 w-4" /> Configurar Dashboard
             </Button>
-          </div>
-        )}
+          </div>}
       </div>
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default Index;

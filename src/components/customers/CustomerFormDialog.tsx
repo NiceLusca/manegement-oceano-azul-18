@@ -225,7 +225,7 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
                 <SelectValue placeholder="Selecione um responsável" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Sem responsável</SelectItem>
+                <SelectItem value="none">Sem responsável</SelectItem>
                 {teamMembers.map((member) => (
                   <SelectItem key={member.id} value={member.id}>
                     {member.name}

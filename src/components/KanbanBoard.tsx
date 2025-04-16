@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { tasks as mockTasks, getTeamMemberById, projects } from '@/data/mock-data';
@@ -270,14 +271,14 @@ export function KanbanBoard() {
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Filtrar por departamento:</span>
             <Select
-              value={departmentFilter || ""}
-              onValueChange={(value) => setDepartmentFilter(value || null)}
+              value={departmentFilter || "all"}
+              onValueChange={(value) => setDepartmentFilter(value === "all" ? null : value)}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Todos os departamentos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os departamentos</SelectItem>
+                <SelectItem value="all">Todos os departamentos</SelectItem>
                 {departments.map((dept) => (
                   <SelectItem key={dept.id} value={dept.id}>{dept.nome}</SelectItem>
                 ))}

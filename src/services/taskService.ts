@@ -1,5 +1,94 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { Task } from '@/types';
+
+// Atualizar o status de uma tarefa (usado no sistema de arrastar e soltar)
+export const updateTaskStatus = async (taskId: string, newStatus: string) => {
+  try {
+    // Validar status
+    if (!['todo', 'in-progress', 'review', 'completed'].includes(newStatus)) {
+      throw new Error('Status inválido');
+    }
+    
+    // Atualizar no banco de dados
+    const { error } = await supabase
+      .from('tasks')
+      .update({ 
+        status: newStatus,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', taskId);
+      
+    if (error) throw error;
+    
+    return true;
+  } catch (error: any) {
+    console.error('Erro ao atualizar status da tarefa:', error.message);
+    return false;
+  }
+};
+
+// Buscar tarefas por departamento
+export const getTasksByDepartment = async (departmentId: string) => {
+  try {
+    // Esta consulta é mais complexa e requer JOIN
+    const { data, error } = await supabase
+      .from('tasks')
+      .select(`
+        *,
+        profiles:assignee_id (
+          departamento_id
+        )
+      `)
+      .eq('profiles.departamento_id', departmentId);
+      
+    if (error) throw error;
+    
+    return data || [];
+  } catch (error: any) {
+    console.error('Erro ao buscar tarefas por departamento:', error.message);
+    return [];
+  }
+};
+
+// Buscar tarefas com detalhes expandidos (incluindo informações do responsável)
+export const getTasksWithDetails = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('tasks')
+      .select(`
+        *,
+        assignee:assignee_id (
+          id,
+          nome,
+          cargo,
+          avatar_url,
+          departamento_id
+        )
+      `)
+      .order('due_date', { ascending: true });
+      
+    if (error) throw error;
+    
+    // Formatar os dados para o formato esperado pelo frontend
+    const formattedTasks = data?.map(task => ({
+      id: task.id,
+      title: task.title,
+      description: task.description || '',
+      status: task.status as 'todo' | 'in-progress' | 'review' | 'completed',
+      assigneeId: task.assignee_id || '',
+      dueDate: task.due_date || new Date().toISOString(),
+      priority: task.priority as 'low' | 'medium' | 'high',
+      assignee: task.assignee,
+      projectId: 'default-category'
+    })) || [];
+    
+    return formattedTasks;
+  } catch (error: any) {
+    console.error('Erro ao buscar tarefas com detalhes:', error.message);
+    return [];
+  }
+};
 
 export const addTask = async (taskData: {
   titulo: string;

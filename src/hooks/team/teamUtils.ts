@@ -52,7 +52,7 @@ export const buildUpdateData = (memberData: EditMemberFormData, currentUserAcces
   return updateData;
 };
 
-// Check if user can edit a member - using secure RPC function
+// Check if user can edit a member using the user's access level
 export const canEditMember = async (
   memberId: string, 
   userId: string | undefined
@@ -69,10 +69,11 @@ export const canEditMember = async (
       return false;
     }
     
-    // SuperAdmin and Admin can edit any member
+    // SuperAdmin can edit any member
     if (accessLevel === 'SuperAdmin') return true;
+    
+    // Admin cannot edit SuperAdmin
     if (accessLevel === 'Admin') {
-      // Admin cannot edit SuperAdmin
       const { data, error: memberError } = await supabase
         .from('profiles')
         .select('nivel_acesso')
@@ -107,27 +108,28 @@ export const canEditMember = async (
   }
 };
 
-// Check if user can add new members - using secure RPC function
+// Check if user can add new members based on their access level
 export const canAddMembers = async (userId: string | undefined): Promise<boolean> => {
   if (!userId) return false;
   
   try {
-    const { data: isAdmin, error } = await supabase
-      .rpc('is_user_admin', { user_id: userId });
+    const { data: accessLevel, error } = await supabase
+      .rpc('get_user_nivel_acesso', { user_id: userId });
       
     if (error) {
       console.error('Error checking add permission:', error);
       return false;
     }
     
-    return Boolean(isAdmin);
+    // Only Admin and SuperAdmin can add members
+    return accessLevel === 'Admin' || accessLevel === 'SuperAdmin';
   } catch (error) {
     console.error('Error in canAddMembers:', error);
     return false;
   }
 };
 
-// Check if user can delete members - using secure RPC function
+// Check if user can delete members based on their access level
 export const canDeleteMember = async (
   userId: string | undefined,
   memberId: string
@@ -135,10 +137,10 @@ export const canDeleteMember = async (
   if (!userId) return false;
   
   try {
-    const { data: isAdmin, error } = await supabase
-      .rpc('is_user_admin', { user_id: userId });
+    const { data: accessLevel, error } = await supabase
+      .rpc('get_user_nivel_acesso', { user_id: userId });
       
-    if (error || !isAdmin) {
+    if (error || !['Admin', 'SuperAdmin'].includes(accessLevel)) {
       return false;
     }
     
@@ -150,7 +152,13 @@ export const canDeleteMember = async (
       .maybeSingle();
       
     if (memberError || !data) return false;
-    return data.nivel_acesso !== 'SuperAdmin';
+    
+    // Only SuperAdmin can delete other SuperAdmins
+    if (data.nivel_acesso === 'SuperAdmin') {
+      return accessLevel === 'SuperAdmin';
+    }
+    
+    return true;
   } catch (error) {
     console.error('Error in canDeleteMember:', error);
     return false;
@@ -177,20 +185,20 @@ export const fetchUserAccessLevel = async (userId: string | undefined) => {
   }
 };
 
-// Verify SuperAdmin role using the secure method
+// Verify SuperAdmin role using the access level function
 export const isUserSuperAdmin = async (userId: string | undefined) => {
   if (!userId) return false;
   
   try {
     const { data, error } = await supabase
-      .rpc('is_user_super_admin', { user_id: userId });
+      .rpc('get_user_nivel_acesso', { user_id: userId });
       
     if (error) {
       console.error('Error checking super admin status:', error);
       return false;
     }
     
-    return Boolean(data);
+    return data === 'SuperAdmin';
   } catch (error) {
     console.error('Error in isUserSuperAdmin:', error);
     return false;

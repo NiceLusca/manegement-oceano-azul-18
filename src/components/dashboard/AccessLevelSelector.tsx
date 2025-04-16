@@ -22,23 +22,22 @@ export const AccessLevelSelector: React.FC<AccessLevelSelectorProps> = ({
       if (!user?.id) return;
       
       try {
-        // Check if super admin
-        const { data: superAdminResult, error: superAdminError } = await supabase
-          .rpc('is_user_super_admin', { user_id: user.id });
+        // Check access level
+        const { data: accessLevel, error } = await supabase
+          .rpc('get_user_nivel_acesso', { user_id: user.id });
           
-        if (!superAdminError && superAdminResult) {
+        if (error) {
+          console.error('Error checking access level:', error);
+          return;
+        }
+          
+        if (accessLevel === 'SuperAdmin') {
           setIsSuperAdmin(true);
           setIsAdmin(true);
           return;
         }
         
-        // Check if admin
-        const { data: adminResult, error: adminError } = await supabase
-          .rpc('is_user_admin', { user_id: user.id });
-          
-        if (!adminError) {
-          setIsAdmin(Boolean(adminResult));
-        }
+        setIsAdmin(accessLevel === 'Admin');
       } catch (error) {
         console.error('Error checking permissions:', error);
       }

@@ -25,6 +25,9 @@ export const CustomerOriginField: React.FC<CustomerOriginFieldProps> = ({
   handleOrigemChange,
   handleCustomOriginChange,
 }) => {
+  // Filtramos aqui para garantir que não exista "Outro" nos originOptions
+  const filteredOptions = originOptions.filter(option => option !== 'Outro');
+  
   return (
     <>
       <div className="grid grid-cols-4 items-center gap-4">
@@ -32,14 +35,14 @@ export const CustomerOriginField: React.FC<CustomerOriginFieldProps> = ({
           Origem
         </Label>
         <Select
-          value={originOptions.includes(origem) ? origem : 'Outro'}
+          value={filteredOptions.includes(origem) ? origem : 'Outro'}
           onValueChange={handleOrigemChange}
         >
           <SelectTrigger className="col-span-3">
             <SelectValue placeholder="Selecione a origem" />
           </SelectTrigger>
           <SelectContent>
-            {originOptions.map((option) => (
+            {filteredOptions.map((option) => (
               <SelectItem key={option} value={option}>
                 {option}
               </SelectItem>
@@ -49,7 +52,7 @@ export const CustomerOriginField: React.FC<CustomerOriginFieldProps> = ({
         </Select>
       </div>
       
-      {(!originOptions.includes(origem) || origem === '') && (
+      {(!filteredOptions.includes(origem) || origem === '') && (
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="customOrigem" className="text-right">
             Outra Origem

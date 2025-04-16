@@ -19,11 +19,11 @@ const ProjectsPage = () => {
     responsavel: '',
     departamento: '',
     dataVencimento: '',
+    dataHora: '', // Novo campo para hora
     isRecurring: false,
     recurrenceType: 'daily',
     endDate: '',
     customDays: [],
-    // Remove customMonths as it's not in the type definition
   });
   const [membrosFiltrados, setMembrosFiltrados] = useState<TeamMember[]>([]);
   
@@ -56,20 +56,31 @@ const ProjectsPage = () => {
   const handleAddTask = async () => {
     let success = false;
     
+    // Combinar data e hora se ambos estiverem preenchidos
+    let dataCompleta = novaTarefa.dataVencimento;
+    if (novaTarefa.dataVencimento && novaTarefa.dataHora) {
+      const data = new Date(novaTarefa.dataVencimento);
+      const [horas, minutos] = novaTarefa.dataHora.split(':').map(Number);
+      data.setHours(horas || 0, minutos || 0);
+      dataCompleta = data.toISOString();
+    }
+    
     if (novaTarefa.isRecurring) {
       success = await addRecurringTask({
         title: novaTarefa.titulo,
         description: novaTarefa.descricao,
         assigneeId: novaTarefa.responsavel,
-        startDate: novaTarefa.dataVencimento,
+        startDate: dataCompleta,
         endDate: novaTarefa.endDate,
         recurrenceType: novaTarefa.recurrenceType,
         customDays: novaTarefa.customDays,
         priority: novaTarefa.prioridade
-        // customMonths removed from here
       });
     } else {
-      success = await addTask(novaTarefa);
+      success = await addTask({
+        ...novaTarefa,
+        dataVencimento: dataCompleta
+      });
     }
     
     if (success) {
@@ -81,11 +92,11 @@ const ProjectsPage = () => {
         responsavel: '',
         departamento: '',
         dataVencimento: '',
+        dataHora: '',
         isRecurring: false,
         recurrenceType: 'daily',
         endDate: '',
         customDays: [],
-        // Remove customMonths here as well
       });
       setOpenDialog(false);
     }

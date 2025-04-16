@@ -29,6 +29,7 @@ interface ProjectFormDialogProps {
     responsavel: string;
     departamento: string;
     dataVencimento: string;
+    dataHora?: string;
     isRecurring?: boolean;
     recurrenceType?: string;
     endDate?: string;
@@ -42,6 +43,7 @@ interface ProjectFormDialogProps {
     responsavel: string;
     departamento: string;
     dataVencimento: string;
+    dataHora?: string;
     isRecurring?: boolean;
     recurrenceType?: string;
     endDate?: string;

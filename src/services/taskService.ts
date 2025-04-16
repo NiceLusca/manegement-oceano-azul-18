@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Task } from '@/types';
 
@@ -10,13 +9,20 @@ export const updateTaskStatus = async (taskId: string, newStatus: string) => {
       throw new Error('Status inválido');
     }
     
+    // Se a tarefa estiver sendo marcada como concluída, registrar a data de conclusão
+    const updates: any = { 
+      status: newStatus,
+      updated_at: new Date().toISOString()
+    };
+    
+    if (newStatus === 'completed') {
+      updates.completed_at = new Date().toISOString();
+    }
+    
     // Atualizar no banco de dados
     const { error } = await supabase
       .from('tasks')
-      .update({ 
-        status: newStatus,
-        updated_at: new Date().toISOString()
-      })
+      .update(updates)
       .eq('id', taskId);
       
     if (error) throw error;

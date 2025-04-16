@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TeamMember } from '@/types';
 import { Label } from '@/components/ui/label';
@@ -22,6 +21,7 @@ interface ProjectFormBasicFieldsProps {
     responsavel: string;
     departamento: string;
     dataVencimento: string;
+    dataHora?: string;
     isRecurring?: boolean;
     recurrenceType?: string;
     endDate?: string;
@@ -35,6 +35,7 @@ interface ProjectFormBasicFieldsProps {
     responsavel: string;
     departamento: string;
     dataVencimento: string;
+    dataHora?: string;
     isRecurring?: boolean;
     recurrenceType?: string;
     endDate?: string;
@@ -178,7 +179,19 @@ export const ProjectFormBasicFields: React.FC<ProjectFormBasicFieldsProps> = ({
         />
       </div>
       
-      {/* Opção de Recorrência */}
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="dataHora" className="text-right">
+          Horário
+        </Label>
+        <Input
+          id="dataHora"
+          type="time"
+          value={novaTarefa.dataHora || ''}
+          onChange={(e) => setNovaTarefa({ ...novaTarefa, dataHora: e.target.value })}
+          className="col-span-3"
+        />
+      </div>
+      
       <div className="grid grid-cols-4 items-center gap-4">
         <div className="text-right">
           <Label htmlFor="isRecurring">Tarefa Recorrente</Label>

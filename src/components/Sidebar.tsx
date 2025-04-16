@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
@@ -9,6 +8,7 @@ import {
   Home,
   CheckSquare,
   UserSquare2,
+  LayoutDashboard,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -18,10 +18,32 @@ export function Sidebar() {
   
   const toggleSidebar = () => setCollapsed(!collapsed);
   
-  const links = [
-    { name: 'Dashboard', href: '/', icon: Home },
+  const items = [
+    {
+      title: "Dashboard",
+      href: "/",
+      icon: <LayoutDashboard className="h-5 w-5" />,
+    },
+    {
+      title: "Tarefas",
+      href: "/projects",
+      icon: <CheckSquare className="h-5 w-5" />,
+      subitems: [
+        {
+          title: "Quadro Kanban",
+          href: "/projects",
+        },
+        {
+          title: "Tarefas Recorrentes",
+          href: "/recurring-tasks",
+        },
+        {
+          title: "Histórico de Atividades",
+          href: "/activity-history",
+        },
+      ],
+    },
     { name: 'Equipe', href: '/team', icon: Users },
-    { name: 'Tarefas', href: '/projects', icon: CheckSquare },
     { name: 'Clientes', href: '/customers', icon: UserSquare2 },
     { name: 'Calendário', href: '/calendar', icon: Calendar },
     { name: 'Configurações', href: '/settings', icon: Settings },
@@ -66,10 +88,10 @@ export function Sidebar() {
       
       <nav className="p-2">
         <ul className="space-y-1">
-          {links.map((link) => (
-            <li key={link.name}>
+          {items.map((item) => (
+            <li key={item.title}>
               <NavLink
-                to={link.href}
+                to={item.href}
                 className={({ isActive }) =>
                   cn(
                     "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
@@ -80,11 +102,36 @@ export function Sidebar() {
                   )
                 }
               >
-                <link.icon className="h-5 w-5" />
+                {item.icon}
                 <span className={cn("whitespace-nowrap", collapsed && "hidden")}>
-                  {link.name}
+                  {item.title}
                 </span>
               </NavLink>
+              {item.subitems && (
+                <ul className="space-y-1">
+                  {item.subitems.map((subitem) => (
+                    <li key={subitem.title}>
+                      <NavLink
+                        to={subitem.href}
+                        className={({ isActive }) =>
+                          cn(
+                            "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
+                            isActive
+                              ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                              : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                            collapsed && "justify-center"
+                          )
+                        }
+                      >
+                        {subitem.icon}
+                        <span className={cn("whitespace-nowrap", collapsed && "hidden")}>
+                          {subitem.title}
+                        </span>
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </li>
           ))}
         </ul>

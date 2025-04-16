@@ -52,7 +52,9 @@ export const AddTeamMemberDialog: React.FC<AddTeamMemberDialogProps> = ({
             .single();
             
           if (error) throw error;
-          setCurrentUserAccess(data?.nivel_acesso || null);
+          if (data) {
+            setCurrentUserAccess(data.nivel_acesso || null);
+          }
         } catch (error) {
           console.error('Erro ao buscar nível de acesso:', error);
         }
@@ -77,17 +79,17 @@ export const AddTeamMemberDialog: React.FC<AddTeamMemberDialogProps> = ({
     
     try {
       // Insert directly into profiles with a generated UUID
+      const memberData = {
+        nome: novoMembro.nome,
+        cargo: novoMembro.cargo || 'Colaborador',
+        departamento_id: novoMembro.departamento || null,
+        avatar_url: novoMembro.avatar_url || null,
+        nivel_acesso: novoMembro.nivel_acesso
+      };
+      
       const { data, error } = await supabase
         .from('profiles')
-        .insert([
-          {
-            nome: novoMembro.nome,
-            cargo: novoMembro.cargo || 'Colaborador',
-            departamento_id: novoMembro.departamento || null,
-            avatar_url: novoMembro.avatar_url || null,
-            nivel_acesso: novoMembro.nivel_acesso
-          }
-        ])
+        .insert([memberData])
         .select();
 
       if (error) throw error;

@@ -57,9 +57,11 @@ export function ProfileForm({ userId, initialData, onSuccess }: ProfileFormProps
           
         if (error) throw error;
         
-        setUserProfile(data);
-        setIsAdmin(data?.nivel_acesso === "Admin" || data?.nivel_acesso === "SuperAdmin");
-        if (data?.avatar_url) setAvatarUrl(data.avatar_url);
+        if (data) {
+          setUserProfile(data);
+          setIsAdmin(data.nivel_acesso === "Admin" || data.nivel_acesso === "SuperAdmin");
+          if (data.avatar_url) setAvatarUrl(data.avatar_url);
+        }
       } catch (error) {
         console.error("Erro ao buscar perfil do usuário:", error);
       }

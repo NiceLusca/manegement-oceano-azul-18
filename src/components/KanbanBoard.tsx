@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { tasks as mockTasks, getTeamMemberById, projects } from '@/data/mock-data';
@@ -86,7 +85,6 @@ const KanbanColumn = ({ title, tasks, color, onDragStart, onDragOver, onDrop }: 
   );
 };
 
-// Componente para uma coluna do Kanban com suporte a drag and drop
 const DraggableKanbanColumn = ({ title, tasks, color }: KanbanColumnProps) => {
   const { handleDragOver, handleDrop, handleDragStart } = useDragAndDrop();
   const statusMap = {
@@ -164,20 +162,15 @@ const DraggableKanbanColumn = ({ title, tasks, color }: KanbanColumnProps) => {
 export function KanbanBoard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-  // Os estados e funções relacionados ao drag and drop foram removidos daqui pois usamos o contexto
   const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
   const [departments, setDepartments] = useState<{id: string, nome: string}[]>([]);
   
-  // Função para buscar as tarefas
   const fetchTasks = async () => {
     try {
       setLoading(true);
       let query = supabase.from('tasks').select('*');
       
-      // Aplicar filtro por departamento se estiver selecionado
       if (departmentFilter) {
-        // Esta é uma consulta mais complexa que requer JOIN com profiles e departamentos
-        // Este é um exemplo simplificado, a implementação real pode variar
         query = query.eq('profiles.departamento_id', departmentFilter);
       }
       
@@ -198,19 +191,16 @@ export function KanbanBoard() {
         }));
         setTasks(formattedTasks);
       } else {
-        // Use mock data if no data in database
         setTasks(mockTasks);
       }
     } catch (error) {
       console.error('Error fetching tasks:', error);
-      // Fallback to mock data
       setTasks(mockTasks);
     } finally {
       setLoading(false);
     }
   };
   
-  // Buscar departamentos
   const fetchDepartments = async () => {
     try {
       const { data, error } = await supabase
@@ -227,14 +217,12 @@ export function KanbanBoard() {
     }
   };
   
-  // Atualizar status da tarefa quando arrastada
   const updateTaskStatus = async (taskId: string, newStatus: string) => {
     try {
       const { updateTaskStatus } = await import('@/services/taskService');
       const success = await updateTaskStatus(taskId, newStatus);
       
       if (success) {
-        // Atualizar localmente para melhor UX
         setTasks(prevTasks => 
           prevTasks.map(task => 
             task.id === taskId ? { ...task, status: newStatus as any } : task
@@ -246,26 +234,17 @@ export function KanbanBoard() {
     }
   };
   
-  // Handlers para eventos de drag & drop
-  // As funções de drag and drop foram movidas para o contexto
-  
-  // Configurar atualizações em tempo real
   useRealtimeUpdates(
-    fetchTasks,     // callback para tarefas
-    () => {},       // callback para equipe
-    () => {}        // callback para clientes
+    fetchTasks,
+    () => {},
+    () => {}
   );
   
-  // Efeito para carregar dados iniciais
   useEffect(() => {
     fetchTasks();
     fetchDepartments();
   }, [departmentFilter]);
   
-  // Limpeza: remover funções que agora estão no contexto
-  // Já que estamos usando o DragAndDropContext, não precisamos mais dessas funções locais
-  
-  // Group tasks by status
   const todoTasks = tasks.filter(task => task.status === 'todo');
   const inProgressTasks = tasks.filter(task => task.status === 'in-progress');
   const reviewTasks = tasks.filter(task => task.status === 'review');

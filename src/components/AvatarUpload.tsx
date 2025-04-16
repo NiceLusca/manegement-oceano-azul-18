@@ -58,10 +58,14 @@ export function AvatarUpload({
         .getPublicUrl(filePath);
 
       // Atualizar o perfil do usuário
-      await supabase
+      const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: data.publicUrl })
         .eq('id', userId);
+        
+      if (updateError) {
+        throw updateError;
+      }
 
       onUploadComplete(data.publicUrl);
       

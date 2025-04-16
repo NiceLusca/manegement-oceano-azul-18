@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -44,7 +43,9 @@ export const TeamMemberCard: React.FC<TeamMemberCardProps> = ({
           .single();
           
         if (error) throw error;
-        setUserAccessLevel(data?.nivel_acesso || 'user');
+        if (data) {
+          setUserAccessLevel(data.nivel_acesso || 'user');
+        }
       } catch (error) {
         console.error('Erro ao buscar nível de acesso:', error);
       }

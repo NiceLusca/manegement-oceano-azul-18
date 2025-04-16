@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -54,7 +55,10 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
             .limit(1)
             .single();
           
-          if (error) throw error;
+          if (error) {
+            console.log('Erro ao buscar opções, usando valores padrão:', error);
+            return;
+          }
           
           if (data && data.origem_options && Array.isArray(data.origem_options)) {
             setOriginOptions(data.origem_options);
@@ -92,8 +96,24 @@ const CustomerFormDialog: React.FC<CustomerFormDialogProps> = ({
     }
     
     setIsSubmitting(true);
-    await handleAddCustomer();
-    setIsSubmitting(false);
+    try {
+      await handleAddCustomer();
+      toast({
+        title: "Sucesso",
+        description: "Cliente adicionado com sucesso!",
+        variant: "default"
+      });
+      setOpen(false);
+    } catch (error) {
+      console.error("Erro ao adicionar cliente:", error);
+      toast({
+        title: "Erro",
+        description: "Falha ao adicionar cliente. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   return (

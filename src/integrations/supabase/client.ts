@@ -5,40 +5,40 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = "https://mopkxcpcmarwbnrqijya.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vcGt4Y3BjbWFyd2JucnFpanlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ4MzE2NzMsImV4cCI6MjA2MDQwNzY3M30.DmVoegkjs72n3Xi0pheopWAUXtGs3TFHdK-LRTSIk_o";
 
-// Define database types since we can't modify the types.ts file directly
-type Database = {
+// Define database types
+export type Database = {
   public: {
     Tables: {
       profiles: {
         Row: {
           id: string
-          nome: string
+          nome: string | null
           cargo: string | null
           departamento_id: string | null
           avatar_url: string | null
           nivel_acesso: string | null
-          created_at: string
-          updated_at: string
+          created_at: string | null
+          updated_at: string | null
         }
         Insert: {
-          id?: string
-          nome: string
+          id: string
+          nome?: string | null
           cargo?: string | null
           departamento_id?: string | null
           avatar_url?: string | null
           nivel_acesso?: string | null
-          created_at?: string
-          updated_at?: string
+          created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: string
-          nome?: string
+          nome?: string | null
           cargo?: string | null
           departamento_id?: string | null
           avatar_url?: string | null
           nivel_acesso?: string | null
-          created_at?: string
-          updated_at?: string
+          created_at?: string | null
+          updated_at?: string | null
         }
       }
       departamentos: {
@@ -47,24 +47,24 @@ type Database = {
           nome: string
           descricao: string | null
           cor: string | null
-          created_at: string
-          updated_at: string
+          created_at: string | null
+          updated_at: string | null
         }
         Insert: {
           id?: string
           nome: string
           descricao?: string | null
           cor?: string | null
-          created_at?: string
-          updated_at?: string
+          created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: string
           nome?: string
           descricao?: string | null
           cor?: string | null
-          created_at?: string
-          updated_at?: string
+          created_at?: string | null
+          updated_at?: string | null
         }
       }
       tasks: {
@@ -76,8 +76,8 @@ type Database = {
           assignee_id: string | null
           due_date: string
           priority: string
-          created_at: string
-          updated_at: string
+          created_at: string | null
+          updated_at: string | null
         }
         Insert: {
           id?: string
@@ -87,8 +87,8 @@ type Database = {
           assignee_id?: string | null
           due_date?: string
           priority?: string
-          created_at?: string
-          updated_at?: string
+          created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: string
@@ -98,8 +98,8 @@ type Database = {
           assignee_id?: string | null
           due_date?: string
           priority?: string
-          created_at?: string
-          updated_at?: string
+          created_at?: string | null
+          updated_at?: string | null
         }
       }
       customers: {
@@ -115,8 +115,8 @@ type Database = {
           assigned_to: string | null
           value: number | null
           origem_options: string[] | null
-          created_at: string
-          updated_at: string
+          created_at: string | null
+          updated_at: string | null
         }
         Insert: {
           id?: string
@@ -130,8 +130,8 @@ type Database = {
           assigned_to?: string | null
           value?: number | null
           origem_options?: string[] | null
-          created_at?: string
-          updated_at?: string
+          created_at?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: string
@@ -145,8 +145,19 @@ type Database = {
           assigned_to?: string | null
           value?: number | null
           origem_options?: string[] | null
-          created_at?: string
-          updated_at?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
+    }
+    Views: {
+      team_by_department: {
+        Row: {
+          department_id: string | null
+          department_name: string | null
+          department_color: string | null
+          member_count: number | null
+          members: unknown[] | null
         }
       }
     }
@@ -177,6 +188,19 @@ type Database = {
           avif_autodetection: boolean | null
           file_size_limit: number | null
           allowed_mime_types: string[] | null
+        }
+      }
+    }
+    Objects: {
+      [_ in string]: {
+        Row: {
+          name: string
+          bucket_id: string
+          owner: string | null
+          created_at: string | null
+          updated_at: string | null
+          last_accessed_at: string | null
+          metadata: Record<string, any> | null
         }
       }
     }

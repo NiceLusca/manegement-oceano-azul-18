@@ -9,13 +9,103 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      departamentos: {
+        Row: {
+          cor: string | null
+          created_at: string | null
+          descricao: string | null
+          id: string
+          nome: string
+          updated_at: string | null
+        }
+        Insert: {
+          cor?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome: string
+          updated_at?: string | null
+        }
+        Update: {
+          cor?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          cargo: string | null
+          created_at: string | null
+          departamento_id: string | null
+          id: string
+          nivel_acesso: string | null
+          nome: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          cargo?: string | null
+          created_at?: string | null
+          departamento_id?: string | null
+          id: string
+          nivel_acesso?: string | null
+          nome?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          cargo?: string | null
+          created_at?: string | null
+          departamento_id?: string | null
+          id?: string
+          nivel_acesso?: string | null
+          nome?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_departamento_id_fkey"
+            columns: ["departamento_id"]
+            isOneToOne: false
+            referencedRelation: "departamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_departamento_id_fkey"
+            columns: ["departamento_id"]
+            isOneToOne: false
+            referencedRelation: "team_by_department"
+            referencedColumns: ["department_id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      team_by_department: {
+        Row: {
+          department_color: string | null
+          department_id: string | null
+          department_name: string | null
+          member_count: number | null
+          members: Json[] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      get_user_department: {
+        Args: { user_id: string }
+        Returns: string
+      }
+      get_user_nivel_acesso: {
+        Args: { user_id: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

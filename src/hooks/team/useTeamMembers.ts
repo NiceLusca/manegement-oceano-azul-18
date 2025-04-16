@@ -15,9 +15,6 @@ import {
 import type { MemberFormData, EditMemberFormData, UseTeamMembersReturn } from './types';
 import { useToast } from '@/hooks/use-toast';
 
-// Re-export the type from types.ts
-export type { MemberFormData, EditMemberFormData, UseTeamMembersReturn };
-
 export const useTeamMembers = (): UseTeamMembersReturn => {
   const { user } = useAuth();
   const { toast } = useToast();

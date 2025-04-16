@@ -58,16 +58,18 @@ export function PerformanceIndicators() {
             value={loading ? '...' : totalTeamMembers.toString()}
             description="Total de colaboradores"
             icon={<Users className="h-4 w-4 text-muted-foreground" />}
+            iconBg="bg-blue-500"
           />
           <StatCard 
             title="Departamentos"
             value={loading ? '...' : totalDepartments.toString()}
             description="Setores ativos"
             icon={<Activity className="h-4 w-4 text-muted-foreground" />}
+            iconBg="bg-green-500"
           />
         </div>
         
-        <DepartmentProgressSection />
+        <DepartmentProgressSection departmentStats={[]} />
       </CardContent>
     </Card>
   );

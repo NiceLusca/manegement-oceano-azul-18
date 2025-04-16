@@ -37,7 +37,7 @@ export const AccessLevelSelector: React.FC<AccessLevelSelectorProps> = ({
           .rpc('is_user_admin', { user_id: user.id });
           
         if (!adminError) {
-          setIsAdmin(adminResult);
+          setIsAdmin(Boolean(adminResult));
         }
       } catch (error) {
         console.error('Error checking permissions:', error);

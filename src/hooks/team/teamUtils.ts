@@ -120,7 +120,7 @@ export const canAddMembers = async (userId: string | undefined): Promise<boolean
       return false;
     }
     
-    return isAdmin;
+    return Boolean(isAdmin);
   } catch (error) {
     console.error('Error in canAddMembers:', error);
     return false;
@@ -190,7 +190,7 @@ export const isUserSuperAdmin = async (userId: string | undefined) => {
       return false;
     }
     
-    return data;
+    return Boolean(data);
   } catch (error) {
     console.error('Error in isUserSuperAdmin:', error);
     return false;

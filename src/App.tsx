@@ -1,8 +1,9 @@
+
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from "@/components/theme-provider"
+import { Routes, Route, BrowserRouter } from 'react-router-dom';
+import { ThemeProvider } from "./components/theme-provider";
 import { AuthProvider } from '@/contexts/AuthContext';
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster";
 import AuthPage from './pages/AuthPage';
 import Index from './pages/Index';
 import TeamPage from './pages/TeamPage';
@@ -11,29 +12,36 @@ import CalendarPage from './pages/CalendarPage';
 import CustomersPage from './pages/CustomersPage';
 import SettingsPage from './pages/SettingsPage';
 import NotFound from './pages/NotFound';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 import RecurringTasksPage from './pages/RecurringTasksPage';
 import ActivityHistoryPage from './pages/ActivityHistoryPage';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <Routes>
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-          <Route path="/team" element={<ProtectedRoute><TeamPage /></ProtectedRoute>} />
-          <Route path="/projects" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />
-          <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
-          <Route path="/customers" element={<ProtectedRoute><CustomersPage /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-          <Route path="/recurring-tasks" element={<ProtectedRoute><RecurringTasksPage /></ProtectedRoute>} />
-          <Route path="/activity-history" element={<ProtectedRoute><ActivityHistoryPage /></ProtectedRoute>} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <Toaster />
-      </AuthProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <ThemeProvider defaultTheme="dark">
+          <AuthProvider>
+            <Routes>
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+              <Route path="/team" element={<ProtectedRoute><TeamPage /></ProtectedRoute>} />
+              <Route path="/projects" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />
+              <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
+              <Route path="/customers" element={<ProtectedRoute><CustomersPage /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+              <Route path="/recurring-tasks" element={<ProtectedRoute><RecurringTasksPage /></ProtectedRoute>} />
+              <Route path="/activity-history" element={<ProtectedRoute><ActivityHistoryPage /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Toaster />
+          </AuthProvider>
+        </ThemeProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
@@ -13,12 +14,23 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
+interface SidebarItem {
+  title: string;
+  href: string;
+  icon: React.ReactNode;
+  subitems?: {
+    title: string;
+    href: string;
+    icon?: React.ReactNode;
+  }[];
+}
+
 export function Sidebar() {
   const [collapsed, setCollapsed] = React.useState(false);
   
   const toggleSidebar = () => setCollapsed(!collapsed);
   
-  const items = [
+  const items: SidebarItem[] = [
     {
       title: "Dashboard",
       href: "/",
@@ -43,10 +55,26 @@ export function Sidebar() {
         },
       ],
     },
-    { name: 'Equipe', href: '/team', icon: Users },
-    { name: 'Clientes', href: '/customers', icon: UserSquare2 },
-    { name: 'Calendário', href: '/calendar', icon: Calendar },
-    { name: 'Configurações', href: '/settings', icon: Settings },
+    { 
+      title: 'Equipe', 
+      href: '/team', 
+      icon: <Users className="h-5 w-5" /> 
+    },
+    { 
+      title: 'Clientes', 
+      href: '/customers', 
+      icon: <UserSquare2 className="h-5 w-5" /> 
+    },
+    { 
+      title: 'Calendário', 
+      href: '/calendar', 
+      icon: <Calendar className="h-5 w-5" /> 
+    },
+    { 
+      title: 'Configurações', 
+      href: '/settings', 
+      icon: <Settings className="h-5 w-5" /> 
+    },
   ];
 
   return (
@@ -107,26 +135,23 @@ export function Sidebar() {
                   {item.title}
                 </span>
               </NavLink>
-              {item.subitems && (
-                <ul className="space-y-1">
+              {item.subitems && !collapsed && (
+                <ul className="ml-4 mt-1 space-y-1">
                   {item.subitems.map((subitem) => (
                     <li key={subitem.title}>
                       <NavLink
                         to={subitem.href}
                         className={({ isActive }) =>
                           cn(
-                            "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
+                            "flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm",
                             isActive
                               ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                              : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                            collapsed && "justify-center"
+                              : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                           )
                         }
                       >
                         {subitem.icon}
-                        <span className={cn("whitespace-nowrap", collapsed && "hidden")}>
-                          {subitem.title}
-                        </span>
+                        <span>{subitem.title}</span>
                       </NavLink>
                     </li>
                   ))}

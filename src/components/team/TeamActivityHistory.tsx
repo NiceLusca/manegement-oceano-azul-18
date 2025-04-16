@@ -5,7 +5,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { getDepartmentColor } from '@/services/departamentoService';
 import { supabase } from '@/integrations/supabase/client';
 
 interface CompletedTask {
@@ -82,11 +81,18 @@ export const TeamActivityHistory = () => {
 
         // Adicionar informações do departamento a cada tarefa
         const tasksWithDepts = (data || []).map(task => {
-          const dept = departments.find(d => d.id === task.assignee?.departamento_id);
+          // Verificamos se assignee existe e é um objeto único (não um array)
+          const assigneeInfo = task.assignee && !Array.isArray(task.assignee) 
+            ? task.assignee 
+            : { nome: '', avatar_url: '', departamento_id: '' };
+            
+          const dept = departments.find(d => d.id === assigneeInfo.departamento_id);
+          
           return {
             ...task,
+            assignee: assigneeInfo,
             department: dept ? { nome: dept.nome, cor: dept.cor || '#94a3b8' } : undefined
-          };
+          } as CompletedTask;
         });
 
         setCompletedTasks(tasksWithDepts);

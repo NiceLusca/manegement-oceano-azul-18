@@ -1,8 +1,10 @@
 
 import React from 'react';
-import { AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { BadgeAlert, Plus, Settings2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { AddMemberDialog } from '@/components/team/AddMemberDialog';
+import { Department, MemberFormData } from '@/hooks/useTeamMembers';
 
 interface TeamPageHeaderProps {
   userAccess: string | null;
@@ -10,9 +12,9 @@ interface TeamPageHeaderProps {
   canAddMembers: () => boolean;
   openDialog: boolean;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
-  novoMembro: any;
-  setNovoMembro: React.Dispatch<React.SetStateAction<any>>;
-  departamentos: any[];
+  novoMembro: MemberFormData;
+  setNovoMembro: React.Dispatch<React.SetStateAction<MemberFormData>>;
+  departamentos: Department[];
 }
 
 export const TeamPageHeader: React.FC<TeamPageHeaderProps> = ({
@@ -25,13 +27,38 @@ export const TeamPageHeader: React.FC<TeamPageHeaderProps> = ({
   setNovoMembro,
   departamentos
 }) => {
-  return (
-    <>
-      <div className="flex justify-between items-center">
+  if (error) {
+    return (
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Membros da Equipe</h1>
-          <p className="text-muted-foreground">Gerencie os membros da sua equipe e suas funções.</p>
+          <h1 className="text-3xl font-bold">Equipe</h1>
+          <p className="text-destructive flex items-center gap-2">
+            <BadgeAlert className="h-4 w-4" />
+            {error}
+          </p>
         </div>
+      </div>
+    );
+  }
+
+  const isAdminOrHigher = userAccess === 'Admin' || userAccess === 'SuperAdmin';
+
+  return (
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 className="text-3xl font-bold mb-2">Equipe</h1>
+        <p className="text-muted-foreground">
+          Gerencie os membros da sua equipe e seus departamentos
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Link to="/departments">
+          <Button variant="outline" className="flex items-center gap-2">
+            <Settings2 className="h-4 w-4" />
+            Departamentos
+          </Button>
+        </Link>
+        
         {canAddMembers() && (
           <AddMemberDialog
             open={openDialog}
@@ -43,27 +70,6 @@ export const TeamPageHeader: React.FC<TeamPageHeaderProps> = ({
           />
         )}
       </div>
-      
-      {userAccess === 'user' && (
-        <Alert variant="default">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Acesso Limitado</AlertTitle>
-          <AlertDescription>
-            Como usuário regular, você só tem acesso para visualizar seu próprio perfil. 
-            Para visualizar outros membros da equipe, você precisa de um nível de acesso mais alto.
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Erro ao carregar</AlertTitle>
-          <AlertDescription>
-            {error}
-          </AlertDescription>
-        </Alert>
-      )}
-    </>
+    </div>
   );
 };

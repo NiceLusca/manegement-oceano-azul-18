@@ -15,7 +15,9 @@ import NotFound from './pages/NotFound';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import RecurringTasksPage from './pages/RecurringTasksPage';
 import ActivityHistoryPage from './pages/ActivityHistoryPage';
+import DepartmentsPage from './pages/DepartmentsPage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { HelmetProvider } from 'react-helmet-async';
 
 const queryClient = new QueryClient();
 
@@ -23,23 +25,26 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <ThemeProvider defaultTheme="dark">
-          <AuthProvider>
-            <Routes>
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route path="/team" element={<ProtectedRoute><TeamPage /></ProtectedRoute>} />
-              <Route path="/projects" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />
-              <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
-              <Route path="/customers" element={<ProtectedRoute><CustomersPage /></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-              <Route path="/recurring-tasks" element={<ProtectedRoute><RecurringTasksPage /></ProtectedRoute>} />
-              <Route path="/activity-history" element={<ProtectedRoute><ActivityHistoryPage /></ProtectedRoute>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Toaster />
-          </AuthProvider>
-        </ThemeProvider>
+        <HelmetProvider>
+          <ThemeProvider defaultTheme="dark">
+            <AuthProvider>
+              <Routes>
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                <Route path="/team" element={<ProtectedRoute><TeamPage /></ProtectedRoute>} />
+                <Route path="/projects" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />
+                <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
+                <Route path="/customers" element={<ProtectedRoute><CustomersPage /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+                <Route path="/recurring-tasks" element={<ProtectedRoute><RecurringTasksPage /></ProtectedRoute>} />
+                <Route path="/activity-history" element={<ProtectedRoute><ActivityHistoryPage /></ProtectedRoute>} />
+                <Route path="/departments" element={<ProtectedRoute><DepartmentsPage /></ProtectedRoute>} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <Toaster />
+            </AuthProvider>
+          </ThemeProvider>
+        </HelmetProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );

@@ -1,6 +1,8 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AccessLevelSelectorProps {
   accessLevel: string;
@@ -11,14 +13,51 @@ export const AccessLevelSelector: React.FC<AccessLevelSelectorProps> = ({
   accessLevel,
   onAccessLevelChange
 }) => {
+  const { user } = useAuth();
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  useEffect(() => {
+    const checkPermissions = async () => {
+      if (!user?.id) return;
+      
+      try {
+        // Check if super admin
+        const { data: superAdminResult, error: superAdminError } = await supabase
+          .rpc('is_user_super_admin', { user_id: user.id });
+          
+        if (!superAdminError && superAdminResult) {
+          setIsSuperAdmin(true);
+          setIsAdmin(true);
+          return;
+        }
+        
+        // Check if admin
+        const { data: adminResult, error: adminError } = await supabase
+          .rpc('is_user_admin', { user_id: user.id });
+          
+        if (!adminError) {
+          setIsAdmin(adminResult);
+        }
+      } catch (error) {
+        console.error('Error checking permissions:', error);
+      }
+    };
+    
+    checkPermissions();
+  }, [user]);
+
   return (
     <Select value={accessLevel} onValueChange={onAccessLevelChange}>
       <SelectTrigger className="w-[180px]">
         <SelectValue placeholder="Nível de acesso" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="admin">Administrador</SelectItem>
-        <SelectItem value="manager">Gerente</SelectItem>
+        {isSuperAdmin && (
+          <SelectItem value="SuperAdmin">Administrador</SelectItem>
+        )}
+        <SelectItem value="Admin">Gerente</SelectItem>
+        <SelectItem value="Supervisor">Supervisor</SelectItem>
         <SelectItem value="user">Usuário</SelectItem>
       </SelectContent>
     </Select>

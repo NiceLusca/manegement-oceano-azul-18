@@ -16,7 +16,7 @@ export const useFetchTeamMembers = () => {
       setLoading(true);
       setError(null);
       
-      // RLS policies already apply viewing restrictions
+      // Using the profiles table with the RLS policies now properly set
       const { data, error } = await supabase
         .from('profiles')
         .select('*');

@@ -52,48 +52,116 @@ export const buildUpdateData = (memberData: EditMemberFormData, currentUserAcces
   return updateData;
 };
 
-// Check if user can edit a member
-export const canEditMember = (
+// Check if user can edit a member - using secure RPC function
+export const canEditMember = async (
   memberId: string, 
-  userId: string | undefined, 
-  userAccess: string | null, 
-  teamMembers: TeamMember[]
-) => {
-  if (!userId || !userAccess) return false;
+  userId: string | undefined
+): Promise<boolean> => {
+  if (!userId) return false;
   
-  // SuperAdmin and Admin can edit any member
-  if (userAccess === 'SuperAdmin' || userAccess === 'Admin') {
-    return true;
-  }
-  
-  // Supervisor can only edit members of their department
-  if (userAccess === 'Supervisor') {
-    const supervisor = teamMembers.find(m => m.id === userId);
-    const targetMember = teamMembers.find(m => m.id === memberId);
+  try {
+    // Get the user's access level using the secure RPC function
+    const { data: accessLevel, error } = await supabase
+      .rpc('get_user_nivel_acesso', { user_id: userId });
+      
+    if (error) {
+      console.error('Error checking edit permission:', error);
+      return false;
+    }
     
-    return supervisor && targetMember && supervisor.department === targetMember.department;
+    // SuperAdmin and Admin can edit any member
+    if (accessLevel === 'SuperAdmin') return true;
+    if (accessLevel === 'Admin') {
+      // Admin cannot edit SuperAdmin
+      const { data, error: memberError } = await supabase
+        .from('profiles')
+        .select('nivel_acesso')
+        .eq('id', memberId)
+        .maybeSingle();
+        
+      if (memberError || !data) return false;
+      return data.nivel_acesso !== 'SuperAdmin';
+    }
+    
+    // Supervisor can only edit members of their department
+    if (accessLevel === 'Supervisor') {
+      const { data: userDept } = await supabase
+        .rpc('get_user_department', { user_id: userId });
+        
+      if (!userDept) return false;
+      
+      const { data: memberDept } = await supabase
+        .from('profiles')
+        .select('departamento_id')
+        .eq('id', memberId)
+        .maybeSingle();
+        
+      return memberDept?.departamento_id === userDept;
+    }
+    
+    // Regular users can only edit themselves
+    return userId === memberId;
+  } catch (error) {
+    console.error('Error in canEditMember:', error);
+    return false;
   }
+};
+
+// Check if user can add new members - using secure RPC function
+export const canAddMembers = async (userId: string | undefined): Promise<boolean> => {
+  if (!userId) return false;
   
-  // Regular users can only edit themselves
-  return userId === memberId;
+  try {
+    const { data: isAdmin, error } = await supabase
+      .rpc('is_user_admin', { user_id: userId });
+      
+    if (error) {
+      console.error('Error checking add permission:', error);
+      return false;
+    }
+    
+    return isAdmin;
+  } catch (error) {
+    console.error('Error in canAddMembers:', error);
+    return false;
+  }
 };
 
-// Check if user can add new members
-export const canAddMembers = (userAccess: string | null) => {
-  return userAccess === 'SuperAdmin' || userAccess === 'Admin';
+// Check if user can delete members - using secure RPC function
+export const canDeleteMember = async (
+  userId: string | undefined,
+  memberId: string
+): Promise<boolean> => {
+  if (!userId) return false;
+  
+  try {
+    const { data: isAdmin, error } = await supabase
+      .rpc('is_user_admin', { user_id: userId });
+      
+    if (error || !isAdmin) {
+      return false;
+    }
+    
+    // Check if target is a SuperAdmin (cannot delete SuperAdmin)
+    const { data, error: memberError } = await supabase
+      .from('profiles')
+      .select('nivel_acesso')
+      .eq('id', memberId)
+      .maybeSingle();
+      
+    if (memberError || !data) return false;
+    return data.nivel_acesso !== 'SuperAdmin';
+  } catch (error) {
+    console.error('Error in canDeleteMember:', error);
+    return false;
+  }
 };
 
-// Check if user can delete members
-export const canDeleteMember = (userAccess: string | null) => {
-  return userAccess === 'SuperAdmin' || userAccess === 'Admin';
-};
-
-// Fetch user access level with simplified access using security definer function
+// Fetch user access level with security definer function
 export const fetchUserAccessLevel = async (userId: string | undefined) => {
   if (!userId) return null;
   
   try {
-    // Use the RPC function to avoid direct querying which could trigger RLS
     const { data, error } = await supabase
       .rpc('get_user_nivel_acesso', { user_id: userId });
       
@@ -111,8 +179,22 @@ export const fetchUserAccessLevel = async (userId: string | undefined) => {
 
 // Verify SuperAdmin role using the secure method
 export const isUserSuperAdmin = async (userId: string | undefined) => {
-  const accessLevel = await fetchUserAccessLevel(userId);
-  return accessLevel === 'SuperAdmin';
+  if (!userId) return false;
+  
+  try {
+    const { data, error } = await supabase
+      .rpc('is_user_super_admin', { user_id: userId });
+      
+    if (error) {
+      console.error('Error checking super admin status:', error);
+      return false;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error in isUserSuperAdmin:', error);
+    return false;
+  }
 };
 
 // Get department color

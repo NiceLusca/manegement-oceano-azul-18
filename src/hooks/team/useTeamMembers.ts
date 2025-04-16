@@ -6,11 +6,11 @@ import { useFetchDepartments } from './useFetchDepartments';
 import { useMemberOperations } from './useMemberOperations';
 import { 
   getDepartmentName as getDepartmentNameUtil,
-  canEditMember as canEditMemberUtil,
-  canAddMembers as canAddMembersUtil,
-  canDeleteMember as canDeleteMemberUtil,
   fetchUserAccessLevel,
-  isUserSuperAdmin
+  isUserSuperAdmin,
+  canEditMember as canEditMemberAsync,
+  canAddMembers as canAddMembersAsync,
+  canDeleteMember as canDeleteMemberAsync
 } from './teamUtils';
 import type { MemberFormData, EditMemberFormData, UseTeamMembersReturn } from './types';
 import { useToast } from '@/hooks/use-toast';
@@ -23,6 +23,9 @@ export const useTeamMembers = (): UseTeamMembersReturn => {
   const { toast } = useToast();
   const [userAccess, setUserAccess] = useState<string | null>(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [canEditPermissions, setCanEditPermissions] = useState<Record<string, boolean>>({});
+  const [canDeletePermissions, setCanDeletePermissions] = useState<Record<string, boolean>>({});
+  const [canAddMembersValue, setCanAddMembersValue] = useState(false);
   
   const { 
     teamMembers, 
@@ -61,6 +64,7 @@ export const useTeamMembers = (): UseTeamMembersReturn => {
     checkSuperAdmin();
   }, [user]);
 
+  // Fetch user access level
   useEffect(() => {
     const getUserAccessLevel = async () => {
       if (user?.id) {
@@ -87,26 +91,52 @@ export const useTeamMembers = (): UseTeamMembersReturn => {
     getUserAccessLevel();
   }, [user, toast]);
 
+  // Fetch team members and departments
   useEffect(() => {
     fetchTeamMembers();
     fetchDepartamentos();
   }, [fetchTeamMembers, fetchDepartamentos]);
+
+  // Pre-compute permissions for all team members
+  useEffect(() => {
+    const updatePermissions = async () => {
+      if (!user?.id || !teamMembers.length) return;
+      
+      // Check add members permission
+      const canAdd = await canAddMembersAsync(user.id);
+      setCanAddMembersValue(canAdd);
+      
+      // Check edit permissions for each member
+      const editPerms: Record<string, boolean> = {};
+      const deletePerms: Record<string, boolean> = {};
+      
+      for (const member of teamMembers) {
+        editPerms[member.id] = await canEditMemberAsync(member.id, user.id);
+        deletePerms[member.id] = await canDeleteMemberAsync(user.id, member.id);
+      }
+      
+      setCanEditPermissions(editPerms);
+      setCanDeletePermissions(deletePerms);
+    };
+    
+    updatePermissions();
+  }, [user, teamMembers]);
 
   const getDepartmentName = useCallback((departmentId: string) => {
     return getDepartmentNameUtil(departmentId, departamentos);
   }, [departamentos]);
 
   const canEditMember = useCallback((memberId: string) => {
-    return canEditMemberUtil(memberId, user?.id, userAccess, teamMembers);
-  }, [user, userAccess, teamMembers]);
+    return canEditPermissions[memberId] || false;
+  }, [canEditPermissions]);
 
   const canAddMembers = useCallback(() => {
-    return canAddMembersUtil(userAccess);
-  }, [userAccess]);
+    return canAddMembersValue;
+  }, [canAddMembersValue]);
 
   const canDeleteMember = useCallback((memberId: string) => {
-    return canDeleteMemberUtil(userAccess);
-  }, [userAccess]);
+    return canDeletePermissions[memberId] || false;
+  }, [canDeletePermissions]);
 
   return {
     teamMembers,

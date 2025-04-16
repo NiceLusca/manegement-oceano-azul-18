@@ -15,582 +15,470 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { format, startOfMonth, endOfMonth, isToday, isYesterday } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useDepartmentFilter } from '@/hooks/useDepartmentFilter';
-import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  CalendarIcon, 
-  Download, 
-  Filter, 
-  Loader2, 
-  RefreshCw, 
-  Table as TableIcon, 
-  Users
-} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Calendar as CalendarIcon, FileDown, Filter, Search } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { formatDistanceToNow, format, isToday, isYesterday } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuGroup, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
 
-interface ActivityRecord {
+interface TeamActivity {
   id: string;
-  memberId: string;
-  memberName: string;
-  departmentId: string;
-  departmentName: string;
-  taskTitle: string;
-  description: string;
-  completedAt: string;
-  status: string;
-}
-
-interface DailyActivity {
-  day: string;
-  date: Date;
-  activities: ActivityRecord[];
-}
-
-interface TeamMember {
-  id: string;
-  name: string;
+  created_at: string;
+  user_id: string;
+  action: string;
+  details: string | null;
+  entity_type: string;
+  entity_id: string | null;
+  user_name: string;
+  user_avatar: string | null;
+  department_name: string | null;
+  department_color: string | null;
 }
 
 export function TeamActivityHistory() {
-  const [activities, setActivities] = useState<ActivityRecord[]>([]);
-  const [groupedByDay, setGroupedByDay] = useState<DailyActivity[]>([]);
+  const [activities, setActivities] = useState<TeamActivity[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
-  const [dateFilter, setDateFilter] = useState<'today' | 'yesterday' | 'thisWeek' | 'thisMonth' | 'custom'>('thisWeek');
-  const [dateRange, setDateRange] = useState<{from: Date, to: Date}>({
-    from: startOfMonth(new Date()),
-    to: endOfMonth(new Date())
+  const [entityFilter, setEntityFilter] = useState<string>('all');
+  const [userFilter, setUserFilter] = useState<string>('all');
+  const [departmentFilter, setDepartmentFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+    from: undefined,
+    to: undefined,
   });
-  const [memberFilter, setMemberFilter] = useState<string | null>(null);
-  const [membersList, setMembersList] = useState<TeamMember[]>([]);
-  const [exporting, setExporting] = useState(false);
+  const [users, setUsers] = useState<{id: string, name: string}[]>([]);
+  const [departments, setDepartments] = useState<{id: string, name: string}[]>([]);
   
-  const { departments, selectedDepartment, setSelectedDepartment, getDepartmentName } = useDepartmentFilter();
-  const { toast } = useToast();
-  const { user } = useAuth();
-  
-  // Fetch team members
+  // Fetch activities
   useEffect(() => {
-    const fetchMembers = async () => {
+    const fetchActivities = async () => {
+      setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id, nome')
-          .order('nome');
+        let query = supabase
+          .from('team_activity_view')
+          .select('*')
+          .order('created_at', { ascending: false });
           
-        if (error) throw error;
+        // Apply filters
+        if (entityFilter !== 'all') {
+          query = query.eq('entity_type', entityFilter);
+        }
         
-        setMembersList(
-          data?.map(member => ({
-            id: member.id,
-            name: member.nome || 'Sem nome'
-          })) || []
-        );
+        if (userFilter !== 'all') {
+          query = query.eq('user_id', userFilter);
+        }
+        
+        if (departmentFilter !== 'all') {
+          query = query.eq('department_id', departmentFilter);
+        }
+        
+        if (searchQuery) {
+          query = query.or(`details.ilike.%${searchQuery}%,action.ilike.%${searchQuery}%`);
+        }
+        
+        if (dateRange.from) {
+          query = query.gte('created_at', dateRange.from.toISOString());
+        }
+        
+        if (dateRange.to) {
+          const nextDay = new Date(dateRange.to);
+          nextDay.setDate(nextDay.getDate() + 1);
+          query = query.lt('created_at', nextDay.toISOString());
+        }
+        
+        const { data, error } = await query;
+        
+        if (error) throw error;
+        setActivities(data || []);
       } catch (error) {
-        console.error('Erro ao buscar membros da equipe:', error);
+        console.error('Error fetching activities:', error);
+      } finally {
+        setLoading(false);
       }
     };
     
-    fetchMembers();
+    fetchActivities();
+  }, [entityFilter, userFilter, departmentFilter, searchQuery, dateRange]);
+  
+  // Fetch users and departments for filters
+  useEffect(() => {
+    const fetchFiltersData = async () => {
+      try {
+        // Fetch users
+        const { data: userData, error: userError } = await supabase
+          .from('profiles')
+          .select('id, nome');
+          
+        if (userError) throw userError;
+        setUsers(userData.map(u => ({ id: u.id, name: u.nome || 'Usuário sem nome' })) || []);
+        
+        // Fetch departments
+        const { data: deptData, error: deptError } = await supabase
+          .from('departamentos')
+          .select('id, nome');
+          
+        if (deptError) throw deptError;
+        setDepartments(deptData.map(d => ({ id: d.id, name: d.nome })) || []);
+        
+      } catch (error) {
+        console.error('Error fetching filter data:', error);
+      }
+    };
+    
+    fetchFiltersData();
   }, []);
   
-  // Generate query based on filters
-  const generateQuery = () => {
-    let query = supabase.from('team_activity')
-      .select('*')
-      .order('completed_at', { ascending: false });
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
     
-    // Add date filters
-    const now = new Date();
-    
-    if (dateFilter === 'today') {
-      const today = format(now, 'yyyy-MM-dd');
-      query = query.gte('completed_at', `${today}T00:00:00`).lte('completed_at', `${today}T23:59:59`);
-    }
-    else if (dateFilter === 'yesterday') {
-      const yesterday = format(new Date(now.setDate(now.getDate() - 1)), 'yyyy-MM-dd');
-      query = query.gte('completed_at', `${yesterday}T00:00:00`).lte('completed_at', `${yesterday}T23:59:59`);
-    }
-    else if (dateFilter === 'thisWeek') {
-      const today = new Date();
-      const firstDay = new Date(today.setDate(today.getDate() - today.getDay()));
-      const lastDay = new Date(new Date().setDate(firstDay.getDate() + 6));
-      
-      query = query.gte('completed_at', format(firstDay, 'yyyy-MM-dd'))
-                  .lte('completed_at', format(lastDay, 'yyyy-MM-dd') + 'T23:59:59');
-    }
-    else if (dateFilter === 'thisMonth') {
-      const firstDayOfMonth = format(startOfMonth(now), 'yyyy-MM-dd');
-      const lastDayOfMonth = format(endOfMonth(now), 'yyyy-MM-dd');
-      
-      query = query.gte('completed_at', `${firstDayOfMonth}T00:00:00`)
-                  .lte('completed_at', `${lastDayOfMonth}T23:59:59`);
-    }
-    else if (dateFilter === 'custom' && dateRange.from && dateRange.to) {
-      const fromDate = format(dateRange.from, 'yyyy-MM-dd');
-      const toDate = format(dateRange.to, 'yyyy-MM-dd');
-      
-      query = query.gte('completed_at', `${fromDate}T00:00:00`)
-                  .lte('completed_at', `${toDate}T23:59:59`);
-    }
-    
-    // Add department filter
-    if (selectedDepartment) {
-      query = query.eq('department_id', selectedDepartment);
-    }
-    
-    // Add member filter
-    if (memberFilter) {
-      query = query.eq('member_id', memberFilter);
-    }
-    
-    return query;
-  };
-  
-  // Fetch activities
-  const fetchActivities = async () => {
-    setLoading(true);
-    
-    try {
-      const query = generateQuery();
-      const { data, error } = await query;
-      
-      if (error) throw error;
-      
-      if (data) {
-        const formattedData = data.map(record => ({
-          id: record.id,
-          memberId: record.member_id,
-          memberName: record.member_name,
-          departmentId: record.department_id,
-          departmentName: record.department_name,
-          taskTitle: record.task_title,
-          description: record.description,
-          completedAt: record.completed_at,
-          status: record.status
-        }));
-        
-        setActivities(formattedData);
-        
-        // Group by day
-        const grouped: Record<string, ActivityRecord[]> = {};
-        
-        formattedData.forEach(activity => {
-          const day = format(new Date(activity.completedAt), 'yyyy-MM-dd');
-          if (!grouped[day]) {
-            grouped[day] = [];
-          }
-          grouped[day].push(activity);
-        });
-        
-        const result: DailyActivity[] = Object.keys(grouped)
-          .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
-          .map(day => ({
-            day,
-            date: new Date(day),
-            activities: grouped[day]
-          }));
-        
-        setGroupedByDay(result);
-      }
-    } catch (error: any) {
-      console.error('Erro ao buscar atividades:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar as atividades: " + error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  useEffect(() => {
-    fetchActivities();
-  }, [selectedDepartment, dateFilter, dateRange, memberFilter]);
-  
-  const formatDay = (date: Date) => {
     if (isToday(date)) {
-      return 'Hoje';
+      return `Hoje, ${format(date, 'HH:mm')}`;
     } else if (isYesterday(date)) {
-      return 'Ontem';
+      return `Ontem, ${format(date, 'HH:mm')}`;
     } else {
-      return format(date, "EEEE, d 'de' MMMM", { locale: ptBR });
+      return format(date, "dd 'de' MMMM, HH:mm", { locale: ptBR });
     }
   };
   
-  const exportToCsv = async () => {
-    setExporting(true);
+  const getActionVerb = (action: string) => {
+    switch (action.toLowerCase()) {
+      case 'create':
+        return 'criou';
+      case 'update':
+        return 'atualizou';
+      case 'delete':
+        return 'removeu';
+      case 'assign':
+        return 'atribuiu';
+      case 'complete':
+        return 'completou';
+      case 'comment':
+        return 'comentou em';
+      default:
+        return action;
+    }
+  };
+  
+  const getEntityName = (entityType: string) => {
+    switch (entityType.toLowerCase()) {
+      case 'task':
+        return 'tarefa';
+      case 'project':
+        return 'projeto';
+      case 'user':
+        return 'usuário';
+      case 'department':
+        return 'departamento';
+      case 'customer':
+        return 'cliente';
+      default:
+        return entityType;
+    }
+  };
+  
+  const exportToCSV = () => {
+    if (activities.length === 0) return;
     
-    try {
-      // Build CSV content
-      let csvContent = "Data,Membro,Departamento,Tarefa,Descrição,Status\n";
-      
-      activities.forEach(activity => {
-        const date = format(new Date(activity.completedAt), 'dd/MM/yyyy HH:mm');
-        const row = [
-          date,
-          activity.memberName,
-          activity.departmentName,
-          activity.taskTitle,
-          `"${activity.description.replace(/"/g, '""')}"`,
-          activity.status
-        ].join(',');
-        
-        csvContent += row + "\n";
-      });
-      
-      // Create download link
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      
-      const exportFileName = `atividades_equipe_${format(new Date(), 'yyyy-MM-dd')}.csv`;
-      
-      if (navigator.msSaveBlob) {
-        // For IE
-        navigator.msSaveBlob(blob, exportFileName);
-      } else {
-        // For other browsers
-        const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.setAttribute('download', exportFileName);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-      
-      toast({
-        title: "Exportação concluída",
-        description: "O arquivo CSV foi gerado com sucesso",
-        variant: "default"
-      });
-    } catch (error: any) {
-      console.error('Erro ao exportar atividades:', error);
-      toast({
-        title: "Erro na exportação",
-        description: "Não foi possível exportar as atividades: " + error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setExporting(false);
+    // Create CSV content
+    const headers = ['Data', 'Usuário', 'Departamento', 'Ação', 'Entidade', 'Detalhes'];
+    const csvRows = [headers.join(',')];
+    
+    for (const activity of activities) {
+      const row = [
+        format(new Date(activity.created_at), 'dd/MM/yyyy HH:mm:ss'),
+        activity.user_name,
+        activity.department_name || 'N/A',
+        getActionVerb(activity.action),
+        getEntityName(activity.entity_type),
+        `"${activity.details?.replace(/"/g, '""') || ''}"`
+      ];
+      csvRows.push(row.join(','));
     }
-  };
-  
-  const getFormattedDateRange = () => {
-    if (dateFilter === 'today') {
-      return 'Hoje';
-    } else if (dateFilter === 'yesterday') {
-      return 'Ontem';
-    } else if (dateFilter === 'thisWeek') {
-      return 'Esta semana';
-    } else if (dateFilter === 'thisMonth') {
-      return 'Este mês';
-    } else if (dateFilter === 'custom' && dateRange.from && dateRange.to) {
-      const from = format(dateRange.from, 'dd/MM/yyyy');
-      const to = format(dateRange.to, 'dd/MM/yyyy');
-      return `${from} - ${to}`;
+    
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    // Create link and trigger download
+    const link = document.createElement('a');
+    const fileName = `atividades_equipe_${format(new Date(), 'dd-MM-yyyy')}.csv`;
+    
+    if (navigator.msSaveBlob) {
+      // IE 10+
+      navigator.msSaveBlob(blob, fileName);
+    } else {
+      link.href = url;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
-    return '';
   };
   
   return (
     <Card>
-      <CardHeader className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-        <div>
-          <CardTitle>Histórico de Atividades</CardTitle>
-          <CardDescription>
-            Acompanhe as atividades concluídas pela equipe
-          </CardDescription>
-        </div>
-        
-        <div className="flex flex-wrap gap-2">
-          <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'list' | 'table')} className="w-full sm:w-auto">
-            <TabsList className="grid w-full grid-cols-2 sm:w-auto">
-              <TabsTrigger value="list">Lista</TabsTrigger>
-              <TabsTrigger value="table">Tabela</TabsTrigger>
-            </TabsList>
-          </Tabs>
+      <CardHeader>
+        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+          <div>
+            <CardTitle>Histórico de Atividades</CardTitle>
+            <CardDescription>
+              Acompanhe as ações realizadas por todos os membros da equipe
+            </CardDescription>
+          </div>
           
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={fetchActivities}
-            className="sm:ml-2"
-          >
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Atualizar
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={exportToCsv}
-            disabled={exporting || activities.length === 0}
-          >
-            {exporting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Download className="mr-2 h-4 w-4" />
-            )}
-            Exportar CSV
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={exportToCSV}>
+              <FileDown className="h-4 w-4 mr-2" />
+              Exportar CSV
+            </Button>
+          </div>
         </div>
       </CardHeader>
       
       <CardContent>
-        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4 mb-6 overflow-x-auto">
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Filtros:</span>
-          </div>
-          
-          <Select
-            value={dateFilter}
-            onValueChange={(value) => setDateFilter(value as any)}
-          >
-            <SelectTrigger className="w-[180px]">
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Período" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Período</SelectLabel>
-                <SelectItem value="today">Hoje</SelectItem>
-                <SelectItem value="yesterday">Ontem</SelectItem>
-                <SelectItem value="thisWeek">Esta semana</SelectItem>
-                <SelectItem value="thisMonth">Este mês</SelectItem>
-                <SelectItem value="custom">Personalizado</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          
-          {dateFilter === 'custom' && (
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex-1 grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            <div className="flex items-center gap-2 bg-muted/20 rounded-md p-2">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar no histórico..."
+                className="border-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            
+            <div className="flex gap-2 items-center">
+              <Filter className="h-4 w-4" />
+              <Select value={entityFilter} onValueChange={setEntityFilter}>
+                <SelectTrigger className="flex-1">
+                  <SelectValue placeholder="Tipo de entidade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas entidades</SelectItem>
+                  <SelectItem value="task">Tarefas</SelectItem>
+                  <SelectItem value="project">Projetos</SelectItem>
+                  <SelectItem value="user">Usuários</SelectItem>
+                  <SelectItem value="department">Departamentos</SelectItem>
+                  <SelectItem value="customer">Clientes</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
             <Popover>
               <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-[280px] justify-start text-left font-normal"
-                >
+                <Button variant="outline" className="justify-start text-left">
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateRange.from && dateRange.to ? (
-                    format(dateRange.from, 'dd/MM/yyyy') + ' - ' + format(dateRange.to, 'dd/MM/yyyy')
+                  {dateRange.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "dd/MM/yyyy")} - {format(dateRange.to, "dd/MM/yyyy")}
+                      </>
+                    ) : (
+                      format(dateRange.from, "dd/MM/yyyy")
+                    )
                   ) : (
-                    "Selecione um período"
+                    "Selecione as datas"
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
+              <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
-                  mode="range"
-                  selected={{
-                    from: dateRange.from,
-                    to: dateRange.to
-                  }}
-                  onSelect={(range) => {
-                    if (range?.from && range?.to) {
-                      setDateRange({
-                        from: range.from,
-                        to: range.to
-                      });
-                    }
-                  }}
                   initialFocus
+                  mode="range"
+                  defaultMonth={dateRange.from}
+                  selected={dateRange}
+                  onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })}
+                  numberOfMonths={2}
                 />
               </PopoverContent>
             </Popover>
-          )}
+          </div>
           
-          <Select
-            value={selectedDepartment || ""}
-            onValueChange={(value) => setSelectedDepartment(value === "" ? null : value)}
-          >
-            <SelectTrigger className="w-[180px]">
-              <TableIcon className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Departamento" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Departamento</SelectLabel>
-                <SelectItem value="">Todos</SelectItem>
-                {departments.map((dept) => (
-                  <SelectItem key={dept.id} value={dept.id}>
-                    {dept.nome}
-                  </SelectItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Filter className="h-4 w-4 mr-2" />
+                Mais filtros
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuLabel>Filtros Avançados</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Usuário</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setUserFilter('all')}>
+                  Todos os usuários
+                  {userFilter === 'all' && <Check className="h-4 w-4 ml-auto" />}
+                </DropdownMenuItem>
+                {users.map(user => (
+                  <DropdownMenuItem key={user.id} onClick={() => setUserFilter(user.id)}>
+                    {user.name}
+                    {userFilter === user.id && <Check className="h-4 w-4 ml-auto" />}
+                  </DropdownMenuItem>
                 ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          
-          <Select
-            value={memberFilter || ""}
-            onValueChange={(value) => setMemberFilter(value === "" ? null : value)}
-          >
-            <SelectTrigger className="w-[180px]">
-              <Users className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Membro" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Membro</SelectLabel>
-                <SelectItem value="">Todos</SelectItem>
-                {membersList.map((member) => (
-                  <SelectItem key={member.id} value={member.id}>
-                    {member.name}
-                  </SelectItem>
+              </DropdownMenuGroup>
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Departamento</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setDepartmentFilter('all')}>
+                  Todos os departamentos
+                  {departmentFilter === 'all' && <Check className="h-4 w-4 ml-auto" />}
+                </DropdownMenuItem>
+                {departments.map(dept => (
+                  <DropdownMenuItem key={dept.id} onClick={() => setDepartmentFilter(dept.id)}>
+                    {dept.name}
+                    {departmentFilter === dept.id && <Check className="h-4 w-4 ml-auto" />}
+                  </DropdownMenuItem>
                 ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         
         {loading ? (
           <div className="space-y-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="space-y-2">
-                <Skeleton className="h-6 w-32" />
-                <div className="space-y-2">
-                  {[1, 2].map(j => (
-                    <div key={j} className="flex items-start space-x-4 p-4 border rounded-md">
-                      <Skeleton className="h-10 w-10 rounded-full" />
-                      <div className="space-y-2 flex-1">
-                        <Skeleton className="h-4 w-40" />
-                        <Skeleton className="h-4 w-full" />
-                      </div>
-                    </div>
-                  ))}
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} className="flex gap-4 items-center p-2">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
                 </div>
               </div>
             ))}
           </div>
         ) : activities.length === 0 ? (
-          <div className="text-center py-10">
-            <TableIcon className="h-10 w-10 mx-auto text-muted-foreground" />
-            <p className="mt-2 text-lg font-medium">Nenhuma atividade encontrada</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Tente ajustar os filtros para ver mais resultados
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">
+              Nenhuma atividade encontrada com os filtros selecionados.
             </p>
           </div>
         ) : (
-          <TabsContent value="list" className="mt-0">
-            <div className="space-y-8">
-              {groupedByDay.map((group) => (
-                <div key={group.day} className="space-y-4">
-                  <h3 className="font-medium text-lg capitalize">
-                    {formatDay(group.date)}
-                  </h3>
-                  
-                  <div className="space-y-4">
-                    {group.activities.map((activity) => (
-                      <div 
-                        key={activity.id} 
-                        className="flex items-start space-x-4 p-4 border rounded-md"
-                      >
-                        <div 
-                          className="w-10 h-10 rounded-full flex items-center justify-center text-white"
-                          style={{ backgroundColor: activity.departmentId ? departments.find(d => d.id === activity.departmentId)?.cor || '#94a3b8' : '#94a3b8' }}
-                        >
-                          {activity.memberName.substring(0, 1).toUpperCase()}
-                        </div>
-                        
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <span className="font-medium">{activity.memberName}</span>
-                              <Badge variant="outline" className="ml-2">
-                                {activity.departmentName}
-                              </Badge>
-                            </div>
-                            <span className="text-sm text-muted-foreground">
-                              {format(new Date(activity.completedAt), 'HH:mm')}
-                            </span>
-                          </div>
-                          
-                          <p className="mt-1 font-medium">{activity.taskTitle}</p>
-                          <p className="mt-1 text-sm text-muted-foreground">{activity.description}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-        )}
-        
-        <TabsContent value="table" className="mt-0">
-          <div className="rounded-md border">
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Membro</TableHead>
+                  <TableHead>Data/Hora</TableHead>
+                  <TableHead>Usuário</TableHead>
                   <TableHead>Departamento</TableHead>
-                  <TableHead>Tarefa</TableHead>
-                  <TableHead className="hidden md:table-cell">Descrição</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Ação</TableHead>
+                  <TableHead>Detalhes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {activities.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-6">
-                      <p className="text-muted-foreground">Nenhuma atividade encontrada</p>
+                {activities.map((activity) => (
+                  <TableRow key={activity.id}>
+                    <TableCell>
+                      <div className="font-medium">{formatDate(activity.created_at)}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(activity.created_at), { 
+                          addSuffix: true,
+                          locale: ptBR 
+                        })}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage 
+                            src={activity.user_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(activity.user_name)}&background=random`} 
+                            alt={activity.user_name} 
+                          />
+                          <AvatarFallback>
+                            {activity.user_name.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{activity.user_name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {activity.department_name ? (
+                        <Badge variant="outline" style={{
+                          borderColor: activity.department_color || undefined,
+                          color: activity.department_color || undefined
+                        }}>
+                          {activity.department_name}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Badge variant={
+                          activity.action.toLowerCase() === 'create' ? 'default' :
+                          activity.action.toLowerCase() === 'update' ? 'outline' :
+                          activity.action.toLowerCase() === 'delete' ? 'destructive' :
+                          'secondary'
+                        }>
+                          {getActionVerb(activity.action)} {getEntityName(activity.entity_type)}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm">
+                        {activity.details || <span className="text-muted-foreground italic">Sem detalhes</span>}
+                      </span>
                     </TableCell>
                   </TableRow>
-                ) : (
-                  activities.map((activity) => (
-                    <TableRow key={activity.id}>
-                      <TableCell className="font-medium">
-                        {format(new Date(activity.completedAt), 'dd/MM/yyyy HH:mm')}
-                      </TableCell>
-                      <TableCell>{activity.memberName}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" style={{ 
-                          borderColor: activity.departmentId ? departments.find(d => d.id === activity.departmentId)?.cor || 'currentColor' : 'currentColor' 
-                        }}>
-                          {activity.departmentName}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{activity.taskTitle}</TableCell>
-                      <TableCell className="hidden md:table-cell max-w-xs truncate">
-                        {activity.description}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={activity.status === 'completed' ? 'default' : 'secondary'}>
-                          {activity.status === 'completed' ? 'Concluída' : 'Arquivada'}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
+                ))}
               </TableBody>
             </Table>
           </div>
-        </TabsContent>
+        )}
       </CardContent>
     </Card>
+  );
+}
+
+// Need to explicitly import the Check icon for the dropdown menu
+function Check(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
   );
 }

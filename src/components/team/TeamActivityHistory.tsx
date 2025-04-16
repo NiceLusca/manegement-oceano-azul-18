@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -15,491 +15,582 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { 
+import { Badge } from '@/components/ui/badge';
+import { format, startOfMonth, endOfMonth, isToday, isYesterday } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from '@/components/ui/select';
+import { useDepartmentFilter } from '@/hooks/useDepartmentFilter';
 import { Skeleton } from '@/components/ui/skeleton';
+import { 
+  CalendarIcon, 
+  Download, 
+  Filter, 
+  Loader2, 
+  RefreshCw, 
+  Table as TableIcon, 
+  Users
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, Download, Filter, Loader2 } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
+import { useAuth } from '@/contexts/AuthContext';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
 
-interface CompletedTask {
+interface ActivityRecord {
   id: string;
-  title: string;
-  assignee_id: string;
-  completed_at: string;
-  assignee: {
-    nome: string;
-    avatar_url: string;
-    departamento_id: string;
-  };
-  department?: {
-    nome: string;
-    cor: string;
-  };
-}
-
-interface MemberActivitySummary {
   memberId: string;
   memberName: string;
-  memberAvatar: string;
-  departmentId: string | null;
-  departmentName: string | null;
-  departmentColor: string | null;
-  taskCount: number;
-  tasks: CompletedTask[];
+  departmentId: string;
+  departmentName: string;
+  taskTitle: string;
+  description: string;
+  completedAt: string;
+  status: string;
 }
 
-export const TeamActivityHistory = () => {
-  const [completedTasks, setCompletedTasks] = useState<CompletedTask[]>([]);
-  const [departments, setDepartments] = useState<{ id: string, nome: string, cor?: string }[]>([]);
-  const [members, setMembers] = useState<{ id: string, nome: string, departamento_id: string }[]>([]);
+interface DailyActivity {
+  day: string;
+  date: Date;
+  activities: ActivityRecord[];
+}
+
+interface TeamMember {
+  id: string;
+  name: string;
+}
+
+export function TeamActivityHistory() {
+  const [activities, setActivities] = useState<ActivityRecord[]>([]);
+  const [groupedByDay, setGroupedByDay] = useState<DailyActivity[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [tasksByMember, setTasksByMember] = useState<Record<string, MemberActivitySummary>>({});
-  const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
-  const [selectedMember, setSelectedMember] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'group' | 'table'>('group');
-  const [exportLoading, setExportLoading] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
+  const [dateFilter, setDateFilter] = useState<'today' | 'yesterday' | 'thisWeek' | 'thisMonth' | 'custom'>('thisWeek');
+  const [dateRange, setDateRange] = useState<{from: Date, to: Date}>({
+    from: startOfMonth(new Date()),
+    to: endOfMonth(new Date())
+  });
+  const [memberFilter, setMemberFilter] = useState<string | null>(null);
+  const [membersList, setMembersList] = useState<TeamMember[]>([]);
+  const [exporting, setExporting] = useState(false);
+  
+  const { departments, selectedDepartment, setSelectedDepartment, getDepartmentName } = useDepartmentFilter();
   const { toast } = useToast();
-
-  // Buscar departamentos
-  useEffect(() => {
-    const fetchDepts = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('departamentos')
-          .select('id, nome, cor')
-          .order('nome');
-
-        if (error) throw error;
-        setDepartments(data || []);
-      } catch (error) {
-        console.error('Erro ao buscar departamentos:', error);
-      }
-    };
-
-    fetchDepts();
-  }, []);
-
-  // Buscar membros
+  const { user } = useAuth();
+  
+  // Fetch team members
   useEffect(() => {
     const fetchMembers = async () => {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('id, nome, departamento_id')
+          .select('id, nome')
           .order('nome');
-
+          
         if (error) throw error;
-        setMembers(data || []);
+        
+        setMembersList(
+          data?.map(member => ({
+            id: member.id,
+            name: member.nome || 'Sem nome'
+          })) || []
+        );
       } catch (error) {
-        console.error('Erro ao buscar membros:', error);
+        console.error('Erro ao buscar membros da equipe:', error);
       }
     };
-
+    
     fetchMembers();
   }, []);
-
-  // Buscar tarefas concluídas
-  useEffect(() => {
-    const fetchCompletedTasks = async () => {
-      if (!selectedDate) return;
-      
-      setLoading(true);
-      try {
-        // Criar data de início (00:00) e fim (23:59) para o dia selecionado
-        const startDate = new Date(selectedDate);
-        startDate.setHours(0, 0, 0, 0);
-        
-        const endDate = new Date(selectedDate);
-        endDate.setHours(23, 59, 59, 999);
-
-        let query = supabase
-          .from('tasks')
-          .select(`
-            id,
-            title,
-            assignee_id,
-            completed_at,
-            assignee:profiles(
-              nome,
-              avatar_url,
-              departamento_id
-            )
-          `)
-          .eq('status', 'completed')
-          .gte('completed_at', startDate.toISOString())
-          .lte('completed_at', endDate.toISOString());
-
-        // Aplicar filtro por membro se selecionado
-        if (selectedMember) {
-          query = query.eq('assignee_id', selectedMember);
-        }
-
-        // Aplicar filtro por departamento (através do membro) se selecionado
-        // Não podemos filtrar diretamente, então teremos que filtrar depois
-        
-        const { data, error } = await query.order('completed_at', { ascending: false });
-
-        if (error) throw error;
-
-        // Adicionar informações do departamento a cada tarefa
-        const tasksWithDepts = (data || []).map(task => {
-          // Verificamos se assignee existe e é um objeto único (não um array)
-          const assigneeInfo = task.assignee && !Array.isArray(task.assignee) 
-            ? task.assignee 
-            : { nome: '', avatar_url: '', departamento_id: '' };
-            
-          const dept = departments.find(d => d.id === assigneeInfo.departamento_id);
-          
-          return {
-            ...task,
-            assignee: assigneeInfo,
-            department: dept ? { nome: dept.nome, cor: dept.cor || '#94a3b8' } : undefined
-          } as CompletedTask;
-        });
-
-        // Aplicar filtro por departamento se selecionado
-        const filteredTasks = selectedDepartment
-          ? tasksWithDepts.filter(task => task.assignee?.departamento_id === selectedDepartment)
-          : tasksWithDepts;
-
-        setCompletedTasks(filteredTasks);
-        
-        // Agrupar por membro da equipe
-        const byMember: Record<string, MemberActivitySummary> = {};
-        
-        filteredTasks.forEach(task => {
-          if (!task.assignee_id || !task.assignee) return;
-          
-          if (!byMember[task.assignee_id]) {
-            const department = departments.find(d => d.id === task.assignee.departamento_id);
-            
-            byMember[task.assignee_id] = {
-              memberId: task.assignee_id,
-              memberName: task.assignee.nome || 'Sem nome',
-              memberAvatar: task.assignee.avatar_url || '',
-              departmentId: task.assignee.departamento_id || null,
-              departmentName: department?.nome || null,
-              departmentColor: department?.cor || null,
-              taskCount: 0,
-              tasks: []
-            };
-          }
-          
-          byMember[task.assignee_id].taskCount += 1;
-          byMember[task.assignee_id].tasks.push(task);
-        });
-        
-        setTasksByMember(byMember);
-      } catch (error) {
-        console.error('Erro ao buscar tarefas concluídas:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (selectedDate && departments.length > 0) {
-      fetchCompletedTasks();
+  
+  // Generate query based on filters
+  const generateQuery = () => {
+    let query = supabase.from('team_activity')
+      .select('*')
+      .order('completed_at', { ascending: false });
+    
+    // Add date filters
+    const now = new Date();
+    
+    if (dateFilter === 'today') {
+      const today = format(now, 'yyyy-MM-dd');
+      query = query.gte('completed_at', `${today}T00:00:00`).lte('completed_at', `${today}T23:59:59`);
     }
-  }, [selectedDate, departments, selectedDepartment, selectedMember]);
-
-  const getInitials = (name: string) => {
-    if (!name) return '??';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    else if (dateFilter === 'yesterday') {
+      const yesterday = format(new Date(now.setDate(now.getDate() - 1)), 'yyyy-MM-dd');
+      query = query.gte('completed_at', `${yesterday}T00:00:00`).lte('completed_at', `${yesterday}T23:59:59`);
+    }
+    else if (dateFilter === 'thisWeek') {
+      const today = new Date();
+      const firstDay = new Date(today.setDate(today.getDate() - today.getDay()));
+      const lastDay = new Date(new Date().setDate(firstDay.getDate() + 6));
+      
+      query = query.gte('completed_at', format(firstDay, 'yyyy-MM-dd'))
+                  .lte('completed_at', format(lastDay, 'yyyy-MM-dd') + 'T23:59:59');
+    }
+    else if (dateFilter === 'thisMonth') {
+      const firstDayOfMonth = format(startOfMonth(now), 'yyyy-MM-dd');
+      const lastDayOfMonth = format(endOfMonth(now), 'yyyy-MM-dd');
+      
+      query = query.gte('completed_at', `${firstDayOfMonth}T00:00:00`)
+                  .lte('completed_at', `${lastDayOfMonth}T23:59:59`);
+    }
+    else if (dateFilter === 'custom' && dateRange.from && dateRange.to) {
+      const fromDate = format(dateRange.from, 'yyyy-MM-dd');
+      const toDate = format(dateRange.to, 'yyyy-MM-dd');
+      
+      query = query.gte('completed_at', `${fromDate}T00:00:00`)
+                  .lte('completed_at', `${toDate}T23:59:59`);
+    }
+    
+    // Add department filter
+    if (selectedDepartment) {
+      query = query.eq('department_id', selectedDepartment);
+    }
+    
+    // Add member filter
+    if (memberFilter) {
+      query = query.eq('member_id', memberFilter);
+    }
+    
+    return query;
   };
-
-  const handleExportCSV = () => {
-    setExportLoading(true);
+  
+  // Fetch activities
+  const fetchActivities = async () => {
+    setLoading(true);
     
     try {
-      // Criar cabeçalho do CSV
-      let csvContent = "Nome,Departamento,Total de Tarefas,Tarefas\n";
+      const query = generateQuery();
+      const { data, error } = await query;
       
-      // Adicionar dados de cada membro
-      Object.values(tasksByMember).forEach(member => {
-        const taskTitles = member.tasks.map(t => t.title).join(" | ");
+      if (error) throw error;
+      
+      if (data) {
+        const formattedData = data.map(record => ({
+          id: record.id,
+          memberId: record.member_id,
+          memberName: record.member_name,
+          departmentId: record.department_id,
+          departmentName: record.department_name,
+          taskTitle: record.task_title,
+          description: record.description,
+          completedAt: record.completed_at,
+          status: record.status
+        }));
         
-        csvContent += `"${member.memberName}","${member.departmentName || 'Sem departamento'}",${member.taskCount},"${taskTitles}"\n`;
-      });
-      
-      // Criar link de download
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', `atividades_${format(selectedDate, 'yyyy-MM-dd')}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      toast({
-        title: "Sucesso",
-        description: "Relatório exportado com sucesso!",
-        variant: "default"
-      });
-    } catch (error) {
-      console.error('Erro ao exportar CSV:', error);
+        setActivities(formattedData);
+        
+        // Group by day
+        const grouped: Record<string, ActivityRecord[]> = {};
+        
+        formattedData.forEach(activity => {
+          const day = format(new Date(activity.completedAt), 'yyyy-MM-dd');
+          if (!grouped[day]) {
+            grouped[day] = [];
+          }
+          grouped[day].push(activity);
+        });
+        
+        const result: DailyActivity[] = Object.keys(grouped)
+          .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+          .map(day => ({
+            day,
+            date: new Date(day),
+            activities: grouped[day]
+          }));
+        
+        setGroupedByDay(result);
+      }
+    } catch (error: any) {
+      console.error('Erro ao buscar atividades:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível exportar o relatório.",
+        description: "Não foi possível carregar as atividades: " + error.message,
         variant: "destructive"
       });
     } finally {
-      setExportLoading(false);
+      setLoading(false);
     }
   };
-
+  
+  useEffect(() => {
+    fetchActivities();
+  }, [selectedDepartment, dateFilter, dateRange, memberFilter]);
+  
+  const formatDay = (date: Date) => {
+    if (isToday(date)) {
+      return 'Hoje';
+    } else if (isYesterday(date)) {
+      return 'Ontem';
+    } else {
+      return format(date, "EEEE, d 'de' MMMM", { locale: ptBR });
+    }
+  };
+  
+  const exportToCsv = async () => {
+    setExporting(true);
+    
+    try {
+      // Build CSV content
+      let csvContent = "Data,Membro,Departamento,Tarefa,Descrição,Status\n";
+      
+      activities.forEach(activity => {
+        const date = format(new Date(activity.completedAt), 'dd/MM/yyyy HH:mm');
+        const row = [
+          date,
+          activity.memberName,
+          activity.departmentName,
+          activity.taskTitle,
+          `"${activity.description.replace(/"/g, '""')}"`,
+          activity.status
+        ].join(',');
+        
+        csvContent += row + "\n";
+      });
+      
+      // Create download link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      
+      const exportFileName = `atividades_equipe_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+      
+      if (navigator.msSaveBlob) {
+        // For IE
+        navigator.msSaveBlob(blob, exportFileName);
+      } else {
+        // For other browsers
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.setAttribute('download', exportFileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+      
+      toast({
+        title: "Exportação concluída",
+        description: "O arquivo CSV foi gerado com sucesso",
+        variant: "default"
+      });
+    } catch (error: any) {
+      console.error('Erro ao exportar atividades:', error);
+      toast({
+        title: "Erro na exportação",
+        description: "Não foi possível exportar as atividades: " + error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+  
+  const getFormattedDateRange = () => {
+    if (dateFilter === 'today') {
+      return 'Hoje';
+    } else if (dateFilter === 'yesterday') {
+      return 'Ontem';
+    } else if (dateFilter === 'thisWeek') {
+      return 'Esta semana';
+    } else if (dateFilter === 'thisMonth') {
+      return 'Este mês';
+    } else if (dateFilter === 'custom' && dateRange.from && dateRange.to) {
+      const from = format(dateRange.from, 'dd/MM/yyyy');
+      const to = format(dateRange.to, 'dd/MM/yyyy');
+      return `${from} - ${to}`;
+    }
+    return '';
+  };
+  
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-xl">Histórico de Atividades Concluídas</CardTitle>
-        <div className="flex items-center gap-3">
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground whitespace-nowrap">Filtros:</span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-[240px] justify-start text-left font-normal"
-                    size="sm"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? (
-                      format(selectedDate, 'dd/MM/yyyy', { locale: ptBR })
-                    ) : (
-                      <span>Selecione uma data</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => setSelectedDate(date || new Date())}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="flex gap-2">
-              <Select
-                value={selectedDepartment || "all"}
-                onValueChange={(value) => setSelectedDepartment(value === "all" ? null : value)}
-              >
-                <SelectTrigger className="w-[180px]" size="sm">
-                  <SelectValue placeholder="Todos departamentos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos departamentos</SelectItem>
-                  {departments.map((dept) => (
-                    <SelectItem key={dept.id} value={dept.id}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-2 h-2 rounded-full" 
-                          style={{ backgroundColor: dept.cor || '#94a3b8' }}
-                        />
-                        {dept.nome}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={selectedMember || "all"}
-                onValueChange={(value) => setSelectedMember(value === "all" ? null : value)}
-              >
-                <SelectTrigger className="w-[180px]" size="sm">
-                  <SelectValue placeholder="Todos membros" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos membros</SelectItem>
-                  {members.map((member) => (
-                    <SelectItem key={member.id} value={member.id}>
-                      {member.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+      <CardHeader className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+        <div>
+          <CardTitle>Histórico de Atividades</CardTitle>
+          <CardDescription>
+            Acompanhe as atividades concluídas pela equipe
+          </CardDescription>
+        </div>
+        
+        <div className="flex flex-wrap gap-2">
+          <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'list' | 'table')} className="w-full sm:w-auto">
+            <TabsList className="grid w-full grid-cols-2 sm:w-auto">
+              <TabsTrigger value="list">Lista</TabsTrigger>
+              <TabsTrigger value="table">Tabela</TabsTrigger>
+            </TabsList>
+          </Tabs>
           
-          <Button
-            variant="outline"
-            size="sm"
-            className="ml-auto"
-            onClick={handleExportCSV}
-            disabled={exportLoading || loading || Object.keys(tasksByMember).length === 0}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={fetchActivities}
+            className="sm:ml-2"
           >
-            {exportLoading ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Atualizar
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={exportToCsv}
+            disabled={exporting || activities.length === 0}
+          >
+            {exporting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
-              <Download className="h-4 w-4 mr-2" />
+              <Download className="mr-2 h-4 w-4" />
             )}
-            Exportar
+            Exportar CSV
           </Button>
         </div>
       </CardHeader>
+      
       <CardContent>
-        <Tabs defaultValue="group" className="mt-2" onValueChange={(v) => setViewMode(v as 'group' | 'table')}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="group">Agrupado por Membro</TabsTrigger>
-            <TabsTrigger value="table">Tabela de Atividades</TabsTrigger>
-          </TabsList>
+        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4 mb-6 overflow-x-auto">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Filtros:</span>
+          </div>
           
-          <TabsContent value="group">
-            {loading ? (
-              <div className="space-y-6">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Skeleton className="h-8 w-8 rounded-full" />
-                      <Skeleton className="h-5 w-40" />
-                      <Skeleton className="h-4 w-20 ml-auto" />
-                    </div>
-                    <div className="pl-10 space-y-1">
-                      {[1, 2, 3].map((j) => (
-                        <Skeleton key={j} className="h-4 w-full" />
-                      ))}
-                    </div>
-                  </div>
+          <Select
+            value={dateFilter}
+            onValueChange={(value) => setDateFilter(value as any)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Período" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Período</SelectLabel>
+                <SelectItem value="today">Hoje</SelectItem>
+                <SelectItem value="yesterday">Ontem</SelectItem>
+                <SelectItem value="thisWeek">Esta semana</SelectItem>
+                <SelectItem value="thisMonth">Este mês</SelectItem>
+                <SelectItem value="custom">Personalizado</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          
+          {dateFilter === 'custom' && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-[280px] justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange.from && dateRange.to ? (
+                    format(dateRange.from, 'dd/MM/yyyy') + ' - ' + format(dateRange.to, 'dd/MM/yyyy')
+                  ) : (
+                    "Selecione um período"
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="range"
+                  selected={{
+                    from: dateRange.from,
+                    to: dateRange.to
+                  }}
+                  onSelect={(range) => {
+                    if (range?.from && range?.to) {
+                      setDateRange({
+                        from: range.from,
+                        to: range.to
+                      });
+                    }
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          )}
+          
+          <Select
+            value={selectedDepartment || ""}
+            onValueChange={(value) => setSelectedDepartment(value === "" ? null : value)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <TableIcon className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Departamento" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Departamento</SelectLabel>
+                <SelectItem value="">Todos</SelectItem>
+                {departments.map((dept) => (
+                  <SelectItem key={dept.id} value={dept.id}>
+                    {dept.nome}
+                  </SelectItem>
                 ))}
-              </div>
-            ) : Object.keys(tasksByMember).length === 0 ? (
-              <div className="py-8 text-center text-muted-foreground">
-                Nenhuma atividade concluída encontrada
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {Object.values(tasksByMember).map((member) => (
-                  <div key={member.memberId} className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={member.memberAvatar} />
-                        <AvatarFallback>{getInitials(member.memberName)}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{member.memberName}</span>
-                        {member.departmentName && (
-                          <Badge 
-                            className="text-xs" 
-                            style={{
-                              backgroundColor: member.departmentColor || '#94a3b8',
-                              color: (member.departmentColor && 
-                                    (member.departmentColor.startsWith('#E') || 
-                                     member.departmentColor.startsWith('#F') || 
-                                     member.departmentColor.startsWith('#e') || 
-                                     member.departmentColor.startsWith('#f'))) 
-                                ? 'black' 
-                                : 'white'
-                            }}
-                          >
-                            {member.departmentName}
-                          </Badge>
-                        )}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          
+          <Select
+            value={memberFilter || ""}
+            onValueChange={(value) => setMemberFilter(value === "" ? null : value)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <Users className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Membro" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Membro</SelectLabel>
+                <SelectItem value="">Todos</SelectItem>
+                {membersList.map((member) => (
+                  <SelectItem key={member.id} value={member.id}>
+                    {member.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {loading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="space-y-2">
+                <Skeleton className="h-6 w-32" />
+                <div className="space-y-2">
+                  {[1, 2].map(j => (
+                    <div key={j} className="flex items-start space-x-4 p-4 border rounded-md">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <div className="space-y-2 flex-1">
+                        <Skeleton className="h-4 w-40" />
+                        <Skeleton className="h-4 w-full" />
                       </div>
-                      <Badge variant="outline" className="ml-auto">
-                        {member.taskCount} {member.taskCount === 1 ? 'tarefa' : 'tarefas'}
-                      </Badge>
                     </div>
-                    
-                    <div className="pl-10 space-y-1">
-                      {member.tasks.map(task => (
-                        <div key={task.id} className="flex items-center justify-between text-sm py-1 border-b border-gray-100 dark:border-gray-800">
-                          <span>{task.title}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {format(new Date(task.completed_at), 'HH:mm', { locale: ptBR })}
-                          </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : activities.length === 0 ? (
+          <div className="text-center py-10">
+            <TableIcon className="h-10 w-10 mx-auto text-muted-foreground" />
+            <p className="mt-2 text-lg font-medium">Nenhuma atividade encontrada</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Tente ajustar os filtros para ver mais resultados
+            </p>
+          </div>
+        ) : (
+          <TabsContent value="list" className="mt-0">
+            <div className="space-y-8">
+              {groupedByDay.map((group) => (
+                <div key={group.day} className="space-y-4">
+                  <h3 className="font-medium text-lg capitalize">
+                    {formatDay(group.date)}
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    {group.activities.map((activity) => (
+                      <div 
+                        key={activity.id} 
+                        className="flex items-start space-x-4 p-4 border rounded-md"
+                      >
+                        <div 
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-white"
+                          style={{ backgroundColor: activity.departmentId ? departments.find(d => d.id === activity.departmentId)?.cor || '#94a3b8' : '#94a3b8' }}
+                        >
+                          {activity.memberName.substring(0, 1).toUpperCase()}
                         </div>
-                      ))}
-                    </div>
+                        
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium">{activity.memberName}</span>
+                              <Badge variant="outline" className="ml-2">
+                                {activity.departmentName}
+                              </Badge>
+                            </div>
+                            <span className="text-sm text-muted-foreground">
+                              {format(new Date(activity.completedAt), 'HH:mm')}
+                            </span>
+                          </div>
+                          
+                          <p className="mt-1 font-medium">{activity.taskTitle}</p>
+                          <p className="mt-1 text-sm text-muted-foreground">{activity.description}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
           </TabsContent>
-          
-          <TabsContent value="table">
-            {loading ? (
-              <div className="space-y-2">
-                <Skeleton className="h-10 w-full" />
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
-                ))}
-              </div>
-            ) : completedTasks.length === 0 ? (
-              <div className="py-8 text-center text-muted-foreground">
-                Nenhuma atividade concluída encontrada
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
+        )}
+        
+        <TabsContent value="table" className="mt-0">
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Membro</TableHead>
+                  <TableHead>Departamento</TableHead>
+                  <TableHead>Tarefa</TableHead>
+                  <TableHead className="hidden md:table-cell">Descrição</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activities.length === 0 ? (
                   <TableRow>
-                    <TableHead>Membro</TableHead>
-                    <TableHead>Tarefa</TableHead>
-                    <TableHead>Departamento</TableHead>
-                    <TableHead className="text-right">Hora de Conclusão</TableHead>
+                    <TableCell colSpan={6} className="text-center py-6">
+                      <p className="text-muted-foreground">Nenhuma atividade encontrada</p>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {completedTasks.map((task) => (
-                    <TableRow key={task.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src={task.assignee.avatar_url} />
-                            <AvatarFallback>{getInitials(task.assignee.nome)}</AvatarFallback>
-                          </Avatar>
-                          <span>{task.assignee.nome}</span>
-                        </div>
+                ) : (
+                  activities.map((activity) => (
+                    <TableRow key={activity.id}>
+                      <TableCell className="font-medium">
+                        {format(new Date(activity.completedAt), 'dd/MM/yyyy HH:mm')}
                       </TableCell>
-                      <TableCell>{task.title}</TableCell>
+                      <TableCell>{activity.memberName}</TableCell>
                       <TableCell>
-                        {task.department ? (
-                          <Badge 
-                            className="text-xs" 
-                            style={{
-                              backgroundColor: task.department.cor,
-                              color: task.department.cor.startsWith('#E') ||
-                                     task.department.cor.startsWith('#F') ||
-                                     task.department.cor.startsWith('#e') ||
-                                     task.department.cor.startsWith('#f')
-                                ? 'black' 
-                                : 'white'
-                            }}
-                          >
-                            {task.department.nome}
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
+                        <Badge variant="outline" style={{ 
+                          borderColor: activity.departmentId ? departments.find(d => d.id === activity.departmentId)?.cor || 'currentColor' : 'currentColor' 
+                        }}>
+                          {activity.departmentName}
+                        </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
-                        {format(new Date(task.completed_at), 'HH:mm', { locale: ptBR })}
+                      <TableCell>{activity.taskTitle}</TableCell>
+                      <TableCell className="hidden md:table-cell max-w-xs truncate">
+                        {activity.description}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={activity.status === 'completed' ? 'default' : 'secondary'}>
+                          {activity.status === 'completed' ? 'Concluída' : 'Arquivada'}
+                        </Badge>
                       </TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </TabsContent>
-        </Tabs>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
       </CardContent>
     </Card>
   );
-};
+}

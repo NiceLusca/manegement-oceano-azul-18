@@ -1,12 +1,14 @@
 
-import { createContext, useContext, useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+
+type Theme = "dark" | "light" | "system";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
 };
 
 type ThemeProviderState = {
-  theme: "dark";
+  theme: Theme;
 };
 
 const initialState: ThemeProviderState = {

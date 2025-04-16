@@ -27,7 +27,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <HelmetProvider>
-          <ThemeProvider defaultTheme="dark">
+          <ThemeProvider>
             <TooltipProvider>
               <AuthProvider>
                 <Routes>

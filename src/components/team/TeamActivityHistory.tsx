@@ -46,6 +46,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { DateRange } from 'react-day-picker';
 
 interface TeamActivity {
   id: string;
@@ -68,7 +69,7 @@ export function TeamActivityHistory() {
   const [userFilter, setUserFilter] = useState<string>('all');
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: undefined,
     to: undefined,
   });
@@ -102,11 +103,11 @@ export function TeamActivityHistory() {
           query = query.or(`details.ilike.%${searchQuery}%,action.ilike.%${searchQuery}%`);
         }
         
-        if (dateRange.from) {
+        if (dateRange?.from) {
           query = query.gte('created_at', dateRange.from.toISOString());
         }
         
-        if (dateRange.to) {
+        if (dateRange?.to) {
           const nextDay = new Date(dateRange.to);
           nextDay.setDate(nextDay.getDate() + 1);
           query = query.lt('created_at', nextDay.toISOString());
@@ -229,16 +230,11 @@ export function TeamActivityHistory() {
     const link = document.createElement('a');
     const fileName = `atividades_equipe_${format(new Date(), 'dd-MM-yyyy')}.csv`;
     
-    if (navigator.msSaveBlob) {
-      // IE 10+
-      navigator.msSaveBlob(blob, fileName);
-    } else {
-      link.href = url;
-      link.setAttribute('download', fileName);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
   
   return (
@@ -277,7 +273,7 @@ export function TeamActivityHistory() {
             <div className="flex gap-2 items-center">
               <Filter className="h-4 w-4" />
               <Select value={entityFilter} onValueChange={setEntityFilter}>
-                <SelectTrigger className="flex-1">
+                <SelectTrigger>
                   <SelectValue placeholder="Tipo de entidade" />
                 </SelectTrigger>
                 <SelectContent>
@@ -295,7 +291,7 @@ export function TeamActivityHistory() {
               <PopoverTrigger asChild>
                 <Button variant="outline" className="justify-start text-left">
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateRange.from ? (
+                  {dateRange?.from ? (
                     dateRange.to ? (
                       <>
                         {format(dateRange.from, "dd/MM/yyyy")} - {format(dateRange.to, "dd/MM/yyyy")}
@@ -312,9 +308,9 @@ export function TeamActivityHistory() {
                 <Calendar
                   initialFocus
                   mode="range"
-                  defaultMonth={dateRange.from}
+                  defaultMonth={dateRange?.from}
                   selected={dateRange}
-                  onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })}
+                  onSelect={setDateRange}
                   numberOfMonths={2}
                 />
               </PopoverContent>

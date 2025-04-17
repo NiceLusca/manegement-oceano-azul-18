@@ -33,7 +33,7 @@ export function SidebarItem({
             to={href}
             className={({ isActive }) =>
               cn(
-                "flex items-center w-full px-3 py-2.5 rounded-md transition-all duration-200",
+                "flex items-center w-full px-4 py-3 rounded-md transition-all duration-200",
                 isActive
                   ? "bg-[#1e2131] text-[#38a9e4] font-medium" 
                   : "text-white/80 hover:bg-[#171923] hover:text-white",
@@ -41,7 +41,7 @@ export function SidebarItem({
               )
             }
           >
-            <div className="flex items-center">
+            <div className="flex items-center gap-3">
               <span className={cn(
                 "flex items-center justify-center transition-all duration-200", 
                 isActive ? "text-[#38a9e4]" : "text-white/70"
@@ -49,12 +49,11 @@ export function SidebarItem({
                 {icon}
               </span>
               
-              <span className={cn(
-                "ml-3 whitespace-nowrap transition-all duration-200 uppercase font-bold", 
-                collapsed && "hidden"
-              )}>
-                {menuTitle}
-              </span>
+              {!collapsed && (
+                <span className="whitespace-nowrap transition-all duration-200 uppercase font-bold">
+                  {menuTitle}
+                </span>
+              )}
             </div>
           </NavLink>
         </TooltipTrigger>

@@ -44,23 +44,37 @@ export const CsvImportDialog: React.FC<CsvImportDialogProps> = ({
     setSuccess(false);
     
     try {
-      // Import dynamically to avoid circular dependencies
+      // Use dynamic import to avoid circular dependencies
       const { processCSVFile } = await import('./csv/csvUtils');
       
-      await processCSVFile(file, onImportSuccess);
+      // Call the function with the onImportSuccess callback
+      await processCSVFile(file);
       
       setIsProcessing(false);
       setSuccess(true);
       
-      // Reset after 2 seconds
+      toast({
+        title: "Sucesso",
+        description: "Clientes importados com sucesso!",
+        variant: "default"
+      });
+      
+      // Reset after 2 seconds and call the success callback
       setTimeout(() => {
         setFile(null);
         setOpen(false);
+        onImportSuccess(); // Call this after successful import
       }, 2000);
       
     } catch (error: any) {
       setIsProcessing(false);
       setError(error.message || 'Ocorreu um erro inesperado');
+      
+      toast({
+        title: "Erro na importação",
+        description: error.message || 'Ocorreu um erro ao processar o arquivo',
+        variant: "destructive"
+      });
     }
   };
 

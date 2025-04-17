@@ -13,7 +13,7 @@ export function SidebarHeader({ collapsed, toggleSidebar }: SidebarHeaderProps) 
   return (
     <div className="flex items-center justify-between p-4 h-16 border-b border-[#202330]/70 bg-gradient-to-b from-[#0a0c13] to-[#0a0c13]/95">
       {!collapsed && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <img 
             src="/lovable-uploads/1a19e937-b0a5-45b2-8e63-f4f3993e46a4.png" 
             alt="Oceano Azul" 

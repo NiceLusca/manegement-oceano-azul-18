@@ -59,8 +59,10 @@ export function KanbanBoard() {
             )
           : tasksData;
           
+        // Ensure priority field is correctly typed
         setTasks(filteredTasks.map(task => ({
           ...task,
+          priority: task.priority as 'low' | 'medium' | 'high',
           status: task.status as Task['status']
         })));
       }

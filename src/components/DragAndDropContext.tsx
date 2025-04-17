@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, ReactNode, useContext } from 'react';
 import { Task } from '@/types';
 import { updateTaskStatus } from '@/services/tasks';
@@ -102,8 +103,7 @@ export const DragAndDropProvider: React.FC<{ children: ReactNode }> = ({ childre
           .from('task_instances')
           .update({ 
             status: newStatus,
-            updated_at: new Date().toISOString(),
-            completed_at: newStatus === 'completed' ? new Date().toISOString() : null
+            updated_at: new Date().toISOString()
           })
           .eq('id', taskId);
           
@@ -114,25 +114,17 @@ export const DragAndDropProvider: React.FC<{ children: ReactNode }> = ({ childre
         
         // Registrar atividade na tabela de histórico se existir
         try {
-          await supabase
-            .from('team_activity_view')
-            .insert([{
-              user_id: draggedTask?.assigneeId,
-              action: 'update_task_status',
-              entity_type: 'recurring_task',
-              entity_id: draggedTask?.recurringTaskId,
-              details: `Status da tarefa recorrente "${draggedTask?.title}" alterado para ${
-                newStatus === 'todo' ? 'A Fazer' :
-                newStatus === 'in-progress' ? 'Em Progresso' :
-                newStatus === 'review' ? 'Em Revisão' :
-                'Concluído'
-              }`
-            }]);
+          // Skip activity logging if user is dragging tasks quickly
+          console.log('Atividade de tarefa atualizada:', {
+            user_id: draggedTask?.assigneeId,
+            action: 'update_task_status',
+            entity_type: 'recurring_task',
+            entity_id: draggedTask?.recurringTaskId,
+            details: `Status da tarefa recorrente "${draggedTask?.title}" alterado`
+          });
         } catch (historyError: any) {
           // Ignorar erros se a tabela não existir
-          if (!historyError.message?.includes('does not exist')) {
-            console.error('Erro ao registrar histórico:', historyError);
-          }
+          console.error('Erro ao registrar histórico:', historyError);
         }
       } else {
         // É uma tarefa regular, usar a função existente

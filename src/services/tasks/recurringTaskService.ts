@@ -165,15 +165,12 @@ async function createNewTaskInstance(task: any, recurringData: any) {
 // Helper function to log task regeneration
 async function logTaskRegeneration(task: any) {
   try {
-    await supabase
-      .from('team_activity_view')
-      .insert([{
-        user_id: task.assignee_id,
-        action: 'regenerate_task',
-        entity_type: 'task',
-        entity_id: task.recurring_task_id,
-        details: `Tarefa recorrente "${task.title}" regenerada automaticamente`
-      }]);
+    // Instead of trying to insert into team_activity_view, just log to console
+    console.log('Tarefa recorrente regenerada:', {
+      task_id: task.recurring_task_id,
+      task_title: task.title,
+      assignee_id: task.assignee_id
+    });
   } catch (error) {
     console.error('Erro ao registrar no histórico:', error);
   }

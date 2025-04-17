@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Calendar,
   Settings,
@@ -26,6 +26,7 @@ interface SidebarItemType {
 
 export function SidebarNav({ collapsed, expandedSection, toggleSection }: SidebarNavProps) {
   const location = useLocation();
+  const [activeItem, setActiveItem] = useState<string | null>(null);
   
   const items: SidebarItemType[] = [
     {
@@ -61,21 +62,29 @@ export function SidebarNav({ collapsed, expandedSection, toggleSection }: Sideba
     },
   ];
 
+  // Update active item based on current route
+  useEffect(() => {
+    const currentPath = location.pathname;
+    console.log('Current path:', currentPath);
+    
+    // Find matching item
+    const matchedItem = items.find(item => {
+      if (item.exactMatch) {
+        return item.href === currentPath;
+      }
+      return currentPath === item.href || 
+             (item.href !== '/' && currentPath.startsWith(item.href));
+    });
+    
+    setActiveItem(matchedItem?.href || null);
+  }, [location.pathname]);
+
   return (
     <nav className="p-3 flex-1 overflow-y-auto">
       <ul className="space-y-0.5">
         {items.map((item) => {
-          const isExactMatch = location.pathname === item.href;
-          const isDashboardActive = item.href === "/" && location.pathname === "/";
-          const isPartialMatch = !isExactMatch && 
-            item.href !== "/" && 
-            location.pathname.startsWith(item.href);
-          
-          const isActive = Boolean(
-            isExactMatch || 
-            isDashboardActive || 
-            (isPartialMatch && !item.exactMatch)
-          );
+          // Check if this item should be active
+          const isActive = activeItem === item.href;
           
           return (
             <SidebarItem

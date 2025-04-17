@@ -17,6 +17,11 @@ export function Sidebar() {
     setExpandedSection(expandedSection === title ? null : title);
   };
 
+  // Log current route for debugging
+  React.useEffect(() => {
+    console.log('Sidebar - Current route:', location.pathname);
+  }, [location.pathname]);
+
   return (
     <aside
       className={cn(

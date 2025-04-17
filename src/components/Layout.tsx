@@ -12,14 +12,16 @@ export function Layout({
   children
 }: LayoutProps) {
   return (
-    <div className="flex h-screen w-full">
-      <Sidebar />
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-auto p-6 bg-[#0c0e16]">
-          {children}
-        </main>
+    <TooltipProvider>
+      <div className="flex h-screen w-full">
+        <Sidebar />
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <Header />
+          <main className="flex-1 overflow-auto p-6 bg-[#0c0e16]">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }

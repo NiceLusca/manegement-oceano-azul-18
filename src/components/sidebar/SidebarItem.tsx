@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -31,15 +31,16 @@ export function SidebarItem({
         <TooltipTrigger asChild>
           <NavLink
             to={href}
-            className={({ isActive }) =>
+            className={({ isActive: navActive }) =>
               cn(
                 "flex items-center w-full px-4 py-3 rounded-lg transition-all duration-200",
-                isActive
+                isActive || navActive
                   ? "bg-[#38B2AC] text-white font-medium" 
                   : "text-white/80 hover:bg-[#171923] hover:text-white",
                 collapsed && "justify-center px-3 py-3"
               )
             }
+            end={href === "/"}
           >
             <div className="flex items-center gap-3 w-full">
               <span className={cn(

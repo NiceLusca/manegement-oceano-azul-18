@@ -38,14 +38,14 @@ export const TaskList: React.FC<TaskListProps> = ({
   };
   
   return (
-    <Card className="lg:col-span-2 mx-0 my-0 h-full bg-white border border-gray-100 shadow-sm overflow-hidden">
-      <CardHeader className="bg-white border-b border-gray-100 pb-3">
-        <CardTitle className="flex items-center text-lg font-medium">
+    <Card className="lg:col-span-2 mx-0 my-0 h-full bg-[#0c0e16] border border-[#202330]/50 shadow-sm overflow-hidden">
+      <CardHeader className="bg-[#0c0e16] border-b border-[#202330]/50 pb-3">
+        <CardTitle className="flex items-center text-lg font-medium text-white">
           Tarefas para {format(date, 'PPP', {
             locale: ptBR
           })}
           {activeFilter && (
-            <Badge className="ml-2 bg-purple-100 text-purple-700 border-0" variant="outline">
+            <Badge className="ml-2 bg-[#38B2AC]/20 text-[#38B2AC] border-0" variant="outline">
               {getFilterLabel(activeFilter)}
             </Badge>
           )}
@@ -62,12 +62,12 @@ export const TaskList: React.FC<TaskListProps> = ({
         
         {loading ? (
           <div className="text-center py-8">
-            <div className="animate-pulse mx-auto h-6 w-32 rounded-md bg-gray-200 mb-4"></div>
-            <div className="animate-pulse mx-auto h-4 w-48 rounded-md bg-gray-100"></div>
+            <div className="animate-pulse mx-auto h-6 w-32 rounded-md bg-[#171923] mb-4"></div>
+            <div className="animate-pulse mx-auto h-4 w-48 rounded-md bg-[#171923]/70"></div>
           </div>
         ) : tasksForDate.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50/50 rounded-lg border border-dashed border-gray-200">
-            <p className="text-muted-foreground">Nenhuma tarefa para esta data{activeFilter ? ' com este filtro' : ''}.</p>
+          <div className="text-center py-12 bg-[#0f1117]/50 rounded-lg border border-dashed border-[#202330]/50">
+            <p className="text-white/50">Nenhuma tarefa para esta data{activeFilter ? ' com este filtro' : ''}.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -79,4 +79,4 @@ export const TaskList: React.FC<TaskListProps> = ({
       </CardContent>
     </Card>
   );
-};
+}

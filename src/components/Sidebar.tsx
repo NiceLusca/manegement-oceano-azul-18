@@ -30,7 +30,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "bg-sidebar-background text-sidebar-foreground h-screen border-r border-sidebar-border/40 transition-all duration-300 ease-in-out flex flex-col shadow-lg shadow-black/10",
+        "bg-[#0a0c13] text-white h-screen border-r border-[#202330]/50 transition-all duration-300 ease-in-out flex flex-col shadow-xl shadow-black/20",
         collapsed ? "w-16" : "w-64"
       )}
     >

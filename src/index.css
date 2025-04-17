@@ -5,58 +5,58 @@
 
 @layer base {
   :root {
-    /* Lighter dark theme colors */
-    --background: 222 47% 12%;
+    /* Darker background for the app */
+    --background: 220 30% 7%;
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 15%;
+    --card: 222 47% 10%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222 47% 14%;
+    --popover: 222 47% 8%;
     --popover-foreground: 210 40% 98%;
 
-    /* Brighter blue for primary actions */
-    --primary: 200 85% 55%;
+    /* Ocean blue for primary actions */
+    --primary: 200 70% 55%;
     --primary-foreground: 222 47% 8%;
 
-    /* Lighter secondary for subtle elements */
-    --secondary: 200 50% 25%;
+    /* Darker secondary for subtle elements */
+    --secondary: 217 33% 15%;
     --secondary-foreground: 210 40% 98%;
 
-    /* Lighter muted tones */
-    --muted: 217 33% 22%;
+    /* Darker muted tones */
+    --muted: 217 33% 17%;
     --muted-foreground: 215 20% 80%;
 
-    /* Lighter accent colors */
-    --accent: 200 50% 30%;
+    /* Darker accent colors */
+    --accent: 200 50% 20%;
     --accent-foreground: 210 40% 98%;
 
     /* Destructive actions */
-    --destructive: 0 60% 55%;
+    --destructive: 0 70% 50%;
     --destructive-foreground: 210 40% 98%;
 
-    /* Lighter borders and inputs */
-    --border: 217 33% 30%;
-    --input: 217 33% 30%;
-    --ring: 200 85% 55%;
+    /* Dark borders and inputs */
+    --border: 217 33% 25%;
+    --input: 217 33% 25%;
+    --ring: 200 70% 50%;
 
     --radius: 0.5rem;
 
-    /* Enhanced sidebar colors */
-    --sidebar-background: 220 50% 8%;
+    /* Sidebar colors - darker theme */
+    --sidebar-background: 223 35% 6%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 200 85% 55%;
-    --sidebar-primary-foreground: 222 47% 8%;
-    --sidebar-accent: 200 70% 45%;
+    --sidebar-primary: 200 70% 55%;
+    --sidebar-primary-foreground: 223 35% 6%;
+    --sidebar-accent: 220 25% 13%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 214 60% 18%;
-    --sidebar-ring: 200 85% 55%;
+    --sidebar-border: 225 25% 16%;
+    --sidebar-ring: 200 70% 55%;
     
     /* Ocean theme colors - brighter against dark bg */
     --oceano-claro: 200 70% 65%;
-    --oceano-medio: 200 85% 50%;
-    --oceano-escuro: 200 85% 40%;
-    --oceano-profundo: 205 90% 30%;
+    --oceano-medio: 200 70% 55%;
+    --oceano-escuro: 200 70% 40%;
+    --oceano-profundo: 205 70% 25%;
   }
 }
 
@@ -126,11 +126,11 @@ select {
 
 /* Ocean theme specific styles */
 .ocean-gradient {
-  @apply bg-gradient-to-br from-[hsl(var(--oceano-claro))] via-[hsl(var(--oceano-medio))] to-[hsl(var(--oceano-escuro))];
+  @apply bg-gradient-to-br from-[#38a9e4] via-[#1e90cb] to-[#0e75b0];
 }
 
 .ocean-text-gradient {
-  @apply bg-gradient-to-br from-[hsl(var(--oceano-claro))] via-[hsl(var(--oceano-medio))] to-[hsl(var(--oceano-escuro))] bg-clip-text text-transparent;
+  @apply bg-gradient-to-br from-[#38a9e4] via-[#1e90cb] to-[#0e75b0] bg-clip-text text-transparent;
 }
 
 .ocean-card {

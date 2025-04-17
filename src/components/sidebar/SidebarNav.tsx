@@ -19,18 +19,11 @@ interface SidebarNavProps {
   toggleSection: (title: string) => void;
 }
 
-// Define a proper interface for sidebar items and subitems
-interface SidebarSubItem {
-  title: string;
-  href: string;
-  icon?: React.ReactNode;
-}
-
+// Define a proper interface for sidebar items
 interface SidebarItemType {
   title: string;
   href: string;
   icon: React.ReactNode;
-  subitems?: SidebarSubItem[];
 }
 
 export function SidebarNav({ collapsed, expandedSection, toggleSection }: SidebarNavProps) {
@@ -44,23 +37,6 @@ export function SidebarNav({ collapsed, expandedSection, toggleSection }: Sideba
       title: 'Tarefas', 
       href: '/projects', 
       icon: <CheckSquare className="h-5 w-5" />,
-      subitems: [
-        {
-          title: 'Kanban',
-          href: '/projects',
-          icon: <KanbanSquare className="h-4 w-4" />
-        },
-        {
-          title: 'Recorrentes',
-          href: '/recurring-tasks',
-          icon: <RepeatIcon className="h-4 w-4" />
-        },
-        {
-          title: 'Histórico',
-          href: '/activity-history',
-          icon: <History className="h-4 w-4" />
-        }
-      ]
     },
     { 
       title: 'Equipe', 
@@ -97,7 +73,6 @@ export function SidebarNav({ collapsed, expandedSection, toggleSection }: Sideba
             collapsed={collapsed}
             expandedSection={expandedSection}
             toggleSection={toggleSection}
-            subitems={item.subitems}
           />
         ))}
       </ul>

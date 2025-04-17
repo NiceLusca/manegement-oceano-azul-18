@@ -11,15 +11,6 @@ export function Sidebar() {
   const [expandedSection, setExpandedSection] = React.useState<string | null>(null);
   const location = useLocation();
   
-  // Check if current route is a subitem route and expand the parent section
-  React.useEffect(() => {
-    if (location.pathname.includes('/projects') || 
-        location.pathname.includes('/recurring-tasks') || 
-        location.pathname.includes('/activity-history')) {
-      setExpandedSection('Tarefas');
-    }
-  }, [location.pathname]);
-  
   const toggleSidebar = () => setCollapsed(!collapsed);
   
   const toggleSection = (title: string) => {
@@ -30,7 +21,7 @@ export function Sidebar() {
     <aside
       className={cn(
         "bg-[#0a0c13] text-white h-screen border-r border-[#202330]/50 transition-all duration-300 ease-in-out flex flex-col shadow-xl shadow-black/20",
-        collapsed ? "w-16" : "w-64"
+        collapsed ? "w-14" : "w-56"
       )}
     >
       <SidebarHeader 

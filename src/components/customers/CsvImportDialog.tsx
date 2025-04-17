@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Download, Upload, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CsvImportDialogProps {
   open: boolean;
@@ -79,7 +80,7 @@ export const CsvImportDialog: React.FC<CsvImportDialogProps> = ({
         try {
           const text = e.target?.result as string;
           const rows = text.split('\n');
-          const headers = rows[0].split(',');
+          const headers = rows[0].toLowerCase().split(',');
           
           // Basic validation
           const requiredColumns = ['nome', 'email', 'origem', 'status'];
@@ -89,22 +90,84 @@ export const CsvImportDialog: React.FC<CsvImportDialogProps> = ({
             }
           }
           
-          // Process data (mock import for demonstration)
-          // In a real implementation, you would parse the CSV and send to your API
-          setTimeout(() => {
-            setIsProcessing(false);
-            setSuccess(true);
-            toast({
-              title: "Importação concluída",
-              description: `${rows.length - 1} leads importados com sucesso.`,
-            });
+          // Parse CSV data
+          const customers = [];
+          
+          for (let i = 1; i < rows.length; i++) {
+            if (!rows[i].trim()) continue; // Skip empty lines
             
-            // Reset after 2 seconds
-            setTimeout(() => {
-              setFile(null);
-              setOpen(false);
-              onImportSuccess();
-            }, 2000);
+            const values = rows[i].split(',');
+            const customer: any = {};
+            
+            for (let j = 0; j < headers.length; j++) {
+              const header = headers[j].trim();
+              const value = values[j]?.trim() || '';
+              
+              // Map CSV headers to database fields
+              switch (header) {
+                case 'nome':
+                  customer.name = value;
+                  break;
+                case 'email':
+                  customer.email = value;
+                  break;
+                case 'telefone':
+                  customer.phone = value;
+                  break;
+                case 'origem':
+                  customer.origem = value;
+                  break;
+                case 'status':
+                  customer.status = value;
+                  break;
+                case 'valor':
+                  customer.value = parseFloat(value) || 0;
+                  break;
+                case 'responsavel':
+                  customer.assigned_to = value;
+                  break;
+                case 'observacoes':
+                  customer.notes = value;
+                  break;
+              }
+            }
+            
+            // Add timestamps
+            const now = new Date().toISOString();
+            customer.last_contact = now;
+            customer.created_at = now;
+            customer.updated_at = now;
+            
+            customers.push(customer);
+          }
+          
+          // Insert into database
+          if (customers.length > 0) {
+            const { data, error } = await supabase
+              .from('customers')
+              .insert(customers)
+              .select();
+              
+            if (error) throw new Error(`Erro ao inserir registros: ${error.message}`);
+            
+            console.log('Customers imported:', data);
+          } else {
+            throw new Error('Nenhum registro válido encontrado no arquivo');
+          }
+          
+          setIsProcessing(false);
+          setSuccess(true);
+          
+          toast({
+            title: "Importação concluída",
+            description: `${customers.length} leads importados com sucesso.`,
+          });
+          
+          // Reset after 2 seconds
+          setTimeout(() => {
+            setFile(null);
+            setOpen(false);
+            onImportSuccess();
           }, 2000);
           
         } catch (error: any) {

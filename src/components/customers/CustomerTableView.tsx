@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Mail, Phone, FileEdit } from 'lucide-react';
+import React, { useState } from 'react';
+import { Mail, Phone, FileEdit, ArrowUpDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -21,18 +21,83 @@ interface CustomerTableViewProps {
   translateStatus: (status: string) => string;
 }
 
-const CustomerTableView: React.FC<CustomerTableViewProps> = ({ customers, teamMembers, getStatusColor, translateStatus }) => {
+const CustomerTableView: React.FC<CustomerTableViewProps> = ({ 
+  customers: initialCustomers, 
+  teamMembers, 
+  getStatusColor, 
+  translateStatus 
+}) => {
+  const [customers, setCustomers] = useState(initialCustomers);
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Customer | '';
+    direction: 'asc' | 'desc';
+  }>({ key: '', direction: 'asc' });
+
+  const handleSort = (key: keyof Customer) => {
+    const direction = sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc';
+    setSortConfig({ key, direction });
+
+    const sortedCustomers = [...customers].sort((a, b) => {
+      if (key === 'status') {
+        // Ordem personalizada para status: lead > prospect > customer > churned
+        const statusOrder = { lead: 1, prospect: 2, customer: 3, churned: 4 };
+        const aValue = statusOrder[a[key] as keyof typeof statusOrder] || 0;
+        const bValue = statusOrder[b[key] as keyof typeof statusOrder] || 0;
+        return direction === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+
+      if (key === 'value') {
+        return direction === 'asc' ? 
+          (a[key] || 0) - (b[key] || 0) : 
+          (b[key] || 0) - (a[key] || 0);
+      }
+
+      const aValue = String(a[key] || '').toLowerCase();
+      const bValue = String(b[key] || '').toLowerCase();
+      return direction === 'asc' ? 
+        aValue.localeCompare(bValue) : 
+        bValue.localeCompare(aValue);
+    });
+
+    setCustomers(sortedCustomers);
+  };
+
+  const getSortIcon = (key: keyof Customer) => {
+    return sortConfig.key === key ? (
+      <ArrowUpDown className={cn(
+        "ml-2 h-4 w-4",
+        sortConfig.direction === 'desc' ? "transform rotate-180" : ""
+      )} />
+    ) : (
+      <ArrowUpDown className="ml-2 h-4 w-4 opacity-20" />
+    );
+  };
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Nome</TableHead>
-          <TableHead>Origem</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Telefone</TableHead>
-          <TableHead>Valor</TableHead>
-          <TableHead>Último Contato</TableHead>
+          <TableHead onClick={() => handleSort('name')} className="cursor-pointer hover:text-white/80">
+            Nome {getSortIcon('name')}
+          </TableHead>
+          <TableHead onClick={() => handleSort('origem')} className="cursor-pointer hover:text-white/80">
+            Origem {getSortIcon('origem')}
+          </TableHead>
+          <TableHead onClick={() => handleSort('status')} className="cursor-pointer hover:text-white/80">
+            Status {getSortIcon('status')}
+          </TableHead>
+          <TableHead onClick={() => handleSort('email')} className="cursor-pointer hover:text-white/80">
+            Email {getSortIcon('email')}
+          </TableHead>
+          <TableHead onClick={() => handleSort('phone')} className="cursor-pointer hover:text-white/80">
+            Telefone {getSortIcon('phone')}
+          </TableHead>
+          <TableHead onClick={() => handleSort('value')} className="cursor-pointer hover:text-white/80">
+            Valor {getSortIcon('value')}
+          </TableHead>
+          <TableHead onClick={() => handleSort('lastContact')} className="cursor-pointer hover:text-white/80">
+            Último Contato {getSortIcon('lastContact')}
+          </TableHead>
           <TableHead>Responsável</TableHead>
           <TableHead></TableHead>
         </TableRow>

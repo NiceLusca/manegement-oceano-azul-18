@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
-import { format, startOfDay, isSameDay, parseISO } from 'date-fns';
+import { format, startOfDay, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Task } from '@/types';
+import { cn } from '@/lib/utils';
 
 interface TaskCalendarProps {
   date: Date;
@@ -52,40 +52,13 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
   // Get color based on priority
   const getPriorityColor = (dateKey: string) => {
     const priority = taskPriorityColors[dateKey];
-    if (priority === 'high') return 'bg-red-500';
-    if (priority === 'medium') return 'bg-amber-500';
-    return 'bg-blue-500';
-  };
-
-  // Custom day renderer for the calendar
-  const renderDay = (day: Date) => {
-    const dateKey = startOfDay(day).toISOString();
-    const taskCount = datesWithTasks[dateKey] || 0;
-    const priorityColor = getPriorityColor(dateKey);
-    const isToday = isSameDay(day, new Date());
-    const isSelected = isSameDay(day, date);
-    
-    return (
-      <div className={cn(
-        "relative w-full h-full flex flex-col items-center justify-center",
-        isSelected && "font-bold text-white bg-purple-500 rounded-full",
-        isToday && !isSelected && "font-bold text-purple-500"
-      )}>
-        <time dateTime={format(day, 'yyyy-MM-dd')} className="text-xs sm:text-sm">
-          {format(day, 'd')}
-        </time>
-        {taskCount > 0 && (
-          <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-1 items-center">
-            <Badge variant="outline" className={`h-1.5 w-1.5 p-0 rounded-full ${priorityColor}`} />
-            {taskCount > 1 && <span className="text-[10px] font-medium">{taskCount}</span>}
-          </div>
-        )}
-      </div>
-    );
+    if (priority === 'high') return 'bg-red-500/20 text-red-500';
+    if (priority === 'medium') return 'bg-amber-500/20 text-amber-500';
+    return 'bg-blue-500/20 text-blue-500';
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-1">
+    <div className="bg-[#0c0e16] rounded-lg shadow-sm border border-[#202330]/50">
       <Calendar
         mode="single"
         selected={date}
@@ -95,22 +68,21 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
           months: "flex flex-col space-y-4",
           month: "space-y-4",
           caption: "flex justify-center pt-1 relative items-center px-10",
-          caption_label: "text-sm font-medium",
+          caption_label: "text-sm font-medium text-white",
           nav: "space-x-1 flex items-center",
-          nav_button: "h-7 w-7 bg-transparent p-0 hover:bg-gray-50 rounded-full",
+          nav_button: "h-7 w-7 bg-transparent p-0 hover:bg-[#202330] rounded-full text-white",
           nav_button_previous: "absolute left-1",
           nav_button_next: "absolute right-1",
           table: "w-full border-collapse space-y-1",
           head_row: "flex",
-          head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem] py-1.5",
-          row: "flex w-full",
-          cell: "text-center text-sm p-0 relative h-9 w-9 [&:has([aria-selected])]:bg-transparent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-          day: "h-9 w-9 p-0 font-normal",
-          day_selected: "text-white hover:text-white focus:text-white",
-          day_today: "text-primary",
-          day_outside: "text-muted-foreground opacity-50",
-          day_disabled: "text-muted-foreground opacity-50",
-          day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+          head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem] text-white/50",
+          row: "flex w-full mt-2",
+          cell: "text-center text-sm p-0 relative h-9 w-9 [&:has([aria-selected])]:bg-purple-500 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+          day: "h-9 w-9 p-0 font-normal text-white hover:bg-[#202330] rounded-full",
+          day_selected: "bg-purple-500 text-white hover:bg-purple-600 hover:text-white focus:bg-purple-500 focus:text-white",
+          day_today: "bg-[#202330] text-white",
+          day_outside: "text-white/30 opacity-50",
+          day_disabled: "text-white/30 opacity-50",
           day_hidden: "invisible",
         }}
         components={{
@@ -118,11 +90,26 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
             <button
               {...props}
               className={cn(
-                "calendar-cell w-9 h-9 p-0 rounded-full hover:bg-gray-50 focus:outline-none",
+                "calendar-cell w-9 h-9 p-0 rounded-full hover:bg-[#202330] focus:outline-none",
                 isSameDay(day, date) && "bg-purple-500 text-white hover:bg-purple-600"
               )}
             >
-              {renderDay(day)}
+              <div className="relative w-full h-full flex flex-col items-center justify-center">
+                <time dateTime={format(day, 'yyyy-MM-dd')} className="text-xs sm:text-sm">
+                  {format(day, 'd')}
+                </time>
+                {allTasks.some(task => isSameDay(new Date(task.dueDate), day)) && (
+                  <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2">
+                    <Badge 
+                      variant="outline" 
+                      className={cn(
+                        "h-1.5 w-1.5 p-0 rounded-full",
+                        getPriorityColor(startOfDay(day).toISOString())
+                      )} 
+                    />
+                  </div>
+                )}
+              </div>
             </button>
           )
         }}
@@ -130,8 +117,3 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
     </div>
   );
 };
-
-// Helper function for class names
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(' ');
-}

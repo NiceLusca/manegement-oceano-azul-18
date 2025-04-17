@@ -1,6 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 
 /**
  * Generate sample CSV content for customer imports
@@ -33,8 +32,6 @@ export const downloadSampleCsv = () => {
  * Process and validate a CSV file for customer import
  */
 export const processCSVFile = async (file: File, onSuccess: () => void) => {
-  const { toast } = useToast();
-  
   return new Promise<boolean>((resolve, reject) => {
     const reader = new FileReader();
     
@@ -117,11 +114,7 @@ export const processCSVFile = async (file: File, onSuccess: () => void) => {
           throw new Error('Nenhum registro válido encontrado no arquivo');
         }
         
-        toast({
-          title: "Importação concluída",
-          description: `${customers.length} leads importados com sucesso.`,
-        });
-        
+        // Call the success callback
         onSuccess();
         resolve(true);
         

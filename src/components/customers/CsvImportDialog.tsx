@@ -47,11 +47,8 @@ export const CsvImportDialog: React.FC<CsvImportDialogProps> = ({
       // Use dynamic import to avoid circular dependencies
       const csvUtils = await import('./csv/csvUtils');
       
-      // Call the function with the onImportSuccess callback as a separate function
-      await csvUtils.processCSVFile(file, () => {
-        // This ensures the callback is properly passed and called
-        onImportSuccess();
-      });
+      // Call the function with the onImportSuccess callback
+      await csvUtils.processCSVFile(file, onImportSuccess);
       
       setIsProcessing(false);
       setSuccess(true);

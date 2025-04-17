@@ -8,6 +8,7 @@ import { Task } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { InfoIcon } from 'lucide-react';
 
 interface CalendarContainerProps {
   date: Date;
@@ -30,32 +31,26 @@ export const CalendarContainer: React.FC<CalendarContainerProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   
   useEffect(() => {
-    // Verificar se a tabela 'tasks' existe no banco de dados
-    const checkTasksTable = async () => {
+    // This function no longer needs to check for table existence
+    // since the main page will handle this and provide mock data
+    const checkConnection = async () => {
       setIsLoading(true);
       try {
-        const { error } = await supabase
-          .from('tasks')
-          .select('id')
-          .limit(1);
-        
-        if (error && error.message.includes("does not exist")) {
-          toast({
-            title: "Erro ao carregar tarefas",
-            description: "A tabela de tarefas não existe no banco de dados.",
-            variant: "destructive",
-          });
-          console.error("Erro: A tabela 'tasks' não existe no banco de dados");
+        const { error } = await supabase.from('profiles').select('id').limit(1);
+        if (error) {
+          console.error("Erro ao conectar com o banco:", error);
         }
       } catch (error) {
-        console.error("Erro ao verificar tabela tasks:", error);
+        console.error("Erro de conexão:", error);
       } finally {
         setIsLoading(false);
       }
     };
     
-    checkTasksTable();
+    checkConnection();
   }, [toast]);
+
+  const hasDemo = allTasks.length > 0 && allTasks[0].id === '1';
 
   return (
     <Card className="lg:col-span-1">
@@ -65,6 +60,12 @@ export const CalendarContainer: React.FC<CalendarContainerProps> = ({
           {!isLoading && (
             <Badge variant="outline" className="text-xs font-normal">
               {allTasks.length} tarefas totais
+            </Badge>
+          )}
+          {hasDemo && (
+            <Badge variant="outline" className="text-xs font-normal bg-blue-500/10 text-blue-500 ml-auto flex items-center gap-1">
+              <InfoIcon className="h-3 w-3" />
+              Demo
             </Badge>
           )}
         </CardTitle>

@@ -7,11 +7,9 @@ import {
   LayoutDashboard,
   CheckSquare,
   UserSquare2,
-  History,
-  RepeatIcon,
-  KanbanSquare,
 } from 'lucide-react';
 import { SidebarItem } from './SidebarItem';
+import { useLocation } from 'react-router-dom';
 
 interface SidebarNavProps {
   collapsed: boolean;
@@ -27,6 +25,8 @@ interface SidebarItemType {
 }
 
 export function SidebarNav({ collapsed, expandedSection, toggleSection }: SidebarNavProps) {
+  const location = useLocation();
+  
   const items: SidebarItemType[] = [
     {
       title: "Dashboard",
@@ -69,7 +69,7 @@ export function SidebarNav({ collapsed, expandedSection, toggleSection }: Sideba
             title={item.title}
             href={item.href}
             icon={item.icon}
-            isActive={false}
+            isActive={location.pathname === item.href}
             collapsed={collapsed}
             expandedSection={expandedSection}
             toggleSection={toggleSection}

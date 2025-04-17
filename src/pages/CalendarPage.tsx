@@ -6,8 +6,10 @@ import { Task } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { CalendarContainer } from '@/components/calendar/CalendarContainer';
 import { TaskList } from '@/components/calendar/TaskList';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, InfoIcon } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function CalendarPage() {
   const [date, setDate] = useState<Date>(new Date());
@@ -16,6 +18,7 @@ export default function CalendarPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const { toast } = useToast();
   
   // Fetch tasks from Supabase
   useEffect(() => {
@@ -27,9 +30,15 @@ export default function CalendarPage() {
           .from('tasks')
           .select('*');
           
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
+        if (error) {
+          if (error.message.includes("does not exist")) {
+            setError("A tabela de tarefas não existe no banco de dados");
+            // Set demo tasks since the table doesn't exist
+            setDemoTasks();
+          } else {
+            throw error;
+          }
+        } else if (data && data.length > 0) {
           const formattedTasks = data.map(task => ({
             id: task.id,
             title: task.title,
@@ -42,66 +51,14 @@ export default function CalendarPage() {
           }));
           setAllTasks(formattedTasks);
         } else {
-          // If there's no data, use mock data for demonstration
-          setAllTasks([
-            {
-              id: '1',
-              title: 'Revisar proposta de marketing',
-              description: 'Análise da proposta para o cliente XYZ',
-              status: 'todo',
-              assigneeId: '101',
-              dueDate: new Date().toISOString(),
-              priority: 'medium',
-              projectId: 'marketing'
-            },
-            {
-              id: '2',
-              title: 'Atualizar site institucional',
-              description: 'Incorporar novas seções de produtos',
-              status: 'in-progress',
-              assigneeId: '102',
-              dueDate: new Date().toISOString(),
-              priority: 'high',
-              projectId: 'website'
-            },
-            {
-              id: '3',
-              title: 'Preparar relatório mensal',
-              description: 'Compilar dados de performance de abril',
-              status: 'todo',
-              assigneeId: '103',
-              dueDate: new Date().toISOString(),
-              priority: 'low',
-              projectId: 'reporting'
-            }
-          ]);
+          // If there's no data, use demo tasks
+          setDemoTasks();
         }
       } catch (error: any) {
         console.error('Error fetching tasks:', error);
         setError(`Erro ao carregar tarefas: ${error.message}`);
-        // Use mock data as fallback
-        setAllTasks([
-          {
-            id: '1',
-            title: 'Revisar proposta de marketing',
-            description: 'Análise da proposta para o cliente XYZ',
-            status: 'todo',
-            assigneeId: '101',
-            dueDate: new Date().toISOString(),
-            priority: 'medium',
-            projectId: 'marketing'
-          },
-          {
-            id: '2',
-            title: 'Atualizar site institucional',
-            description: 'Incorporar novas seções de produtos',
-            status: 'in-progress',
-            assigneeId: '102',
-            dueDate: new Date().toISOString(),
-            priority: 'high',
-            projectId: 'website'
-          }
-        ]);
+        // Use demo tasks as fallback
+        setDemoTasks();
       } finally {
         setLoading(false);
       }
@@ -109,6 +66,47 @@ export default function CalendarPage() {
     
     fetchTasks();
   }, []);
+  
+  const setDemoTasks = () => {
+    const demoTasks = [
+      {
+        id: '1',
+        title: 'Revisar proposta de marketing',
+        description: 'Análise da proposta para o cliente XYZ',
+        status: 'todo',
+        assigneeId: '101',
+        dueDate: new Date().toISOString(),
+        priority: 'medium',
+        projectId: 'marketing'
+      },
+      {
+        id: '2',
+        title: 'Atualizar site institucional',
+        description: 'Incorporar novas seções de produtos',
+        status: 'in-progress',
+        assigneeId: '102',
+        dueDate: new Date().toISOString(),
+        priority: 'high',
+        projectId: 'website'
+      },
+      {
+        id: '3',
+        title: 'Preparar relatório mensal',
+        description: 'Compilar dados de performance de abril',
+        status: 'todo',
+        assigneeId: '103',
+        dueDate: new Date().toISOString(),
+        priority: 'low',
+        projectId: 'reporting'
+      }
+    ];
+    setAllTasks(demoTasks);
+    toast({
+      title: "Usando dados de demonstração",
+      description: "A tabela de tarefas não existe. Mostrando dados de exemplo.",
+      variant: "default",
+    });
+  };
   
   // Update tasks when date changes
   useEffect(() => {
@@ -143,7 +141,17 @@ export default function CalendarPage() {
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Erro</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription className="flex items-center justify-between">
+              <span>{error}</span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setError(null)}
+                className="ml-2"
+              >
+                Fechar
+              </Button>
+            </AlertDescription>
           </Alert>
         )}
         

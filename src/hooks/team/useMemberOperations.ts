@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -20,16 +19,19 @@ export const useMemberOperations = (userAccess: string | null, refreshData: () =
     }
 
     try {
+      // Generate a UUID for the profile
+      const newMemberId = crypto.randomUUID();
+      
       // Create a user account first if required by your auth system
       // For profile-only operations, we would need to:
       // 1. Check if the user account exists in auth.users
       // 2. Only then create a profile linked to that user
 
-      // For this fix, assuming we're working with existing users or dummy data for testing:
-      // We'll create a profile without explicitly setting the ID (let Supabase handle it)
+      // For this fix, we need to explicitly set the ID field since it's required by the TypeScript type
       const { error } = await supabase
         .from('profiles')
         .insert({
+          id: newMemberId, // This is the required field
           nome: memberData.nome,
           cargo: memberData.cargo || 'Colaborador',
           departamento_id: memberData.departamento || null,

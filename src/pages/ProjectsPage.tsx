@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useProjects } from '@/hooks/useProjects';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { KanbanBoard } from '@/components/KanbanBoard';
+import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 import { TeamMember } from '@/types';
 import { ProjectFormDialog } from '@/components/projects/ProjectFormDialog';
 import { ProjectsList } from '@/components/projects/ProjectsList';
@@ -32,7 +31,6 @@ const ProjectsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Determinar a aba ativa com base na rota
   useEffect(() => {
     if (location.pathname === '/projects') {
       setActiveTab('kanban');
@@ -72,7 +70,6 @@ const ProjectsPage = () => {
   const handleAddTask = async () => {
     let success = false;
     
-    // Combinar data e hora se ambos estiverem preenchidos
     let dataCompleta = novaTarefa.dataVencimento;
     if (novaTarefa.dataVencimento && novaTarefa.dataHora) {
       const data = new Date(novaTarefa.dataVencimento);

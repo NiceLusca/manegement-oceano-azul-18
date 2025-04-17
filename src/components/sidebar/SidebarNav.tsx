@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { useLocation } from 'react-router-dom';
 import {
   Calendar,
   Settings,
@@ -8,9 +7,6 @@ import {
   LayoutDashboard,
   CheckSquare,
   UserSquare2,
-  ClipboardList,
-  BarChart3,
-  History,
 } from 'lucide-react';
 import { SidebarItem } from './SidebarItem';
 
@@ -20,47 +16,17 @@ interface SidebarNavProps {
   toggleSection: (title: string) => void;
 }
 
-interface SidebarNavItem {
-  title: string;
-  href: string;
-  icon: React.ReactNode;
-  subitems?: {
-    title: string;
-    href: string;
-    icon?: React.ReactNode;
-  }[];
-}
-
 export function SidebarNav({ collapsed, expandedSection, toggleSection }: SidebarNavProps) {
-  const location = useLocation();
-  
-  const items: SidebarNavItem[] = [
+  const items = [
     {
       title: "Dashboard",
       href: "/",
       icon: <LayoutDashboard className="h-5 w-5" />,
     },
-    {
-      title: "Tarefas",
-      href: "/projects",
-      icon: <CheckSquare className="h-5 w-5" />,
-      subitems: [
-        {
-          title: "Quadro Kanban",
-          href: "/projects",
-          icon: <ClipboardList className="h-4 w-4" />
-        },
-        {
-          title: "Tarefas Recorrentes",
-          href: "/recurring-tasks",
-          icon: <BarChart3 className="h-4 w-4" />
-        },
-        {
-          title: "Histórico de Atividades",
-          href: "/activity-history",
-          icon: <History className="h-4 w-4" />
-        },
-      ],
+    { 
+      title: 'Tarefas', 
+      href: '/projects', 
+      icon: <CheckSquare className="h-5 w-5" /> 
     },
     { 
       title: 'Equipe', 
@@ -87,25 +53,19 @@ export function SidebarNav({ collapsed, expandedSection, toggleSection }: Sideba
   return (
     <nav className="p-3 flex-1 overflow-y-auto">
       <ul className="space-y-0.5">
-        {items.map((item) => {
-          // Verificar se o item ou um de seus subitems está ativo
-          const isItemActive = location.pathname === item.href || 
-            (item.subitems?.some(subitem => location.pathname === subitem.href));
-          
-          return (
-            <SidebarItem
-              key={item.title}
-              title={item.title}
-              href={item.href}
-              icon={item.icon}
-              isActive={isItemActive}
-              collapsed={collapsed}
-              expandedSection={expandedSection}
-              toggleSection={toggleSection}
-              subitems={item.subitems}
-            />
-          );
-        })}
+        {items.map((item) => (
+          <SidebarItem
+            key={item.title}
+            title={item.title}
+            href={item.href}
+            icon={item.icon}
+            isActive={false}
+            collapsed={collapsed}
+            expandedSection={expandedSection}
+            toggleSection={toggleSection}
+            subitems={item.subitems}
+          />
+        ))}
       </ul>
     </nav>
   );

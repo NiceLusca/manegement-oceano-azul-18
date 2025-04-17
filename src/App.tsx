@@ -13,8 +13,6 @@ import CustomersPage from './pages/CustomersPage';
 import SettingsPage from './pages/SettingsPage';
 import NotFound from './pages/NotFound';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import RecurringTasksPage from './pages/RecurringTasksPage';
-import ActivityHistoryPage from './pages/ActivityHistoryPage';
 import DepartmentsPage from './pages/DepartmentsPage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
@@ -35,11 +33,11 @@ function App() {
                   <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                   <Route path="/team" element={<ProtectedRoute><TeamPage /></ProtectedRoute>} />
                   <Route path="/projects" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />
+                  <Route path="/recurring-tasks" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />
+                  <Route path="/activity-history" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />
                   <Route path="/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
                   <Route path="/customers" element={<ProtectedRoute><CustomersPage /></ProtectedRoute>} />
                   <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-                  <Route path="/recurring-tasks" element={<ProtectedRoute><RecurringTasksPage /></ProtectedRoute>} />
-                  <Route path="/activity-history" element={<ProtectedRoute><ActivityHistoryPage /></ProtectedRoute>} />
                   <Route path="/departments" element={<ProtectedRoute><DepartmentsPage /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

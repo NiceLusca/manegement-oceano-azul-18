@@ -6,19 +6,23 @@ import { ptBR } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TaskCard } from './TaskCard';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface TaskListProps {
   date: Date;
   tasksForDate: Task[];
   loading: boolean;
   activeFilter: string | null;
+  error?: string;
 }
 
 export const TaskList: React.FC<TaskListProps> = ({ 
   date, 
   tasksForDate, 
   loading, 
-  activeFilter 
+  activeFilter,
+  error
 }) => {
   const getFilterLabel = (filter: string | null) => {
     switch (filter) {
@@ -42,6 +46,14 @@ export const TaskList: React.FC<TaskListProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Erro</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
         {loading ? (
           <div className="text-center py-8">
             <p>Carregando tarefas...</p>

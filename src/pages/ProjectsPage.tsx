@@ -1,13 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { useProjects } from '@/hooks/useProjects';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { KanbanBoard } from '@/components/KanbanBoard';
 import { TeamMember } from '@/types';
 import { ProjectFormDialog } from '@/components/projects/ProjectFormDialog';
 import { ProjectsList } from '@/components/projects/ProjectsList';
-import { useProjects } from '@/hooks/useProjects';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const ProjectsPage = () => {
   const [openDialog, setOpenDialog] = useState(false);
@@ -19,14 +21,28 @@ const ProjectsPage = () => {
     responsavel: '',
     departamento: '',
     dataVencimento: '',
-    dataHora: '', // Novo campo para hora
+    dataHora: '',
     isRecurring: false,
     recurrenceType: 'daily',
     endDate: '',
     customDays: [],
   });
   const [membrosFiltrados, setMembrosFiltrados] = useState<TeamMember[]>([]);
+  const [activeTab, setActiveTab] = useState("kanban");
+  const navigate = useNavigate();
+  const location = useLocation();
   
+  // Determinar a aba ativa com base na rota
+  useEffect(() => {
+    if (location.pathname === '/projects') {
+      setActiveTab('kanban');
+    } else if (location.pathname === '/recurring-tasks') {
+      setActiveTab('recurring');
+    } else if (location.pathname === '/activity-history') {
+      setActiveTab('history');
+    }
+  }, [location.pathname]);
+
   const { 
     projects, 
     teamMembers, 
@@ -101,6 +117,16 @@ const ProjectsPage = () => {
       setOpenDialog(false);
     }
   };
+  
+  const handleTabChange = (value: string) => {
+    if (value === 'kanban') {
+      navigate('/projects');
+    } else if (value === 'recurring') {
+      navigate('/recurring-tasks');
+    } else if (value === 'history') {
+      navigate('/activity-history');
+    }
+  };
 
   return (
     <Layout>
@@ -129,15 +155,42 @@ const ProjectsPage = () => {
           </Button>
         </div>
         
-        <KanbanBoard />
-        
-        <h2 className="text-xl font-bold mt-8">Visão Geral de Tarefas</h2>
-        
-        <ProjectsList 
-          projects={projects}
-          teamMembers={teamMembers}
-          loading={loading}
-        />
+        <Tabs defaultValue={activeTab} value={activeTab} onValueChange={handleTabChange} className="w-full">
+          <TabsList className="w-full bg-[#1e2131]/50 p-1">
+            <TabsTrigger 
+              value="kanban" 
+              className="flex-1 data-[state=active]:bg-[#1e2131] data-[state=active]:text-[#38a9e4]"
+            >
+              Quadro Kanban
+            </TabsTrigger>
+            <TabsTrigger 
+              value="recurring" 
+              className="flex-1 data-[state=active]:bg-[#1e2131] data-[state=active]:text-[#38a9e4]"
+            >
+              Tarefas Recorrentes
+            </TabsTrigger>
+            <TabsTrigger 
+              value="history" 
+              className="flex-1 data-[state=active]:bg-[#1e2131] data-[state=active]:text-[#38a9e4]"
+            >
+              Histórico de Atividades
+            </TabsTrigger>
+          </TabsList>
+          
+          {activeTab === "kanban" && (
+            <TabsContent value="kanban" className="pt-4">
+              <KanbanBoard />
+              
+              <h2 className="text-xl font-bold mt-8">Visão Geral de Tarefas</h2>
+              
+              <ProjectsList 
+                projects={projects}
+                teamMembers={teamMembers}
+                loading={loading}
+              />
+            </TabsContent>
+          )}
+        </Tabs>
       </div>
     </Layout>
   );

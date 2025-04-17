@@ -1,5 +1,7 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Task } from '@/types';
+import { useToast } from '@/components/ui/use-toast';
 
 // Atualizar o status de uma tarefa (usado no sistema de arrastar e soltar)
 export const updateTaskStatus = async (taskId: string, newStatus: string) => {
@@ -25,7 +27,12 @@ export const updateTaskStatus = async (taskId: string, newStatus: string) => {
       .update(updates)
       .eq('id', taskId);
       
-    if (error) throw error;
+    if (error) {
+      if (error.message.includes("does not exist")) {
+        console.error("A tabela 'tasks' não existe no banco de dados");
+      }
+      throw error;
+    }
     
     return true;
   } catch (error: any) {
@@ -48,7 +55,13 @@ export const getTasksByDepartment = async (departmentId: string) => {
       `)
       .eq('profiles.departamento_id', departmentId);
       
-    if (error) throw error;
+    if (error) {
+      if (error.message.includes("does not exist")) {
+        console.error("A tabela 'tasks' não existe no banco de dados");
+        return [];
+      }
+      throw error;
+    }
     
     return data || [];
   } catch (error: any) {
@@ -74,7 +87,13 @@ export const getTasksWithDetails = async () => {
       `)
       .order('due_date', { ascending: true });
       
-    if (error) throw error;
+    if (error) {
+      if (error.message.includes("does not exist")) {
+        console.error("A tabela 'tasks' não existe no banco de dados");
+        return [];
+      }
+      throw error;
+    }
     
     // Formatar os dados para o formato esperado pelo frontend
     const formattedTasks = data?.map(task => ({
@@ -119,7 +138,12 @@ export const addTask = async (taskData: {
       ])
       .select();
 
-    if (error) throw error;
+    if (error) {
+      if (error.message.includes("does not exist")) {
+        console.error("A tabela 'tasks' não existe no banco de dados");
+      }
+      throw error;
+    }
     return true;
   } catch (error: any) {
     console.error('Erro ao adicionar tarefa:', error.message);
@@ -154,10 +178,15 @@ export const addRecurringTask = async (taskData: {
       ])
       .select();
 
-    if (error) throw error;
+    if (error) {
+      if (error.message.includes("does not exist")) {
+        console.error("A tabela 'recurring_tasks' não existe no banco de dados");
+      }
+      throw error;
+    }
 
     // Também criar a primeira instância da tarefa
-    await supabase
+    const { error: instanceError } = await supabase
       .from('task_instances')
       .insert([
         {
@@ -170,6 +199,13 @@ export const addRecurringTask = async (taskData: {
           recurring_task_id: data?.[0]?.id
         }
       ]);
+
+    if (instanceError) {
+      if (instanceError.message.includes("does not exist")) {
+        console.error("A tabela 'task_instances' não existe no banco de dados");
+      }
+      console.error('Erro ao adicionar instância de tarefa:', instanceError);
+    }
 
     return true;
   } catch (error: any) {

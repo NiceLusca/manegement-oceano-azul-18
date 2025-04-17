@@ -9,23 +9,12 @@ import { SidebarFooter } from './sidebar/SidebarFooter';
 export function Sidebar() {
   const [collapsed, setCollapsed] = React.useState(false);
   const [expandedSection, setExpandedSection] = React.useState<string | null>(null);
-  const location = useLocation();
   
   const toggleSidebar = () => setCollapsed(!collapsed);
   
   const toggleSection = (title: string) => {
     setExpandedSection(expandedSection === title ? null : title);
   };
-
-  // Verificar qual seção deve estar expandida com base na rota atual
-  React.useEffect(() => {
-    const currentPath = location.pathname;
-    
-    // Check if current path is a subitem of Tarefas
-    if (["/projects", "/recurring-tasks", "/activity-history"].includes(currentPath)) {
-      setExpandedSection("Tarefas");
-    }
-  }, [location.pathname]);
 
   return (
     <aside

@@ -9,9 +9,10 @@ import {
   fetchUserAccessLevel,
   isUserSuperAdmin,
   canEditMember as canEditMemberAsync,
-  canDeleteMember as canDeleteMemberAsync
+  canDeleteMember as canDeleteMemberAsync,
+  canAddMembers as canAddMembersAsync
 } from './teamUtils';
-import type { EditMemberFormData, UseTeamMembersReturn } from './types';
+import type { EditMemberFormData, UseTeamMembersReturn, MemberFormData } from './types';
 import { useToast } from '@/hooks/use-toast';
 import { TeamMember } from '@/types';
 
@@ -125,6 +126,22 @@ export const useTeamMembers = (): UseTeamMembersReturn => {
     return canDeletePermissions[member.id] || false;
   }, [canDeletePermissions]);
 
+  // Add these two required methods to satisfy the interface
+  const addMember = useCallback(async (memberData: MemberFormData): Promise<boolean> => {
+    // This functionality is now disabled since users must create accounts via authentication
+    toast({
+      title: "Não permitido",
+      description: "A adição de membros só é possível após a criação de contas via autenticação",
+      variant: "destructive"
+    });
+    return false;
+  }, [toast]);
+  
+  const canAddMembers = useCallback(() => {
+    // This functionality is now disabled, but we maintain the method for interface compatibility
+    return false;
+  }, []);
+
   return {
     teamMembers,
     departamentos,
@@ -132,10 +149,12 @@ export const useTeamMembers = (): UseTeamMembersReturn => {
     userAccess,
     error,
     fetchTeamMembers,
+    addMember,
     updateMember,
     deleteMember,
     getDepartmentName,
     canEditMember,
+    canAddMembers,
     canDeleteMember
   };
 };

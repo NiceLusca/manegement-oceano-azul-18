@@ -18,7 +18,6 @@ export const getStatusColor = (status: string) => {
   }
 };
 
-// Add missing functions
 export const formatPhoneNumber = (phone: string): string => {
   if (!phone) return '';
   
@@ -38,14 +37,14 @@ export const formatPhoneNumber = (phone: string): string => {
   return phone;
 };
 
-export const getCustomerStatusColor = (status: string): string => {
+export const getCustomerStatusColor = (status: string): "default" | "secondary" | "destructive" | "outline" => {
   switch (status) {
     case 'lead':
       return 'secondary';
     case 'prospect':
       return 'default';
     case 'customer':
-      return 'success';
+      return 'default';
     case 'churned':
       return 'destructive';
     default:

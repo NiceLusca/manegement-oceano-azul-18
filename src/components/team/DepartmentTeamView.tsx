@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +23,7 @@ export const DepartmentTeamView: React.FC<DepartmentTeamViewProps> = ({
   openEditDialogForMember,
   openDeleteDialogForMember
 }) => {
-  const mapMember = (member: any) => {
+  const mapMember = (member: any): TeamMember => {
     return {
       id: member.id,
       name: member.name,

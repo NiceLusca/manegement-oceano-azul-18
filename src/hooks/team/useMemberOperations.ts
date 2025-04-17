@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -19,11 +20,14 @@ export const useMemberOperations = (userAccess: string | null, refreshData: () =
     }
 
     try {
-      // Instead of providing an ID directly, let Supabase generate it
-      const { data, error } = await supabase
+      // Generate a UUID for the profile
+      const newMemberId = crypto.randomUUID();
+      
+      const { error } = await supabase
         .from('profiles')
         .insert([
           {
+            id: newMemberId,
             nome: memberData.nome,
             cargo: memberData.cargo || 'Colaborador',
             departamento_id: memberData.departamento || null,
@@ -32,8 +36,7 @@ export const useMemberOperations = (userAccess: string | null, refreshData: () =
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           }
-        ])
-        .select();
+        ]);
 
       if (error) throw error;
 

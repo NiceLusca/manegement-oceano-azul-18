@@ -26,18 +26,25 @@ export const updateTaskStatus = async (taskId: string, newStatus: string) => {
       .eq('id', taskId);
       
     if (error) {
-      if (error.message.includes("does not exist")) {
-        console.error("A tabela 'tasks' não existe no banco de dados");
-      }
-      throw error;
+      console.error('Erro ao atualizar status da tarefa:', error);
+      return false;
     }
     
     // Registrar a atividade no histórico
     try {
-      console.log('Atividade registrada:', {
-        action: 'update_task_status',
-        details: `Tarefa atualizada para ${newStatus}`
-      });
+      const { error: activityError } = await supabase
+        .from('team_activity')
+        .insert({
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          action: 'update_task_status',
+          entity_type: 'task',
+          entity_id: taskId,
+          details: `Status da tarefa atualizado para ${newStatus}`
+        });
+        
+      if (activityError) {
+        console.error('Erro ao registrar atividade:', activityError);
+      }
     } catch (historyError) {
       console.error('Erro ao registrar histórico:', historyError);
     }
@@ -63,11 +70,8 @@ export const getTasksByDepartment = async (departmentId: string) => {
       .eq('profiles.departamento_id', departmentId);
       
     if (error) {
-      if (error.message.includes("does not exist")) {
-        console.error("A tabela 'tasks' não existe no banco de dados");
-        return [];
-      }
-      throw error;
+      console.error('Erro ao buscar tarefas por departamento:', error);
+      return [];
     }
     
     return data || [];

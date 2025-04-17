@@ -126,18 +126,22 @@ export const DragAndDropProvider: React.FC<DragAndDropProviderProps> = ({
           return false;
         }
         
-        // Registrar atividade na tabela de histórico se existir
+        // Registrar atividade na tabela de histórico
         try {
-          // Skip activity logging if user is dragging tasks quickly
-          console.log('Atividade de tarefa atualizada:', {
-            user_id: draggedTask?.assigneeId,
-            action: 'update_task_status',
-            entity_type: 'recurring_task',
-            entity_id: draggedTask?.recurringTaskId,
-            details: `Status da tarefa recorrente "${draggedTask?.title}" alterado`
-          });
-        } catch (historyError: any) {
-          // Ignorar erros se a tabela não existir
+          const { error: activityError } = await supabase
+            .from('team_activity')
+            .insert({
+              user_id: draggedTask?.assigneeId,
+              action: 'update_task_status',
+              entity_type: 'recurring_task',
+              entity_id: draggedTask?.recurringTaskId,
+              details: `Status da tarefa recorrente "${draggedTask?.title}" alterado para ${newStatus}`
+            });
+            
+          if (activityError) {
+            console.error('Erro ao registrar atividade:', activityError);
+          }
+        } catch (historyError) {
           console.error('Erro ao registrar histórico:', historyError);
         }
       } else {

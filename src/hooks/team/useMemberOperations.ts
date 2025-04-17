@@ -32,7 +32,7 @@ export const useMemberOperations = (userAccess: string | null, refreshData: () =
           cargo: memberData.cargo || 'Colaborador',
           departamento_id: memberData.departamento || null,
           avatar_url: memberData.avatar_url || null,
-          nivel_acesso: memberData.nivel_acesso || 'user',
+          nivel_acesso: memberData.nivel_acesso || 'user', // Preserve the existing default
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });

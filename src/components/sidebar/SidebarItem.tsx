@@ -54,7 +54,7 @@ export function SidebarItem({
               {!collapsed && (
                 <span className={cn(
                   "whitespace-nowrap transition-all duration-200 uppercase font-bold",
-                  isActive && "text-white"
+                  isActive ? "text-white" : "text-white/70"
                 )}>
                   {menuTitle}
                 </span>

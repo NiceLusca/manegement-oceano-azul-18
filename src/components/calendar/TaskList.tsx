@@ -38,7 +38,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   };
   
   return (
-    <Card className="lg:col-span-2 mx-0 my-0">
+    <Card className="lg:col-span-2 mx-0 my-0 h-full">
       <CardHeader>
         <CardTitle className="flex items-center">
           Tarefas para {format(date, 'PPP', {
@@ -51,7 +51,7 @@ export const TaskList: React.FC<TaskListProps> = ({
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="h-[calc(100%-80px)] overflow-auto">
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />

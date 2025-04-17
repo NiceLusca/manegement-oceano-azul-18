@@ -22,6 +22,7 @@ interface SidebarItemType {
   title: string;
   href: string;
   icon: React.ReactNode;
+  exactMatch?: boolean;
 }
 
 export function SidebarNav({ collapsed, expandedSection, toggleSection }: SidebarNavProps) {
@@ -32,6 +33,7 @@ export function SidebarNav({ collapsed, expandedSection, toggleSection }: Sideba
       title: "Dashboard",
       href: "/",
       icon: <LayoutDashboard className="h-5 w-5" />,
+      exactMatch: true,
     },
     { 
       title: 'Tarefas', 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
@@ -18,7 +17,6 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
   setDate,
   allTasks
 }) => {
-  // Get dates with tasks for highlighting in calendar
   const getDatesWithTasks = () => {
     const datesWithTasks = allTasks.reduce<{
       [key: string]: number;
@@ -31,7 +29,6 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
   };
   const datesWithTasks = getDatesWithTasks();
 
-  // Get priority colors for tasks
   const getTaskPriorityColors = () => {
     const taskPriorities: {
       [key: string]: string;
@@ -39,7 +36,6 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
     allTasks.forEach(task => {
       const dateKey = startOfDay(new Date(task.dueDate)).toISOString();
 
-      // Determine highest priority for the day
       if (!taskPriorities[dateKey] || 
           (task.priority === 'high' && taskPriorities[dateKey] !== 'high') || 
           (task.priority === 'medium' && taskPriorities[dateKey] === 'low')) {
@@ -50,12 +46,11 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
   };
   const taskPriorityColors = getTaskPriorityColors();
 
-  // Get color based on priority
   const getPriorityColor = (dateKey: string) => {
     const priority = taskPriorityColors[dateKey];
-    if (priority === 'high') return 'bg-red-500/30 text-red-500';
-    if (priority === 'medium') return 'bg-amber-500/30 text-amber-500';
-    return 'bg-blue-500/30 text-blue-500';
+    if (priority === 'high') return 'bg-red-500/40 text-red-600 border border-red-500/30';
+    if (priority === 'medium') return 'bg-amber-500/40 text-amber-600 border border-amber-500/30';
+    return 'bg-blue-500/40 text-blue-600 border border-blue-500/30';
   };
 
   return (
@@ -78,10 +73,10 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
           head_row: "flex",
           head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem] text-white/50",
           row: "flex w-full mt-2",
-          cell: "text-center text-sm p-0 relative h-9 w-9 focus-within:relative focus-within:z-20",
-          day: "h-9 w-9 p-0 font-normal text-white hover:bg-[#202330] rounded-full",
-          day_selected: "bg-purple-500 text-white hover:bg-purple-600 hover:text-white focus:bg-purple-500 focus:text-white",
-          day_today: "bg-[#202330] text-white",
+          cell: "text-center text-sm p-0 relative h-9 w-9 hover:bg-[#202330]/50 transition-colors focus-within:relative focus-within:z-20",
+          day: "h-9 w-9 p-0 font-normal text-white hover:bg-[#202330] rounded-full transition-colors",
+          day_selected: "bg-purple-600 text-white hover:bg-purple-700 hover:text-white focus:bg-purple-600 focus:text-white",
+          day_today: "bg-[#202330] text-white ring-2 ring-purple-500/50",
           day_outside: "text-white/30 opacity-50",
           day_disabled: "text-white/30 opacity-50",
           day_hidden: "invisible",
@@ -91,7 +86,7 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
             <button
               {...props}
               className={cn(
-                "calendar-cell w-9 h-9 p-0 rounded-full hover:bg-[#202330] focus:outline-none",
+                "calendar-cell w-9 h-9 p-0 rounded-full hover:bg-[#202330] focus:outline-none transition-all",
                 isSameDay(day, date) && "bg-purple-500 text-white hover:bg-purple-600"
               )}
             >
@@ -104,7 +99,7 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
                     <Badge 
                       variant="outline" 
                       className={cn(
-                        "h-1.5 w-1.5 p-0 rounded-full",
+                        "h-1.5 w-1.5 p-0 rounded-full animate-pulse",
                         getPriorityColor(startOfDay(day).toISOString())
                       )} 
                     />

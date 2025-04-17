@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -66,10 +66,10 @@ export default function AuthPage() {
           <img 
             src="/lovable-uploads/1a19e937-b0a5-45b2-8e63-f4f3993e46a4.png" 
             alt="Oceano Azul" 
-            className="h-16 w-auto mb-2"
+            className="h-24 w-auto mb-4 animate-fade-in" // Increased height and added animation
           />
-          <h1 className="text-3xl font-bold text-oceanoazul">Oceano Azul</h1>
-          <p className="text-muted-foreground">Plataforma de Gerenciamento</p>
+          <h1 className="text-4xl font-bold text-oceanoazul mb-2">Oceano Azul</h1>
+          <p className="text-muted-foreground text-lg">Plataforma de Gerenciamento</p>
         </div>
 
         <Card>

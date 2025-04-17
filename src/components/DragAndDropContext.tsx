@@ -15,11 +15,20 @@ interface DragAndDropContextType {
   handleTaskStatusUpdate: (taskId: string, newStatus: string) => Promise<boolean>;
 }
 
+// Props do Provider
+interface DragAndDropProviderProps {
+  children: ReactNode;
+  onTaskStatusUpdate?: (taskId: string, newStatus: Task['status']) => void;
+}
+
 // Criação do contexto
 const DragAndDropContext = createContext<DragAndDropContextType | undefined>(undefined);
 
 // Provider do contexto
-export const DragAndDropProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const DragAndDropProvider: React.FC<DragAndDropProviderProps> = ({ 
+  children, 
+  onTaskStatusUpdate 
+}) => {
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const { toast } = useToast();
 
@@ -68,6 +77,11 @@ export const DragAndDropProvider: React.FC<{ children: ReactNode }> = ({ childre
       const success = await handleTaskStatusUpdate(draggedTask.id, status);
       
       if (success) {
+        // Atualizar o estado local imediatamente
+        if (onTaskStatusUpdate) {
+          onTaskStatusUpdate(draggedTask.id, status as Task['status']);
+        }
+        
         toast({
           title: "Status atualizado",
           description: `Tarefa "${draggedTask.title}" movida para ${

@@ -73,6 +73,17 @@ export function KanbanBoard() {
     }
   };
   
+  // Função para atualizar localmente o status de uma tarefa
+  const updateTaskStatus = (taskId: string, newStatus: Task['status']) => {
+    setTasks(currentTasks => 
+      currentTasks.map(task => 
+        task.id === taskId 
+          ? { ...task, status: newStatus } 
+          : task
+      )
+    );
+  };
+  
   useRealtimeUpdates(
     fetchTasks,
     () => {},
@@ -100,7 +111,7 @@ export function KanbanBoard() {
   const completedTasks = tasks.filter(task => task.status === 'completed');
   
   return (
-    <DragAndDropProvider>
+    <DragAndDropProvider onTaskStatusUpdate={updateTaskStatus}>
       <div className="space-y-4">
         <KanbanHeader 
           departments={departments}

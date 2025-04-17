@@ -8,20 +8,14 @@ interface SidebarItemProps {
   title: string;
   href: string;
   icon: React.ReactNode;
-  isActive: boolean;
   collapsed: boolean;
-  expandedSection: string | null;
-  toggleSection: (title: string) => void;
 }
 
 export function SidebarItem({
   title,
   href,
   icon,
-  isActive,
   collapsed,
-  expandedSection,
-  toggleSection,
 }: SidebarItemProps) {
   const menuTitle = title.toUpperCase();
   
@@ -31,15 +25,11 @@ export function SidebarItem({
         <TooltipTrigger asChild>
           <NavLink
             to={href}
-            className={({ isActive: navActive }) => {
-              // Combine our parent's isActive prop with NavLink's own isActive
-              const itemIsActive = isActive || navActive;
-              console.log(`NavLink ${title}: ${itemIsActive ? 'ACTIVE' : 'inactive'}`);
-              
+            className={({ isActive }) => {
               return cn(
-                "flex items-center w-full px-4 py-3 rounded-lg transition-all duration-200",
-                itemIsActive
-                  ? "bg-[#38B2AC] text-white font-medium" 
+                "flex items-center w-full px-4 py-3 rounded-lg transition-colors duration-200",
+                isActive
+                  ? "bg-[#1e40af] text-white font-medium" 
                   : "text-white/80 hover:bg-[#171923] hover:text-white",
                 collapsed && "justify-center px-3 py-3"
               );
@@ -48,17 +38,13 @@ export function SidebarItem({
           >
             <div className="flex items-center gap-3 w-full">
               <span className={cn(
-                "flex items-center justify-center transition-all duration-200",
-                isActive ? "text-white" : "text-white/70"
+                "flex items-center justify-center transition-colors duration-200",
               )}>
                 {icon}
               </span>
               
               {!collapsed && (
-                <span className={cn(
-                  "whitespace-nowrap transition-all duration-200",
-                  isActive ? "text-white font-medium" : "text-white/70"
-                )}>
+                <span className="whitespace-nowrap">
                   {menuTitle}
                 </span>
               )}

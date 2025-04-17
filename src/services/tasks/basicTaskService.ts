@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { addActivityEntry } from '@/services/teamActivityService';
 
 // Basic task status update
 export const updateTaskStatus = async (taskId: string, newStatus: string) => {
@@ -7,6 +8,18 @@ export const updateTaskStatus = async (taskId: string, newStatus: string) => {
     // Validar status
     if (!['todo', 'in-progress', 'review', 'completed'].includes(newStatus)) {
       throw new Error('Status inválido');
+    }
+    
+    // Obter informações da tarefa antes da atualização
+    const { data: taskData, error: taskError } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('id', taskId)
+      .single();
+      
+    if (taskError) {
+      console.error('Erro ao buscar tarefa:', taskError);
+      return false;
     }
     
     // Se a tarefa estiver sendo marcada como concluída, registrar a data de conclusão
@@ -30,12 +43,21 @@ export const updateTaskStatus = async (taskId: string, newStatus: string) => {
       return false;
     }
     
-    // Registrar a atividade no histórico - for now, let's just log it
+    // Registrar a atividade no histórico
     try {
-      console.log('Tarefa atualizada:', {
-        taskId: taskId,
-        newStatus: newStatus,
-        timestamp: new Date().toISOString()
+      const currentUser = supabase.auth.getUser();
+      const userId = (await currentUser).data.user?.id || 'anonymous';
+      
+      await addActivityEntry({
+        user_id: userId,
+        action: 'update_status',
+        entity_type: 'task',
+        entity_id: taskId,
+        details: JSON.stringify({
+          taskTitle: taskData.title,
+          oldStatus: taskData.status,
+          newStatus: newStatus
+        })
       });
     } catch (historyError) {
       console.error('Erro ao registrar histórico:', historyError);

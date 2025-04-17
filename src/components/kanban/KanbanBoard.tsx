@@ -6,12 +6,15 @@ import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates';
 import { DragAndDropProvider } from '../DragAndDropContext';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanHeader } from './KanbanHeader';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/components/ui/use-toast';
 
 export function KanbanBoard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
   const [departments, setDepartments] = useState<{id: string, nome: string}[]>([]);
+  const { toast } = useToast();
   
   useEffect(() => {
     const resetTasks = async () => {
@@ -43,8 +46,24 @@ export function KanbanBoard() {
       return () => clearInterval(interval);
     }, timeToMidnight);
     
+    // Fetch departments
+    fetchDepartments();
+    
     return () => clearTimeout(timer);
   }, []);
+  
+  const fetchDepartments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('departamentos')
+        .select('id, nome');
+        
+      if (error) throw error;
+      setDepartments(data || []);
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+    }
+  };
   
   const fetchTasks = async () => {
     try {
@@ -65,9 +84,26 @@ export function KanbanBoard() {
           priority: task.priority as 'low' | 'medium' | 'high',
           status: task.status as Task['status']
         })));
+      } else {
+        // Try to get mock data if no tasks are found
+        const { projects } = await import('@/data/mock-data');
+        const mockTasks: Task[] = [];
+        
+        projects.forEach(project => {
+          if (project.tasks && project.tasks.length > 0) {
+            mockTasks.push(...project.tasks);
+          }
+        });
+        
+        setTasks(mockTasks);
       }
     } catch (error) {
       console.error('Error fetching tasks:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar as tarefas",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }

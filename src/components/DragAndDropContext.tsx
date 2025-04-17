@@ -82,6 +82,9 @@ export const DragAndDropProvider: React.FC<DragAndDropProviderProps> = ({
           onTaskStatusUpdate(draggedTask.id, status as Task['status']);
         }
         
+        // Registrar no histórico de atividades
+        await logTaskActivity(draggedTask, status);
+        
         toast({
           title: "Status atualizado",
           description: `Tarefa "${draggedTask.title}" movida para ${
@@ -102,6 +105,36 @@ export const DragAndDropProvider: React.FC<DragAndDropProviderProps> = ({
     } finally {
       // Limpar o estado após o drop
       setDraggedTask(null);
+    }
+  };
+  
+  // Função para registrar a atividade no histórico
+  const logTaskActivity = async (task: Task, newStatus: string) => {
+    try {
+      // Obter informações do usuário atual
+      const currentUser = supabase.auth.getUser();
+      const userId = (await currentUser).data.user?.id || 'anonymous';
+      
+      // Registrar a atividade no histórico
+      const { error } = await supabase
+        .from('team_activity')
+        .insert({
+          user_id: userId,
+          action: 'update_status',
+          entity_type: 'task',
+          entity_id: task.id,
+          details: JSON.stringify({
+            taskTitle: task.title,
+            oldStatus: task.status,
+            newStatus: newStatus
+          })
+        });
+        
+      if (error && !error.message.includes('does not exist')) {
+        console.error('Erro ao registrar atividade:', error);
+      }
+    } catch (error) {
+      console.error('Erro ao registrar atividade no histórico:', error);
     }
   };
 
@@ -127,22 +160,17 @@ export const DragAndDropProvider: React.FC<DragAndDropProviderProps> = ({
         }
         
         // Registrar atividade no histórico
-        try {
-          // Simplify logging - team_activity_view might be a view that can't be inserted into directly
-          console.log('Tarefa recorrente atualizada:', {
-            id: taskId,
-            title: draggedTask?.title,
-            newStatus: newStatus
-          });
-        } catch (historyError) {
-          console.error('Erro ao registrar histórico:', historyError);
-        }
+        console.log('Tarefa recorrente atualizada:', {
+          id: taskId,
+          title: draggedTask?.title,
+          newStatus: newStatus
+        });
+        
+        return true;
       } else {
         // É uma tarefa regular, usar a função existente
         return await updateTaskStatus(taskId, newStatus);
       }
-      
-      return true;
     } catch (error) {
       console.error('Erro ao atualizar status:', error);
       return false;

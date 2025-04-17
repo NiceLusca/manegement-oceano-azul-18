@@ -24,6 +24,9 @@ import { ptBR } from 'date-fns/locale';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { RecurringTasksList } from '@/components/recurring/RecurringTasksList';
+import { TaskInstancesList } from '@/components/recurring/TaskInstancesList';
+import { RecurringTaskForm } from '@/components/recurring/RecurringTaskForm';
 
 const recurringTaskFormSchema = z.object({
   title: z.string().min(3, 'O título precisa ter pelo menos 3 caracteres'),
@@ -164,48 +167,6 @@ const RecurringTasksPage = () => {
     }
   };
 
-  const getRecurrenceLabel = (type: string) => {
-    switch (type) {
-      case 'daily': return 'Diária';
-      case 'weekly': return 'Semanal';
-      case 'monthly': return 'Mensal';
-      case 'custom': return 'Personalizada';
-      default: return type;
-    }
-  };
-  
-  const getAssigneeName = (assigneeId: string) => {
-    const member = teamMembers.find(member => member.id === assigneeId);
-    return member ? member.name : 'Não atribuído';
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'todo': return 'bg-slate-100 text-slate-800';
-      case 'in-progress': return 'bg-blue-100 text-blue-800';
-      case 'review': return 'bg-amber-100 text-amber-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      default: return '';
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'low': return 'bg-slate-100 text-slate-800';
-      case 'medium': return 'bg-amber-100 text-amber-800';
-      case 'high': return 'bg-red-100 text-red-800';
-      default: return '';
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
-    } catch {
-      return 'Data inválida';
-    }
-  };
-
   return (
     <Layout>
       <div className="space-y-6 animate-fade-in">
@@ -214,6 +175,7 @@ const RecurringTasksPage = () => {
             <h1 className="text-3xl font-bold">Tarefas Recorrentes</h1>
             <p className="text-muted-foreground">Gerencie tarefas periódicas para sua equipe</p>
           </div>
+          
           <Button
             className="flex items-center gap-2"
             onClick={() => setShowForm(!showForm)}
@@ -224,232 +186,23 @@ const RecurringTasksPage = () => {
         </div>
 
         {showForm && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Nova Tarefa Recorrente</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Título</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Digite o título da tarefa" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Descrição</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Descrição da tarefa" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="assigneeId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Responsável</FormLabel>
-                        <FormControl>
-                          <select
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                            {...field}
-                          >
-                            <option value="">Selecione um responsável</option>
-                            {teamMembers.map((member) => (
-                              <option key={member.id} value={member.id}>
-                                {member.name}
-                              </option>
-                            ))}
-                          </select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="recurrenceType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tipo de Recorrência</FormLabel>
-                        <FormControl>
-                          <select
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                            {...field}
-                          >
-                            <option value="daily">Diária</option>
-                            <option value="weekly">Semanal</option>
-                            <option value="monthly">Mensal</option>
-                            <option value="custom">Personalizada</option>
-                          </select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="startDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Data de Início</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="endDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Data de Término (opcional)</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            Deixe em branco para tarefas sem data de término
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  
-                  <div className="flex justify-end gap-2 pt-4">
-                    <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
-                      Cancelar
-                    </Button>
-                    <Button type="submit">Criar Tarefa Recorrente</Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
+          <RecurringTaskForm 
+            form={form} 
+            onSubmit={onSubmit} 
+            onCancel={() => setShowForm(false)}
+          />
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <RefreshCw className="h-5 w-5" /> Tarefas Recorrentes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <p>Carregando tarefas recorrentes...</p>
-              ) : recurringTasks.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  Nenhuma tarefa recorrente encontrada. Crie uma tarefa clicando no botão acima.
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {recurringTasks.map((task) => (
-                    <div key={task.id} className="border rounded-md p-4 hover:bg-muted/30 transition-colors">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-medium">{task.title}</h3>
-                        <Badge>
-                          {getRecurrenceLabel(task.recurrenceType)}
-                        </Badge>
-                      </div>
-                      {task.description && (
-                        <p className="text-sm text-muted-foreground mb-3">{task.description}</p>
-                      )}
-                      <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          <span>{getAssigneeName(task.assigneeId)}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <CalendarDays className="h-3 w-3" />
-                          <span>Início: {formatDate(task.startDate)}</span>
-                        </div>
-                        {task.endDate && (
-                          <div className="flex items-center gap-1">
-                            <CalendarDays className="h-3 w-3" />
-                            <span>Término: {formatDate(task.endDate)}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" /> Instâncias de Tarefas
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <p>Carregando instâncias de tarefas...</p>
-              ) : taskInstances.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  Nenhuma instância de tarefa encontrada. 
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {taskInstances.slice(0, 10).map((task) => (
-                    <div key={task.id} className="border rounded-md p-4 hover:bg-muted/30 transition-colors">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-medium">{task.title}</h3>
-                        <div className="flex gap-2">
-                          <Badge className={getPriorityColor(task.priority)}>
-                            {task.priority === 'low' ? 'Baixa' : 
-                             task.priority === 'medium' ? 'Média' : 'Alta'}
-                          </Badge>
-                          <Badge className={getStatusColor(task.status)}>
-                            {task.status === 'todo' ? 'A fazer' : 
-                             task.status === 'in-progress' ? 'Em progresso' : 
-                             task.status === 'review' ? 'Em revisão' : 'Concluída'}
-                          </Badge>
-                        </div>
-                      </div>
-                      {task.description && (
-                        <p className="text-sm text-muted-foreground mb-3">{task.description}</p>
-                      )}
-                      <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          <span>{getAssigneeName(task.assigneeId)}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <CalendarDays className="h-3 w-3" />
-                          <span>Prazo: {formatDate(task.dueDate)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <RecurringTasksList 
+            recurringTasks={recurringTasks} 
+            isLoading={isLoading} 
+          />
+          
+          <TaskInstancesList 
+            taskInstances={taskInstances} 
+            isLoading={isLoading} 
+          />
         </div>
       </div>
     </Layout>

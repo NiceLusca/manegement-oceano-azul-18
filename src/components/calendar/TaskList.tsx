@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Task } from '@/types';
 import { format } from 'date-fns';
@@ -51,7 +50,7 @@ export const TaskList: React.FC<TaskListProps> = ({
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="h-[calc(100%-80px)] overflow-auto p-4">
+      <CardContent className="p-4 h-[calc(100vh-240px)] overflow-auto">
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />

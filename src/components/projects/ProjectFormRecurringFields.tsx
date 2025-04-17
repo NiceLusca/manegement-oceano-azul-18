@@ -71,7 +71,7 @@ export const ProjectFormRecurringFields: React.FC<ProjectFormRecurringFieldsProp
     } else {
       setNovaTarefa({
         ...novaTarefa,
-        customDays: [...currentDays, day]
+        customDays: [...currentDays, day].sort()
       });
     }
   };
@@ -115,7 +115,7 @@ export const ProjectFormRecurringFields: React.FC<ProjectFormRecurringFieldsProp
       {novaTarefa.recurrenceType === 'weekly' && (
         <div className="grid grid-cols-4 items-start gap-4">
           <Label className="text-right mt-2">
-            Dia da Semana
+            Dias da Semana
           </Label>
           <div className="flex flex-wrap gap-2 col-span-3">
             {daysOfWeek.map(day => (

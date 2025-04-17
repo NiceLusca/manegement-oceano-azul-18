@@ -45,7 +45,6 @@ export function DashboardConfig({ open, onOpenChange }: DashboardConfigProps) {
       toast({
         title: "Configurações salvas",
         description: "As configurações do dashboard foram atualizadas com sucesso.",
-        icon: <Check className="h-4 w-4" />,
       });
     }, 800);
   };

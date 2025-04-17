@@ -4,7 +4,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TeamMember } from '@/types';
 import { Badge } from '@/components/ui/badge';
-import { InfoCircle } from 'lucide-react';
+import { Info } from 'lucide-react';
 
 interface WorkloadDistributionProps {
   teamMembers: TeamMember[];
@@ -108,7 +108,7 @@ export function WorkloadDistribution({
             </ResponsiveContainer>
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground space-y-2">
-              <InfoCircle className="h-12 w-12 text-muted-foreground/50" />
+              <Info className="h-12 w-12 text-muted-foreground/50" />
               <p>Sem dados de tarefas para exibir</p>
               <p className="text-xs">Atribua tarefas aos membros da equipe para visualizar a distribuição</p>
             </div>

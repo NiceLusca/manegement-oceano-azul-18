@@ -31,6 +31,9 @@ export type Task = {
   dueDate: string;
   priority: 'low' | 'medium' | 'high';
   projectId: string;
+  isRecurring?: boolean;
+  recurringTaskId?: string | null;
+  assignee?: any;
 };
 
 export type Customer = {

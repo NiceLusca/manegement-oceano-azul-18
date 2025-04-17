@@ -3,6 +3,7 @@ import React, { createContext, useState, ReactNode, useContext } from 'react';
 import { Task } from '@/types';
 import { updateTaskStatus } from '@/services/taskService';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 // Interface do contexto
 interface DragAndDropContextType {
@@ -93,7 +94,53 @@ export const DragAndDropProvider: React.FC<{ children: ReactNode }> = ({ childre
   // Função para atualizar o status no backend
   const handleTaskStatusUpdate = async (taskId: string, newStatus: string): Promise<boolean> => {
     try {
-      return await updateTaskStatus(taskId, newStatus);
+      // Verificar se é uma tarefa recorrente ou regular
+      const isRecurringTask = draggedTask?.isRecurring;
+      
+      if (isRecurringTask) {
+        // Atualizar instância de tarefa recorrente
+        const { error } = await supabase
+          .from('task_instances')
+          .update({ 
+            status: newStatus,
+            updated_at: new Date().toISOString(),
+            completed_at: newStatus === 'completed' ? new Date().toISOString() : null
+          })
+          .eq('id', taskId);
+          
+        if (error) {
+          console.error('Erro ao atualizar instância de tarefa recorrente:', error);
+          return false;
+        }
+        
+        // Registrar atividade na tabela de histórico se existir
+        try {
+          await supabase
+            .from('team_activity')
+            .insert([{
+              user_id: draggedTask?.assigneeId,
+              action: 'update_task_status',
+              entity_type: 'recurring_task',
+              entity_id: draggedTask?.recurringTaskId,
+              details: `Status da tarefa recorrente "${draggedTask?.title}" alterado para ${
+                newStatus === 'todo' ? 'A Fazer' :
+                newStatus === 'in-progress' ? 'Em Progresso' :
+                newStatus === 'review' ? 'Em Revisão' :
+                'Concluído'
+              }`
+            }]);
+        } catch (historyError: any) {
+          // Ignorar erros se a tabela não existir
+          if (!historyError.message?.includes('does not exist')) {
+            console.error('Erro ao registrar histórico:', historyError);
+          }
+        }
+      } else {
+        // É uma tarefa regular, usar a função existente
+        return await updateTaskStatus(taskId, newStatus);
+      }
+      
+      return true;
     } catch (error) {
       console.error('Erro ao atualizar status:', error);
       return false;

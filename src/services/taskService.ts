@@ -73,7 +73,8 @@ export const getTasksByDepartment = async (departmentId: string) => {
 // Buscar tarefas com detalhes expandidos (incluindo informações do responsável)
 export const getTasksWithDetails = async () => {
   try {
-    const { data, error } = await supabase
+    // Buscar tarefas regulares
+    const { data: regularTasks, error: regularError } = await supabase
       .from('tasks')
       .select(`
         *,
@@ -87,16 +88,31 @@ export const getTasksWithDetails = async () => {
       `)
       .order('due_date', { ascending: true });
       
-    if (error) {
-      if (error.message.includes("does not exist")) {
-        console.error("A tabela 'tasks' não existe no banco de dados");
-        return [];
-      }
-      throw error;
+    if (regularError && !regularError.message.includes("does not exist")) {
+      throw regularError;
     }
     
-    // Formatar os dados para o formato esperado pelo frontend
-    const formattedTasks = data?.map(task => ({
+    // Buscar também instâncias de tarefas recorrentes
+    const { data: instanceTasks, error: instanceError } = await supabase
+      .from('task_instances')
+      .select(`
+        *,
+        assignee:assignee_id (
+          id,
+          nome,
+          cargo,
+          avatar_url,
+          departamento_id
+        )
+      `)
+      .order('due_date', { ascending: true });
+      
+    if (instanceError && !instanceError.message.includes("does not exist")) {
+      throw instanceError;
+    }
+    
+    // Formatar as tarefas regulares
+    const formattedRegularTasks = (regularTasks || []).map(task => ({
       id: task.id,
       title: task.title,
       description: task.description || '',
@@ -105,10 +121,27 @@ export const getTasksWithDetails = async () => {
       dueDate: task.due_date || new Date().toISOString(),
       priority: task.priority as 'low' | 'medium' | 'high',
       assignee: task.assignee,
-      projectId: 'default-category'
-    })) || [];
+      projectId: 'default-category',
+      isRecurring: false
+    }));
     
-    return formattedTasks;
+    // Formatar as instâncias de tarefas recorrentes
+    const formattedInstanceTasks = (instanceTasks || []).map(task => ({
+      id: task.id,
+      title: task.title,
+      description: task.description || '',
+      status: task.status as 'todo' | 'in-progress' | 'review' | 'completed',
+      assigneeId: task.assignee_id || '',
+      dueDate: task.due_date || new Date().toISOString(),
+      priority: task.priority as 'low' | 'medium' | 'high',
+      assignee: task.assignee,
+      projectId: 'default-category',
+      isRecurring: true,
+      recurringTaskId: task.recurring_task_id
+    }));
+    
+    // Combinar ambos os tipos de tarefas
+    return [...formattedRegularTasks, ...formattedInstanceTasks];
   } catch (error: any) {
     console.error('Erro ao buscar tarefas com detalhes:', error.message);
     return [];
@@ -211,5 +244,90 @@ export const addRecurringTask = async (taskData: {
   } catch (error: any) {
     console.error('Erro ao adicionar tarefa recorrente:', error.message);
     throw error;
+  }
+};
+
+// Função para resetar tarefas recorrentes completadas para o status 'todo'
+export const resetCompletedRecurringTasks = async () => {
+  try {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    // Buscar tarefas recorrentes que foram completadas ontem
+    const { data, error } = await supabase
+      .from('task_instances')
+      .select('*')
+      .eq('status', 'completed')
+      .not('recurring_task_id', 'is', null);
+      
+    if (error) {
+      if (error.message.includes("does not exist")) {
+        console.error("A tabela 'task_instances' não existe no banco de dados");
+        return false;
+      }
+      throw error;
+    }
+    
+    // Para cada tarefa completada, criar uma nova instância para hoje
+    for (const task of data || []) {
+      // Verificar se a tarefa recorrente ainda está ativa
+      const { data: recurringData, error: recurringError } = await supabase
+        .from('recurring_tasks')
+        .select('*')
+        .eq('id', task.recurring_task_id)
+        .single();
+        
+      if (recurringError) {
+        console.error('Erro ao buscar tarefa recorrente:', recurringError);
+        continue;
+      }
+      
+      // Verificar se a tarefa recorrente não expirou
+      if (recurringData.end_date && new Date(recurringData.end_date) < new Date()) {
+        continue;
+      }
+      
+      // Criar nova instância da tarefa para hoje
+      const today = new Date();
+      const { error: insertError } = await supabase
+        .from('task_instances')
+        .insert([
+          {
+            title: task.title,
+            description: task.description,
+            assignee_id: task.assignee_id,
+            due_date: today.toISOString(),
+            status: 'todo',
+            priority: task.priority,
+            recurring_task_id: task.recurring_task_id
+          }
+        ]);
+        
+      if (insertError) {
+        console.error('Erro ao criar nova instância de tarefa:', insertError);
+      }
+      
+      // Registrar no histórico a regeneração da tarefa
+      try {
+        await supabase
+          .from('team_activity')
+          .insert([
+            {
+              user_id: task.assignee_id,
+              action: 'regenerate_task',
+              entity_type: 'task',
+              entity_id: task.recurring_task_id,
+              details: `Tarefa recorrente "${task.title}" regenerada automaticamente`
+            }
+          ]);
+      } catch (historyError) {
+        console.error('Erro ao registrar no histórico:', historyError);
+      }
+    }
+    
+    return true;
+  } catch (error: any) {
+    console.error('Erro ao resetar tarefas recorrentes:', error.message);
+    return false;
   }
 };

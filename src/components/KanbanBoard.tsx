@@ -9,84 +9,15 @@ import { Task } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates';
 import { useDragAndDrop, DragAndDropProvider } from '@/components/DragAndDropContext';
+import { CalendarClock } from 'lucide-react';
+import { getTasksWithDetails, resetCompletedRecurringTasks } from '@/services/taskService';
+import { useToast } from '@/hooks/use-toast';
 
-interface KanbanColumnProps {
-  title: string;
-  tasks: Task[];
-  color: string;
-  onDragStart?: (e: React.DragEvent, taskId: string) => void;
-  onDragOver?: (e: React.DragEvent) => void;
-  onDrop?: (e: React.DragEvent, status: string) => void;
-}
-
-const KanbanColumn = ({ title, tasks, color, onDragStart, onDragOver, onDrop }: KanbanColumnProps) => {
-  return (
-    <Card 
-      className="flex-1 min-w-[250px] shadow-md"
-      onDragOver={onDragOver}
-      onDrop={(e) => onDrop && onDrop(e, title === "A Fazer" ? "todo" : 
-                                       title === "Em Progresso" ? "in-progress" : 
-                                       title === "Em Revisão" ? "review" : "completed")}
-    >
-      <CardHeader className={`pb-2 ${color}`}>
-        <CardTitle className="text-sm font-semibold">{title} ({tasks.length})</CardTitle>
-      </CardHeader>
-      <CardContent className="px-2 py-2 overflow-y-auto max-h-[calc(100vh-250px)]">
-        <div className="space-y-2">
-          {tasks.map((task) => {
-            const assignee = getTeamMemberById(task.assigneeId);
-            const project = projects.find(p => p.id === task.projectId);
-            
-            return (
-              <Card 
-                key={task.id} 
-                className="hover-scale shadow-sm cursor-move" 
-                draggable
-                onDragStart={(e) => onDragStart && onDragStart(e, task.id)}
-              >
-                <CardContent className="p-3">
-                  <h3 className="font-medium text-sm mb-1">{task.title}</h3>
-                  <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{task.description}</p>
-                  
-                  <div className="flex justify-between items-center text-xs">
-                    <Badge variant="outline" className="text-xs font-normal">
-                      {project?.name || "Sem categoria"}
-                    </Badge>
-                    <Badge 
-                      variant={
-                        task.priority === 'low' ? 'outline' :
-                        task.priority === 'medium' ? 'secondary' :
-                        'destructive'
-                      }
-                      className="text-xs"
-                    >
-                      {task.priority === 'low' ? 'Baixa' : 
-                       task.priority === 'medium' ? 'Média' : 'Alta'}
-                    </Badge>
-                  </div>
-                  
-                  <div className="flex justify-between items-center mt-3">
-                    <div className="text-xs text-muted-foreground">
-                      {new Date(task.dueDate).toLocaleDateString('pt-BR')}
-                    </div>
-                    {assignee && (
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage src={assignee.avatar} />
-                        <AvatarFallback>{assignee.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-const DraggableKanbanColumn = ({ title, tasks, color }: KanbanColumnProps) => {
+const DraggableKanbanColumn = ({ title, tasks, color }: { 
+  title: string, 
+  tasks: Task[], 
+  color: string 
+}) => {
   const { handleDragOver, handleDrop, handleDragStart } = useDragAndDrop();
   const statusMap = {
     "A Fazer": "todo",
@@ -119,7 +50,14 @@ const DraggableKanbanColumn = ({ title, tasks, color }: KanbanColumnProps) => {
                 onDragStart={(e) => handleDragStart(e, task)}
               >
                 <CardContent className="p-3">
-                  <h3 className="font-medium text-sm mb-1">{task.title}</h3>
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-medium text-sm mb-1">{task.title}</h3>
+                    {task.isRecurring && (
+                      <Badge variant="outline" className="ml-1 bg-[#D0E9FF] text-[#005B99] border-[#D0E9FF]/70 flex items-center gap-1">
+                        <CalendarClock className="h-3 w-3" />
+                      </Badge>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{task.description}</p>
                   
                   <div className="flex justify-between items-center text-xs">
@@ -165,38 +103,60 @@ export function KanbanBoard() {
   const [loading, setLoading] = useState(true);
   const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
   const [departments, setDepartments] = useState<{id: string, nome: string}[]>([]);
+  const { toast } = useToast();
+  
+  // Função para resetar tarefas recorrentes completadas
+  useEffect(() => {
+    const resetTasks = async () => {
+      try {
+        const result = await resetCompletedRecurringTasks();
+        if (result) {
+          console.log('Tarefas recorrentes resetadas com sucesso');
+        }
+      } catch (error) {
+        console.error('Erro ao resetar tarefas recorrentes:', error);
+      }
+    };
+    
+    // Executar ao carregar o componente
+    resetTasks();
+    
+    // Configurar para executar diariamente à meia-noite
+    const now = new Date();
+    const night = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1, // próximo dia
+      0, 0, 0 // meia-noite
+    );
+    const timeToMidnight = night.getTime() - now.getTime();
+    
+    // Agendar a primeira execução à meia-noite
+    const timer = setTimeout(() => {
+      resetTasks();
+      
+      // Depois da primeira execução, configurar intervalo diário
+      const interval = setInterval(resetTasks, 24 * 60 * 60 * 1000);
+      return () => clearInterval(interval);
+    }, timeToMidnight);
+    
+    return () => clearTimeout(timer);
+  }, []);
   
   const fetchTasks = async () => {
     try {
       setLoading(true);
       
-      // Use type assertion to work around the TypeScript error
-      // This tells TypeScript that we know what we're doing when accessing the 'tasks' table
-      const query = supabase.from('tasks') as any;
+      // Buscar tarefas usando o serviço atualizado que inclui tarefas recorrentes
+      const tasksData = await getTasksWithDetails();
       
-      let queryBuilder = query.select('*');
-      
-      if (departmentFilter) {
-        // We would need a join query here, but for now, let's not filter by department
-        // until we properly set up the relationship between tasks and departments
-      }
-      
-      const { data, error } = await queryBuilder;
+      if (tasksData.length > 0) {
+        // Filtrar por departamento se necessário
+        const filteredTasks = departmentFilter 
+          ? tasksData.filter(task => task.assignee?.departamento_id === departmentFilter)
+          : tasksData;
           
-      if (error) throw error;
-      
-      if (data && data.length > 0) {
-        const formattedTasks = data.map((task: any) => ({
-          id: task.id,
-          title: task.title,
-          description: task.description || '',
-          status: task.status as 'todo' | 'in-progress' | 'review' | 'completed',
-          assigneeId: task.assignee_id || '',
-          dueDate: task.due_date || new Date().toISOString(),
-          priority: task.priority as 'low' | 'medium' | 'high',
-          projectId: 'default-category'
-        }));
-        setTasks(formattedTasks);
+        setTasks(filteredTasks);
       } else {
         setTasks(mockTasks);
       }
@@ -226,16 +186,69 @@ export function KanbanBoard() {
   
   const updateTaskStatus = async (taskId: string, newStatus: string) => {
     try {
-      const { updateTaskStatus } = await import('@/services/taskService');
-      const success = await updateTaskStatus(taskId, newStatus);
+      // Verificar se é uma tarefa regular ou instância recorrente
+      const task = tasks.find(t => t.id === taskId);
       
-      if (success) {
-        setTasks(prevTasks => 
-          prevTasks.map(task => 
-            task.id === taskId ? { ...task, status: newStatus as any } : task
-          )
-        );
+      if (!task) {
+        console.error('Tarefa não encontrada');
+        return;
       }
+      
+      // Atualizar a tarefa na tabela apropriada
+      const table = task.isRecurring ? 'task_instances' : 'tasks';
+      const { error } = await supabase
+        .from(table)
+        .update({ 
+          status: newStatus,
+          updated_at: new Date().toISOString(),
+          completed_at: newStatus === 'completed' ? new Date().toISOString() : null
+        })
+        .eq('id', taskId);
+      
+      if (error) {
+        console.error(`Erro ao atualizar tarefa em ${table}:`, error);
+        return;
+      }
+      
+      // Atualizar o estado local
+      setTasks(prevTasks => 
+        prevTasks.map(task => 
+          task.id === taskId ? { ...task, status: newStatus as any } : task
+        )
+      );
+      
+      // Registrar no histórico se a tabela existir
+      try {
+        await supabase
+          .from('team_activity')
+          .insert([
+            {
+              user_id: task.assigneeId,
+              action: 'update_task_status',
+              entity_type: 'task',
+              entity_id: taskId,
+              details: `Status da tarefa "${task.title}" alterado para ${newStatus === 'todo' ? 'A Fazer' : 
+                                                                            newStatus === 'in-progress' ? 'Em Progresso' : 
+                                                                            newStatus === 'review' ? 'Em Revisão' : 'Concluído'}`
+            }
+          ]);
+      } catch (historyError: any) {
+        // Apenas log se a tabela não existir, não é crítico
+        if (!historyError.message?.includes('does not exist')) {
+          console.error('Erro ao registrar no histórico:', historyError);
+        }
+      }
+      
+      // Mostrar toast de confirmação
+      toast({
+        title: "Status atualizado",
+        description: `Tarefa "${task.title}" movida para ${
+          newStatus === 'todo' ? 'A Fazer' : 
+          newStatus === 'in-progress' ? 'Em Progresso' : 
+          newStatus === 'review' ? 'Em Revisão' : 'Concluído'
+        }`,
+      });
+      
     } catch (error) {
       console.error('Error updating task status:', error);
     }

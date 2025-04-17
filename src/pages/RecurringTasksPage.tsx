@@ -103,6 +103,7 @@ const RecurringTasksPage = () => {
       const { data, error } = await supabase
         .from('task_instances')
         .select('*')
+        .not('recurring_task_id', 'is', null)
         .order('due_date', { ascending: true });
 
       if (error) throw error;

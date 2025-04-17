@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -19,15 +20,14 @@ export const useMemberOperations = (userAccess: string | null, refreshData: () =
     }
 
     try {
-      // We need to modify our approach. Instead of generating a UUID ourselves,
-      // we should check if we're working with existing users or creating test profiles.
-      // For test profiles without auth, we should ensure the database allows this.
-
-      // Create a new profile without explicitly specifying an ID
-      // The database will handle ID generation with proper constraints
+      // Generate a UUID for the new member - required by the profiles table schema
+      const newMemberId = crypto.randomUUID();
+      
+      // Create a new profile with an explicitly specified ID
       const { error } = await supabase
         .from('profiles')
         .insert({
+          id: newMemberId, // Explicitly provide an ID to satisfy the type requirements
           nome: memberData.nome,
           cargo: memberData.cargo || 'Colaborador',
           departamento_id: memberData.departamento || null,

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -24,6 +24,8 @@ export function SidebarItem({
   toggleSection,
 }: SidebarItemProps) {
   const menuTitle = title.toUpperCase();
+  const location = useLocation();
+  const exactMatch = location.pathname === href;
 
   return (
     <li className="w-full px-1">
@@ -35,7 +37,7 @@ export function SidebarItem({
               cn(
                 "flex items-center w-full px-4 py-3 rounded-lg transition-all duration-200",
                 isActive
-                  ? "bg-[#38a9e4] text-white font-medium shadow-md" 
+                  ? "bg-purple-600 text-white font-medium shadow-md" 
                   : "text-white/80 hover:bg-[#171923] hover:text-white",
                 collapsed && "justify-center px-3 py-3"
               )
@@ -50,7 +52,10 @@ export function SidebarItem({
               </span>
               
               {!collapsed && (
-                <span className="whitespace-nowrap transition-all duration-200 uppercase font-bold">
+                <span className={cn(
+                  "whitespace-nowrap transition-all duration-200 uppercase font-bold",
+                  isActive && "text-white"
+                )}>
                   {menuTitle}
                 </span>
               )}

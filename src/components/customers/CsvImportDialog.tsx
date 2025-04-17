@@ -48,7 +48,7 @@ export const CsvImportDialog: React.FC<CsvImportDialogProps> = ({
       const { processCSVFile } = await import('./csv/csvUtils');
       
       // Call the function with the onImportSuccess callback
-      await processCSVFile(file);
+      await processCSVFile(file, onImportSuccess);
       
       setIsProcessing(false);
       setSuccess(true);
@@ -63,7 +63,6 @@ export const CsvImportDialog: React.FC<CsvImportDialogProps> = ({
       setTimeout(() => {
         setFile(null);
         setOpen(false);
-        onImportSuccess(); // Call this after successful import
       }, 2000);
       
     } catch (error: any) {

@@ -33,7 +33,7 @@ export function SidebarItem({
             to={href}
             className={({ isActive }) =>
               cn(
-                "flex items-center w-full px-4 py-3 rounded-md transition-all duration-200",
+                "flex items-center w-full px-4 py-3 rounded-lg transition-all duration-200",
                 isActive
                   ? "bg-[#1e2131] text-[#38a9e4] font-medium" 
                   : "text-white/80 hover:bg-[#171923] hover:text-white",

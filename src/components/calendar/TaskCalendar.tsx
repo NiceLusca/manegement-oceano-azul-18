@@ -81,5 +81,5 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
     }) => <button {...props} className="calendar-cell w-7 h-7 p-0 sm:w-8 sm:h-8 md:w-9 md:h-9">
             {renderDay(day)}
           </button>
-  }} className="rounded-md border p-3 bg-card/50 border-border/50 pointer-events-auto px-0" />;
+  }} className="rounded-md border p-3 bg-card/50 border-border/50 pointer-events-auto px-0 py-0" />;
 };

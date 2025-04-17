@@ -53,7 +53,7 @@ export const CalendarContainer: React.FC<CalendarContainerProps> = ({
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base">
           Calendário
-          {!isLoading && <Badge variant="outline" className="text-xs font-normal mx-[7px] my-0 px-[17px]">
+          {!isLoading && <Badge variant="outline" className="text-xs font-normal my-0 px-0 mx-0">
               {allTasks.length} tarefas totais
             </Badge>}
           {hasDemo && <Badge variant="outline" className="text-xs font-normal bg-blue-500/10 text-blue-500 border-blue-200/50 ml-auto flex items-center gap-1">
@@ -62,7 +62,7 @@ export const CalendarContainer: React.FC<CalendarContainerProps> = ({
             </Badge>}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 mx-0 px-px py-0">
+      <CardContent className="space-y-4 mx-0 py-0 px-0">
         <div className="bg-card/50 rounded-md p-0 border border-border/50">
           <TaskCalendar date={date} setDate={setDate} allTasks={allTasks} />
         </div>

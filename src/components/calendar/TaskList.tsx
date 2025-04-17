@@ -33,7 +33,7 @@ export const TaskList: React.FC<TaskListProps> = ({
         return null;
     }
   };
-  return <Card className="lg:col-span-2 mx-[21px] my-[6px]">
+  return <Card className="lg:col-span-2 mx-0 my-0">
       <CardHeader>
         <CardTitle>
           Tarefas para {format(date, 'PPP', {

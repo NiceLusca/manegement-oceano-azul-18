@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFetchTeamMembers } from './useFetchTeamMembers';
@@ -14,6 +13,7 @@ import {
 } from './teamUtils';
 import type { MemberFormData, EditMemberFormData, UseTeamMembersReturn } from './types';
 import { useToast } from '@/hooks/use-toast';
+import { TeamMember } from '@/types';
 
 export const useTeamMembers = (): UseTeamMembersReturn => {
   const { user } = useAuth();
@@ -123,16 +123,16 @@ export const useTeamMembers = (): UseTeamMembersReturn => {
     return getDepartmentNameUtil(departmentId, departamentos);
   }, [departamentos]);
 
-  const canEditMember = useCallback((memberId: string) => {
-    return canEditPermissions[memberId] || false;
+  const canEditMember = useCallback((member: TeamMember) => {
+    return canEditPermissions[member.id] || false;
   }, [canEditPermissions]);
 
   const canAddMembers = useCallback(() => {
     return canAddMembersValue;
   }, [canAddMembersValue]);
 
-  const canDeleteMember = useCallback((memberId: string) => {
-    return canDeletePermissions[memberId] || false;
+  const canDeleteMember = useCallback((member: TeamMember) => {
+    return canDeletePermissions[member.id] || false;
   }, [canDeletePermissions]);
 
   return {

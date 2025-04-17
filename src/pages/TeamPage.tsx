@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { TeamMember } from '@/types';
@@ -48,7 +47,6 @@ const TeamPage = () => {
     avatar_url: ''
   });
 
-  // Fetch team by department view
   useEffect(() => {
     const fetchDepartmentView = async () => {
       try {
@@ -127,7 +125,7 @@ const TeamPage = () => {
         <TeamPageHeader
           userAccess={userAccess}
           error={error}
-          canAddMembers={canAddMembers}
+          canAddMembers={canAddMembers()}
           openDialog={openDialog}
           setOpenDialog={setOpenDialog}
           novoMembro={novoMembro}

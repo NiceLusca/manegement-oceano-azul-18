@@ -29,7 +29,7 @@ export interface UseTeamMembersReturn {
   updateMember: (memberData: EditMemberFormData) => Promise<boolean>;
   deleteMember: (memberId: string) => Promise<boolean>;
   getDepartmentName: (departmentId: string) => string;
-  canEditMember: (memberId: string) => boolean;
+  canEditMember: (member: TeamMember) => boolean; // Updated type
   canAddMembers: () => boolean;
-  canDeleteMember: (memberId: string) => boolean;
+  canDeleteMember: (member: TeamMember) => boolean; // Updated type
 }

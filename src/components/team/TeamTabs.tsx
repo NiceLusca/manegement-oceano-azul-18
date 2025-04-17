@@ -18,8 +18,8 @@ interface TeamTabsProps {
   teamMembers: TeamMember[];
   teamByDepartment: any[];
   getDepartmentName: (departmentId: string) => string;
-  canEditMember: (memberId: string) => boolean;
-  canDeleteMember: (memberId: string) => boolean;
+  canEditMember: (member: TeamMember) => boolean; // Updated type
+  canDeleteMember: (member: TeamMember) => boolean; // Updated type
   openEditDialogForMember: (member: TeamMember) => void;
   openDeleteDialogForMember: (memberId: string) => void;
 }
@@ -58,8 +58,8 @@ export const TeamTabs: React.FC<TeamTabsProps> = ({
                 departmentName={getDepartmentName(member.department)}
                 onEdit={openEditDialogForMember}
                 onDelete={openDeleteDialogForMember}
-                canEdit={canEditMember(member.id)}
-                canDelete={canDeleteMember(member.id)}
+                canEdit={canEditMember(member)} // Pass entire member
+                canDelete={canDeleteMember(member)} // Pass entire member
               />
             ))}
           </div>
@@ -73,11 +73,12 @@ export const TeamTabs: React.FC<TeamTabsProps> = ({
           </div>
         ) : (
           <DepartmentTeamView
-            departmentsData={teamByDepartment}
-            onEditMember={openEditDialogForMember}
-            onDeleteMember={openDeleteDialogForMember}
+            teamByDepartment={teamByDepartment}
+            getDepartmentName={getDepartmentName}
             canEditMember={canEditMember}
             canDeleteMember={canDeleteMember}
+            openEditDialogForMember={openEditDialogForMember}
+            openDeleteDialogForMember={openDeleteDialogForMember}
           />
         )}
       </TabsContent>

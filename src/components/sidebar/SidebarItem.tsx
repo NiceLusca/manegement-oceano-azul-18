@@ -26,7 +26,7 @@ export function SidebarItem({
   const menuTitle = title.toUpperCase();
 
   return (
-    <li>
+    <li className="w-full px-1">
       <Tooltip>
         <TooltipTrigger asChild>
           <NavLink
@@ -35,13 +35,13 @@ export function SidebarItem({
               cn(
                 "flex items-center w-full px-4 py-3 rounded-lg transition-all duration-200",
                 isActive
-                  ? "bg-[#38a9e4] text-white font-medium" 
+                  ? "bg-[#38a9e4] text-white font-medium shadow-md" 
                   : "text-white/80 hover:bg-[#171923] hover:text-white",
-                collapsed && "justify-center p-2.5"
+                collapsed && "justify-center px-3 py-3"
               )
             }
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 w-full">
               <span className={cn(
                 "flex items-center justify-center transition-all duration-200", 
                 isActive ? "text-white" : "text-white/70"

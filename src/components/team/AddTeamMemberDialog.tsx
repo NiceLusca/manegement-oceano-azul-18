@@ -93,8 +93,7 @@ export const AddTeamMemberDialog: React.FC<AddTeamMemberDialogProps> = ({
       
       const { data, error } = await supabase
         .from('profiles')
-        .insert([memberData])
-        .select();
+        .insert([memberData]);
 
       if (error) throw error;
 

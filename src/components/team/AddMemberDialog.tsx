@@ -31,7 +31,7 @@ interface Department {
 interface AddMemberDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddMember: () => void;
+  onAddMember: () => void; // Make sure this prop is properly defined
   novoMembro: {
     nome: string;
     cargo: string;

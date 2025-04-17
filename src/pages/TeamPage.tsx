@@ -126,12 +126,13 @@ const TeamPage = () => {
         <TeamPageHeader
           userAccess={userAccess}
           error={error}
-          canAddMembers={canAddMembers()} // Call the function to get the boolean value
+          canAddMembers={canAddMembers()}
           openDialog={openDialog}
           setOpenDialog={setOpenDialog}
           novoMembro={novoMembro}
           setNovoMembro={setNovoMembro}
           departamentos={departamentos}
+          onAddMember={handleAddMember} // Pass the function here
         />
 
         <TeamTabs

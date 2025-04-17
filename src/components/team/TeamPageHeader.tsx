@@ -9,12 +9,13 @@ import { Department, MemberFormData } from '@/hooks/useTeamMembers';
 interface TeamPageHeaderProps {
   userAccess: string | null;
   error: string | null;
-  canAddMembers: boolean; // Changed from function to boolean
+  canAddMembers: boolean; // Boolean flag
   openDialog: boolean;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
   novoMembro: MemberFormData;
   setNovoMembro: React.Dispatch<React.SetStateAction<MemberFormData>>;
   departamentos: Department[];
+  onAddMember: () => void; // Add this prop
 }
 
 export const TeamPageHeader: React.FC<TeamPageHeaderProps> = ({
@@ -25,7 +26,8 @@ export const TeamPageHeader: React.FC<TeamPageHeaderProps> = ({
   setOpenDialog,
   novoMembro,
   setNovoMembro,
-  departamentos
+  departamentos,
+  onAddMember // Add this prop
 }) => {
   if (error) {
     return (
@@ -63,7 +65,7 @@ export const TeamPageHeader: React.FC<TeamPageHeaderProps> = ({
           <AddMemberDialog
             open={openDialog}
             onOpenChange={setOpenDialog}
-            onAddMember={() => {}} // This will be connected in TeamPage
+            onAddMember={onAddMember} // Pass the function here
             novoMembro={novoMembro}
             setNovoMembro={setNovoMembro}
             departamentos={departamentos}

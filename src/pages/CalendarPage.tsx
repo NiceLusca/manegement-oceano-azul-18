@@ -6,18 +6,22 @@ import { Task } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { CalendarContainer } from '@/components/calendar/CalendarContainer';
 import { TaskList } from '@/components/calendar/TaskList';
+import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function CalendarPage() {
   const [date, setDate] = useState<Date>(new Date());
   const [tasksForDate, setTasksForDate] = useState<Task[]>([]);
   const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   
   // Fetch tasks from Supabase
   useEffect(() => {
     const fetchTasks = async () => {
       setLoading(true);
+      setError(null);
       try {
         const { data, error } = await supabase
           .from('tasks')
@@ -38,11 +42,66 @@ export default function CalendarPage() {
           }));
           setAllTasks(formattedTasks);
         } else {
-          setAllTasks([]);
+          // If there's no data, use mock data for demonstration
+          setAllTasks([
+            {
+              id: '1',
+              title: 'Revisar proposta de marketing',
+              description: 'Análise da proposta para o cliente XYZ',
+              status: 'todo',
+              assigneeId: '101',
+              dueDate: new Date().toISOString(),
+              priority: 'medium',
+              projectId: 'marketing'
+            },
+            {
+              id: '2',
+              title: 'Atualizar site institucional',
+              description: 'Incorporar novas seções de produtos',
+              status: 'in-progress',
+              assigneeId: '102',
+              dueDate: new Date().toISOString(),
+              priority: 'high',
+              projectId: 'website'
+            },
+            {
+              id: '3',
+              title: 'Preparar relatório mensal',
+              description: 'Compilar dados de performance de abril',
+              status: 'todo',
+              assigneeId: '103',
+              dueDate: new Date().toISOString(),
+              priority: 'low',
+              projectId: 'reporting'
+            }
+          ]);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching tasks:', error);
-        setAllTasks([]);
+        setError(`Erro ao carregar tarefas: ${error.message}`);
+        // Use mock data as fallback
+        setAllTasks([
+          {
+            id: '1',
+            title: 'Revisar proposta de marketing',
+            description: 'Análise da proposta para o cliente XYZ',
+            status: 'todo',
+            assigneeId: '101',
+            dueDate: new Date().toISOString(),
+            priority: 'medium',
+            projectId: 'marketing'
+          },
+          {
+            id: '2',
+            title: 'Atualizar site institucional',
+            description: 'Incorporar novas seções de produtos',
+            status: 'in-progress',
+            assigneeId: '102',
+            dueDate: new Date().toISOString(),
+            priority: 'high',
+            projectId: 'website'
+          }
+        ]);
       } finally {
         setLoading(false);
       }
@@ -76,9 +135,17 @@ export default function CalendarPage() {
     <Layout>
       <div className="space-y-6 animate-fade-in">
         <div>
-          <h1 className="text-3xl font-bold">Calendário de Tarefas</h1>
+          <h1 className="text-3xl font-bold mb-2">Calendário de Tarefas</h1>
           <p className="text-muted-foreground">Visualize as tarefas da equipe por data</p>
         </div>
+        
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Erro</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <CalendarContainer 

@@ -103,7 +103,7 @@ export function Sidebar() {
               alt="Oceano Azul" 
               className="h-8 w-auto" 
             />
-            <h1 className="font-bold text-xl whitespace-nowrap text-sidebar-primary">
+            <h1 className="font-bold text-xl whitespace-nowrap text-oceano-claro">
               Oceano Azul
             </h1>
           </div>
@@ -119,7 +119,7 @@ export function Sidebar() {
           variant="ghost"
           size="icon"
           onClick={toggleSidebar}
-          className="h-8 w-8"
+          className="h-8 w-8 text-sidebar-foreground hover:bg-sidebar-accent/30"
           aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
         >
           <PanelLeft className="h-4 w-4" />
@@ -137,11 +137,9 @@ export function Sidebar() {
                       to={item.href}
                       className={({ isActive }) =>
                         cn(
-                          "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-                          isActive
-                            ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                            : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                          collapsed && "justify-center"
+                          "sidebar-item",
+                          isActive ? "active" : "",
+                          collapsed && "justify-center p-2"
                         )
                       }
                     >
@@ -164,11 +162,11 @@ export function Sidebar() {
                       <button
                         onClick={() => toggleSection(item.title)}
                         className={cn(
-                          "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
+                          "w-full sidebar-item",
                           expandedSection === item.title
-                            ? "bg-sidebar-primary/10"
-                            : "hover:bg-sidebar-accent",
-                          collapsed && "justify-center"
+                            ? "bg-sidebar-accent/30"
+                            : "",
+                          collapsed && "justify-center p-2"
                         )}
                       >
                         {item.icon}
@@ -178,7 +176,7 @@ export function Sidebar() {
                         {!collapsed && item.subitems && (
                           <svg
                             className={cn(
-                              "ml-auto h-4 w-4 transition-transform",
+                              "ml-auto h-4 w-4 transition-transform text-sidebar-foreground/70",
                               expandedSection === item.title && "transform rotate-180"
                             )}
                             xmlns="http://www.w3.org/2000/svg"
@@ -212,10 +210,10 @@ export function Sidebar() {
                             to={subitem.href}
                             className={({ isActive }) =>
                               cn(
-                                "flex items-center gap-3 ml-6 px-3 py-2 rounded-md transition-colors text-sm",
+                                "flex items-center gap-2 ml-6 px-3 py-2 rounded-md transition-colors text-sm",
                                 isActive
-                                  ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                                  : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                                  ? "bg-sidebar-primary/30 text-sidebar-primary"
+                                  : "hover:bg-sidebar-accent/20 hover:text-sidebar-accent-foreground"
                               )
                             }
                           >

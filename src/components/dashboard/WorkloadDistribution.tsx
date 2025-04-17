@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TeamMember } from '@/types';
+import { Badge } from '@/components/ui/badge';
+import { InfoCircle } from 'lucide-react';
 
 interface WorkloadDistributionProps {
   teamMembers: TeamMember[];
@@ -16,40 +18,31 @@ export function WorkloadDistribution({
   const [chartData, setChartData] = useState<{ name: string; value: number; id: string; color: string }[]>([]);
   
   useEffect(() => {
-    // Generate chart data
-    const data = teamMembers.map((member) => {
+    // Generate chart data with consistent colors
+    const predefinedColors = [
+      '#3498db', '#2ecc71', '#f39c12', '#e74c3c', '#9b59b6', 
+      '#1abc9c', '#d35400', '#c0392b', '#16a085', '#8e44ad'
+    ];
+    
+    const data = teamMembers.map((member, index) => {
       const tasks = getTasksByAssignee(member.id);
       return {
         name: member.name,
         value: tasks.length,
         id: member.id,
-        color: getRandomColor(member.id)
+        color: predefinedColors[index % predefinedColors.length]
       };
     }).filter(item => item.value > 0);
     
     setChartData(data);
   }, [teamMembers, getTasksByAssignee]);
   
-  // Generate a repeatable color based on string
-  const getRandomColor = (str: string) => {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    
-    let color = '#';
-    for (let i = 0; i < 3; i++) {
-      const value = (hash >> (i * 8)) & 0xFF;
-      color += ('00' + value.toString(16)).substr(-2);
-    }
-    return color;
-  };
-  
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-background border p-2 shadow-sm rounded-sm text-xs">
-          <p>{`${payload[0].name}: ${payload[0].value} tarefas`}</p>
+        <div className="bg-card p-3 shadow-md rounded-md text-sm border border-border/50">
+          <p className="font-medium">{payload[0].name}</p>
+          <p className="text-muted-foreground">{payload[0].value} tarefas</p>
         </div>
       );
     }
@@ -57,13 +50,39 @@ export function WorkloadDistribution({
     return null;
   };
   
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name }: any) => {
+    const RADIAN = Math.PI / 180;
+    const radius = outerRadius * 1.1;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    
+    return (
+      <text 
+        x={x} 
+        y={y} 
+        fill={chartData[index]?.color} 
+        textAnchor={x > cx ? 'start' : 'end'} 
+        dominantBaseline="central"
+        fontSize="12"
+        fontWeight="500"
+      >
+        {name} ({(percent * 100).toFixed(0)}%)
+      </text>
+    );
+  };
+  
   return (
     <Card className="col-span-1">
-      <CardHeader>
-        <CardTitle>Distribuição de Tarefas</CardTitle>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2">
+          Distribuição de Tarefas
+          <Badge variant="outline" className="text-xs font-normal">
+            Por membro
+          </Badge>
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex justify-center h-[220px] w-full">
+        <div className="flex flex-col items-center h-[260px] w-full">
           {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -77,20 +96,21 @@ export function WorkloadDistribution({
                   paddingAngle={5}
                   dataKey="value"
                   nameKey="name"
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                   labelLine={false}
+                  label={renderCustomizedLabel}
                 >
                   {chartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
-                <Legend />
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-full text-muted-foreground">
-              Sem dados de tarefas para exibir
+            <div className="flex flex-col items-center justify-center h-full text-muted-foreground space-y-2">
+              <InfoCircle className="h-12 w-12 text-muted-foreground/50" />
+              <p>Sem dados de tarefas para exibir</p>
+              <p className="text-xs">Atribua tarefas aos membros da equipe para visualizar a distribuição</p>
             </div>
           )}
         </div>

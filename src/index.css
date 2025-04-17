@@ -5,58 +5,58 @@
 
 @layer base {
   :root {
-    /* Dark theme only - removing light theme variables */
-    --background: 222 47% 8%;
+    /* Lighter dark theme colors */
+    --background: 222 47% 12%;
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 12%;
+    --card: 222 47% 15%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222 47% 10%;
+    --popover: 222 47% 14%;
     --popover-foreground: 210 40% 98%;
 
-    /* Bright blue for primary actions */
-    --primary: 200 85% 50%;
+    /* Brighter blue for primary actions */
+    --primary: 200 85% 55%;
     --primary-foreground: 222 47% 8%;
 
-    /* Darker secondary for subtle elements */
-    --secondary: 200 50% 20%;
+    /* Lighter secondary for subtle elements */
+    --secondary: 200 50% 25%;
     --secondary-foreground: 210 40% 98%;
 
-    /* Muted tones */
-    --muted: 217 33% 18%;
-    --muted-foreground: 215 20% 75%;
+    /* Lighter muted tones */
+    --muted: 217 33% 22%;
+    --muted-foreground: 215 20% 80%;
 
-    /* Accent colors */
-    --accent: 200 50% 25%;
+    /* Lighter accent colors */
+    --accent: 200 50% 30%;
     --accent-foreground: 210 40% 98%;
 
     /* Destructive actions */
-    --destructive: 0 60% 50%;
+    --destructive: 0 60% 55%;
     --destructive-foreground: 210 40% 98%;
 
-    /* Borders and inputs */
-    --border: 217 33% 25%;
-    --input: 217 33% 25%;
-    --ring: 200 85% 50%;
+    /* Lighter borders and inputs */
+    --border: 217 33% 30%;
+    --input: 217 33% 30%;
+    --ring: 200 85% 55%;
 
     --radius: 0.5rem;
 
-    /* Sidebar - darker than main background */
-    --sidebar-background: 220 50% 6%;
+    /* Lighter sidebar */
+    --sidebar-background: 220 50% 10%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 200 85% 50%;
+    --sidebar-primary: 200 85% 55%;
     --sidebar-primary-foreground: 222 47% 8%;
-    --sidebar-accent: 200 70% 40%;
+    --sidebar-accent: 200 70% 45%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 214 60% 15%;
-    --sidebar-ring: 200 85% 50%;
+    --sidebar-border: 214 60% 18%;
+    --sidebar-ring: 200 85% 55%;
     
-    /* Ocean theme colors - more vibrant against dark bg */
-    --oceano-claro: 200 70% 60%;
-    --oceano-medio: 200 85% 45%;
-    --oceano-escuro: 200 85% 35%;
-    --oceano-profundo: 205 90% 25%;
+    /* Ocean theme colors - brighter against dark bg */
+    --oceano-claro: 200 70% 65%;
+    --oceano-medio: 200 85% 50%;
+    --oceano-escuro: 200 85% 40%;
+    --oceano-profundo: 205 90% 30%;
   }
 }
 
@@ -139,4 +139,34 @@ select {
 
 .ocean-button {
   @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-colors;
+}
+
+/* Calendar styles */
+.calendar-cell {
+  @apply relative grid place-content-center p-0 text-center focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1;
+}
+
+.calendar-cell[aria-selected="true"] {
+  @apply bg-primary text-primary-foreground rounded-md;
+}
+
+.calendar-head-cell {
+  @apply text-muted-foreground rounded-md w-9 font-normal text-[0.8rem] p-0;
+}
+
+.calendar-table {
+  @apply w-full border-collapse space-y-1;
+}
+
+/* Improved sidebar styles */
+.sidebar-item {
+  @apply flex items-center gap-3 px-3 py-2 rounded-md transition-colors;
+}
+
+.sidebar-item.active {
+  @apply bg-sidebar-primary text-sidebar-primary-foreground font-medium;
+}
+
+.sidebar-item:not(.active) {
+  @apply hover:bg-sidebar-accent hover:text-sidebar-accent-foreground;
 }

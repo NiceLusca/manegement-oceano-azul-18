@@ -71,7 +71,7 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
           {format(day, 'd')}
         </time>
         {taskCount > 0 && (
-          <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-1">
+          <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-1 items-center">
             <Badge variant="outline" className={`h-1.5 w-1.5 p-0 rounded-full ${priorityColor}`} />
             {taskCount > 1 && (
               <span className="text-[10px] font-medium">{taskCount}</span>
@@ -88,10 +88,19 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
       selected={date}
       onSelect={(newDate) => newDate && setDate(newDate)}
       locale={ptBR}
-      className="rounded-md border"
+      className="rounded-md border p-3 bg-card/50 border-border/50 pointer-events-auto"
+      modifiers={{
+        today: new Date(),
+      }}
+      modifiersStyles={{
+        today: {
+          fontWeight: 'bold',
+          color: 'hsl(var(--primary))',
+        }
+      }}
       components={{
         Day: ({ date: day, ...props }) => (
-          <button {...props}>
+          <button {...props} className="calendar-cell">
             {renderDay(day)}
           </button>
         ),

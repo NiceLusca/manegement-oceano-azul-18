@@ -15,12 +15,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates';
 import { useDepartmentFilter } from '@/hooks/useDepartmentFilter';
+import { DashboardConfig } from '@/components/dashboard/DashboardConfig';
 
 const Index = () => {
   const { user } = useAuth();
   const [nivelAcesso, setNivelAcesso] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { departments, selectedDepartment, setSelectedDepartment } = useDepartmentFilter();
+  const [configDialogOpen, setConfigDialogOpen] = useState(false);
 
   // Verificar nível de acesso do usuário
   useEffect(() => {
@@ -102,11 +104,17 @@ const Index = () => {
             <div className="text-sm text-muted-foreground">
               <span className="font-medium">Tempo real:</span> As informações são atualizadas automaticamente
             </div>
-            <Button variant="outline" className="gap-2 border-primary/30 text-primary hover:bg-primary/10 hover:border-primary">
+            <Button 
+              variant="outline" 
+              className="gap-2 border-primary/30 text-primary hover:bg-primary/10 hover:border-primary"
+              onClick={() => setConfigDialogOpen(true)}
+            >
               <Settings className="h-4 w-4" /> Configurar Dashboard
             </Button>
           </div>
         )}
+        
+        <DashboardConfig open={configDialogOpen} onOpenChange={setConfigDialogOpen} />
       </div>
     </Layout>
   );

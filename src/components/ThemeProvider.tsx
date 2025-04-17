@@ -22,7 +22,7 @@ export function ThemeProvider({
   ...props
 }: ThemeProviderProps) {
   useEffect(() => {
-    // Always use dark mode
+    // Always use dark mode but with lighter colors
     const root = window.document.documentElement;
     root.classList.remove("light");
     root.classList.add("dark");

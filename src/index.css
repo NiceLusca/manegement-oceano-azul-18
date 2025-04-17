@@ -5,6 +5,61 @@
 
 @layer base {
   :root {
+    /* Light mode colors based on the new palette */
+    --background: 210 30% 98%; /* #F9FAFC */
+    --foreground: 220 10% 30%; /* #6B7280 */
+
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 220 10% 30%; /* #6B7280 */
+
+    --popover: 0 0% 100%; /* White */
+    --popover-foreground: 220 10% 30%; /* #6B7280 */
+
+    /* Ocean blue primary */
+    --primary: 203 100% 30%; /* #005B99 */
+    --primary-foreground: 0 0% 100%; /* White */
+
+    /* Secondary for subtle elements */
+    --secondary: 210 40% 96%; /* #D0E9FF */
+    --secondary-foreground: 203 100% 30%; /* #005B99 */
+
+    /* Muted tones */
+    --muted: 220 10% 92%; /* #E5E7EB */
+    --muted-foreground: 220 10% 40%; /* Slightly darker than foreground */
+
+    /* Accent colors */
+    --accent: 210 40% 96%; /* #D0E9FF, lighter version */
+    --accent-foreground: 203 100% 30%; /* #005B99 */
+
+    /* Destructive actions */
+    --destructive: 0 84% 60%; /* #EF4444 */
+    --destructive-foreground: 0 0% 100%; /* White */
+
+    /* Borders and inputs */
+    --border: 220 10% 92%; /* #E5E7EB */
+    --input: 220 10% 92%; /* #E5E7EB */
+    --ring: 203 100% 30%; /* #005B99 */
+
+    --radius: 0.5rem;
+
+    /* Sidebar colors - customize for light theme */
+    --sidebar-background: 0 0% 100%; /* White */
+    --sidebar-foreground: 220 10% 30%; /* #6B7280 */
+    --sidebar-primary: 203 100% 30%; /* #005B99 */
+    --sidebar-primary-foreground: 0 0% 100%; /* White */
+    --sidebar-accent: 210 40% 96%; /* #D0E9FF */
+    --sidebar-accent-foreground: 203 100% 30%; /* #005B99 */
+    --sidebar-border: 220 10% 92%; /* #E5E7EB */
+    --sidebar-ring: 203 100% 30%; /* #005B99 */
+    
+    /* Ocean theme colors */
+    --oceano-claro: 210 100% 92%; /* #D0E9FF */
+    --oceano-medio: 203 100% 30%; /* #005B99 */
+    --oceano-escuro: 204 100% 24%; /* #00487A */
+    --oceano-profundo: 207 100% 15%; /* #002C4D */
+  }
+
+  .dark {
     /* Darker background for the app */
     --background: 220 30% 7%;
     --foreground: 210 40% 98%;
@@ -39,8 +94,6 @@
     --border: 217 33% 25%;
     --input: 217 33% 25%;
     --ring: 200 70% 50%;
-
-    --radius: 0.5rem;
 
     /* Sidebar colors - darker theme */
     --sidebar-background: 223 35% 6%;
@@ -77,7 +130,7 @@
 
 /* Card styles */
 .card {
-  @apply shadow-lg shadow-black/20 backdrop-blur-sm border-border/50;
+  @apply shadow-md shadow-black/10 backdrop-blur-sm border-border/50 transition-all duration-200 hover:shadow-lg;
 }
 
 .dropdown-content, 
@@ -87,25 +140,25 @@
 }
 
 .calendar-day {
-  @apply hover:bg-accent hover:text-accent-foreground;
+  @apply hover:bg-accent hover:text-accent-foreground transition-colors duration-200;
 }
 
 /* Form controls */
 input, 
 textarea, 
 select {
-  @apply bg-background/80 border-border/80;
+  @apply bg-background/80 border-border/80 transition-colors duration-200 focus:border-primary focus:ring-primary/20;
 }
 
 .badge {
-  @apply font-normal text-xs border-border/50;
+  @apply font-normal text-xs border-border/50 transition-colors duration-200;
 }
 
 /* Utilitários de animação */
 @layer utilities {
   .animate-fade-in {
     @apply transition-opacity duration-300 ease-in-out;
-    animation: fadeIn 0.3s ease-out;
+    animation: fadeIn 0.4s ease-out;
   }
   
   @keyframes fadeIn {
@@ -121,6 +174,15 @@ select {
   @keyframes scale {
     from { transform: scale(0.95); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
+  }
+
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
   }
 }
 
@@ -138,12 +200,12 @@ select {
 }
 
 .ocean-button {
-  @apply bg-primary text-primary-foreground hover:bg-primary/90 transition-colors;
+  @apply bg-[#005B99] text-white hover:bg-[#00487A] transition-colors duration-200;
 }
 
 /* Calendar styles */
 .calendar-cell {
-  @apply relative grid place-content-center p-0 text-center focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1;
+  @apply relative grid place-content-center p-0 text-center focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 transition-all duration-200;
 }
 
 .calendar-cell[aria-selected="true"] {
@@ -160,7 +222,7 @@ select {
 
 /* Improved sidebar styles */
 .sidebar-item {
-  @apply flex items-center gap-3 px-3 py-2 rounded-md transition-colors;
+  @apply flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-200;
 }
 
 .sidebar-item.active {

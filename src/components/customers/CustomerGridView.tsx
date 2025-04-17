@@ -11,14 +11,20 @@ import { Button } from '@/components/ui/button';
 
 interface CustomerGridViewProps {
   customers: any[];
-  onEdit: (customer: any) => void;
-  onDelete: (customerId: string) => void;
+  onEdit?: (customer: any) => void;
+  onDelete?: (customerId: string) => void;
+  teamMembers?: any[];
+  getStatusColor?: (status: string) => string;
+  translateStatus?: (status: string) => string;
 }
 
 export const CustomerGridView: React.FC<CustomerGridViewProps> = ({
   customers,
   onEdit,
-  onDelete
+  onDelete,
+  teamMembers,
+  getStatusColor,
+  translateStatus
 }) => {
   // Return customer initials for avatar fallback
   const getInitials = (name: string) => {
@@ -96,7 +102,7 @@ export const CustomerGridView: React.FC<CustomerGridViewProps> = ({
                     variant="outline" 
                     size="sm" 
                     className="w-full" 
-                    onClick={() => onEdit(customer)}
+                    onClick={() => onEdit && onEdit(customer)}
                   >
                     <Edit className="h-4 w-4 mr-1" /> Editar
                   </Button>
@@ -105,7 +111,7 @@ export const CustomerGridView: React.FC<CustomerGridViewProps> = ({
                     variant="outline" 
                     size="sm" 
                     className="w-full text-destructive hover:bg-destructive hover:text-destructive-foreground" 
-                    onClick={() => onDelete(customer.id)}
+                    onClick={() => onDelete && onDelete(customer.id)}
                   >
                     <Trash2 className="h-4 w-4 mr-1" /> Excluir
                   </Button>

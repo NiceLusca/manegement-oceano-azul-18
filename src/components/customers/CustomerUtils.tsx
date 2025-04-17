@@ -17,3 +17,38 @@ export const getStatusColor = (status: string) => {
     default: return 'bg-red-100 text-red-800';
   }
 };
+
+// Add missing functions
+export const formatPhoneNumber = (phone: string): string => {
+  if (!phone) return '';
+  
+  // Remove non-numeric characters
+  const numericPhone = phone.replace(/\D/g, '');
+  
+  // Format based on length
+  if (numericPhone.length === 11) {
+    // Mobile: (XX) XXXXX-XXXX
+    return `(${numericPhone.slice(0, 2)}) ${numericPhone.slice(2, 7)}-${numericPhone.slice(7)}`;
+  } else if (numericPhone.length === 10) {
+    // Landline: (XX) XXXX-XXXX
+    return `(${numericPhone.slice(0, 2)}) ${numericPhone.slice(2, 6)}-${numericPhone.slice(6)}`;
+  }
+  
+  // Return original if format doesn't match
+  return phone;
+};
+
+export const getCustomerStatusColor = (status: string): string => {
+  switch (status) {
+    case 'lead':
+      return 'secondary';
+    case 'prospect':
+      return 'default';
+    case 'customer':
+      return 'success';
+    case 'churned':
+      return 'destructive';
+    default:
+      return 'secondary';
+  }
+};

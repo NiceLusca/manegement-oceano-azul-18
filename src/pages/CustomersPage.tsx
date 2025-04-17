@@ -7,7 +7,7 @@ import { Plus, Upload } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import CustomerSearch from '@/components/customers/CustomerSearch';
 import CustomerTableView from '@/components/customers/CustomerTableView';
-import CustomerGridView from '@/components/customers/CustomerGridView';
+import { CustomerGridView } from '@/components/customers/CustomerGridView';
 import CustomerFormDialog from '@/components/customers/CustomerFormDialog';
 import CsvImportDialog from '@/components/customers/CsvImportDialog';
 import { getStatusColor, translateStatus } from '@/components/customers/CustomerUtils';

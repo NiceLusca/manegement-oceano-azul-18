@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
@@ -52,9 +53,9 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
   // Get color based on priority
   const getPriorityColor = (dateKey: string) => {
     const priority = taskPriorityColors[dateKey];
-    if (priority === 'high') return 'bg-red-500/20 text-red-500';
-    if (priority === 'medium') return 'bg-amber-500/20 text-amber-500';
-    return 'bg-blue-500/20 text-blue-500';
+    if (priority === 'high') return 'bg-red-500/30 text-red-500';
+    if (priority === 'medium') return 'bg-amber-500/30 text-amber-500';
+    return 'bg-blue-500/30 text-blue-500';
   };
 
   return (
@@ -77,7 +78,7 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
           head_row: "flex",
           head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem] text-white/50",
           row: "flex w-full mt-2",
-          cell: "text-center text-sm p-0 relative h-9 w-9 [&:has([aria-selected])]:bg-purple-500 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+          cell: "text-center text-sm p-0 relative h-9 w-9 focus-within:relative focus-within:z-20",
           day: "h-9 w-9 p-0 font-normal text-white hover:bg-[#202330] rounded-full",
           day_selected: "bg-purple-500 text-white hover:bg-purple-600 hover:text-white focus:bg-purple-500 focus:text-white",
           day_today: "bg-[#202330] text-white",

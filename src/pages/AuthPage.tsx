@@ -124,7 +124,7 @@ export default function AuthPage() {
             <CardFooter className="flex flex-col space-y-4">
               <Button
                 type="submit"
-                className="w-full bg-oceanoazul hover:bg-oceanoazul-dark"
+                className="w-full bg-oceanoazul hover:bg-oceanoazul-dark text-white"
                 disabled={isLoading}
               >
                 {isLoading
@@ -136,7 +136,7 @@ export default function AuthPage() {
               <Button
                 type="button"
                 variant="link"
-                className="w-full"
+                className="w-full text-oceanoazul hover:text-oceanoazul-dark"
                 onClick={() => setIsSignUp(!isSignUp)}
               >
                 {isSignUp

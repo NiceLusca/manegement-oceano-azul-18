@@ -7,6 +7,9 @@ import {
   LayoutDashboard,
   CheckSquare,
   UserSquare2,
+  History,
+  RepeatIcon,
+  KanbanSquare,
 } from 'lucide-react';
 import { SidebarItem } from './SidebarItem';
 
@@ -40,7 +43,24 @@ export function SidebarNav({ collapsed, expandedSection, toggleSection }: Sideba
     { 
       title: 'Tarefas', 
       href: '/projects', 
-      icon: <CheckSquare className="h-5 w-5" /> 
+      icon: <CheckSquare className="h-5 w-5" />,
+      subitems: [
+        {
+          title: 'Kanban',
+          href: '/projects',
+          icon: <KanbanSquare className="h-4 w-4" />
+        },
+        {
+          title: 'Recorrentes',
+          href: '/recurring-tasks',
+          icon: <RepeatIcon className="h-4 w-4" />
+        },
+        {
+          title: 'Histórico',
+          href: '/activity-history',
+          icon: <History className="h-4 w-4" />
+        }
+      ]
     },
     { 
       title: 'Equipe', 

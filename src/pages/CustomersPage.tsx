@@ -3,12 +3,13 @@ import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Upload } from 'lucide-react';
 import { useCustomers } from '@/hooks/useCustomers';
 import CustomerSearch from '@/components/customers/CustomerSearch';
 import CustomerTableView from '@/components/customers/CustomerTableView';
 import CustomerGridView from '@/components/customers/CustomerGridView';
 import CustomerFormDialog from '@/components/customers/CustomerFormDialog';
+import CsvImportDialog from '@/components/customers/CsvImportDialog';
 import { getStatusColor, translateStatus } from '@/components/customers/CustomerUtils';
 import { Customer } from '@/types';
 
@@ -16,6 +17,7 @@ const CustomersPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   const [openDialog, setOpenDialog] = useState(false);
+  const [openCsvDialog, setOpenCsvDialog] = useState(false);
   const [novoCliente, setNovoCliente] = useState<Omit<Customer, 'id' | 'lastContact'>>({
     name: '',
     origem: '',
@@ -27,7 +29,7 @@ const CustomersPage = () => {
     value: 0
   });
   
-  const { customers, teamMembers, loading, addCustomer } = useCustomers();
+  const { customers, teamMembers, loading, addCustomer, fetchCustomers } = useCustomers();
 
   const handleAddCustomer = async () => {
     if (!novoCliente.name.trim()) {
@@ -51,6 +53,10 @@ const CustomersPage = () => {
     }
   };
 
+  const handleImportSuccess = () => {
+    fetchCustomers();
+  };
+
   const filteredCustomers = customers.filter(customer => 
     customer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.origem?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -66,10 +72,21 @@ const CustomersPage = () => {
             <p className="text-muted-foreground">Gerencie seus relacionamentos com clientes</p>
           </div>
           
-          <Button className="flex items-center gap-2" onClick={() => setOpenDialog(true)}>
-            <Plus className="h-4 w-4" />
-            Adicionar Cliente
-          </Button>
+          <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2" 
+              onClick={() => setOpenCsvDialog(true)}
+            >
+              <Upload className="h-4 w-4" />
+              Importar CSV
+            </Button>
+            
+            <Button className="flex items-center gap-2" onClick={() => setOpenDialog(true)}>
+              <Plus className="h-4 w-4" />
+              Adicionar Cliente
+            </Button>
+          </div>
           
           <CustomerFormDialog
             open={openDialog}
@@ -78,6 +95,12 @@ const CustomersPage = () => {
             setNovoCliente={setNovoCliente}
             teamMembers={teamMembers}
             handleAddCustomer={handleAddCustomer}
+          />
+          
+          <CsvImportDialog
+            open={openCsvDialog}
+            setOpen={setOpenCsvDialog}
+            onImportSuccess={handleImportSuccess}
           />
         </div>
 

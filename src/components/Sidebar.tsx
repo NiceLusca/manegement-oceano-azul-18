@@ -9,6 +9,16 @@ import { SidebarFooter } from './sidebar/SidebarFooter';
 export function Sidebar() {
   const [collapsed, setCollapsed] = React.useState(false);
   const [expandedSection, setExpandedSection] = React.useState<string | null>(null);
+  const location = useLocation();
+  
+  // Check if current route is a subitem route and expand the parent section
+  React.useEffect(() => {
+    if (location.pathname.includes('/projects') || 
+        location.pathname.includes('/recurring-tasks') || 
+        location.pathname.includes('/activity-history')) {
+      setExpandedSection('Tarefas');
+    }
+  }, [location.pathname]);
   
   const toggleSidebar = () => setCollapsed(!collapsed);
   

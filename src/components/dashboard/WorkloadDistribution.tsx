@@ -109,8 +109,8 @@ export function WorkloadDistribution({
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground space-y-2">
               <Info className="h-12 w-12 text-muted-foreground/50" />
-              <p>Sem dados de tarefas para exibir</p>
-              <p className="text-xs">Atribua tarefas aos membros da equipe para visualizar a distribuição</p>
+              <p className="text-center">Sem dados de tarefas para exibir</p>
+              <p className="text-xs text-center">Atribua tarefas aos membros da equipe para visualizar a distribuição</p>
             </div>
           )}
         </div>

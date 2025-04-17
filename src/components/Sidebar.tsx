@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   Calendar,
   Settings,
@@ -12,6 +12,8 @@ import {
   ClipboardList,
   BarChart3,
   History,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -31,6 +33,7 @@ interface SidebarItem {
 export function Sidebar() {
   const [collapsed, setCollapsed] = React.useState(false);
   const [expandedSection, setExpandedSection] = React.useState<string | null>(null);
+  const location = useLocation();
   
   const toggleSidebar = () => setCollapsed(!collapsed);
   
@@ -88,6 +91,22 @@ export function Sidebar() {
     },
   ];
 
+  // Verificar qual seção deve estar expandida com base na rota atual
+  React.useEffect(() => {
+    const currentPath = location.pathname;
+    
+    for (const item of items) {
+      if (item.subitems) {
+        for (const subitem of item.subitems) {
+          if (currentPath === subitem.href) {
+            setExpandedSection(item.title);
+            break;
+          }
+        }
+      }
+    }
+  }, [location.pathname]);
+
   return (
     <aside
       className={cn(
@@ -128,69 +147,33 @@ export function Sidebar() {
       
       <nav className="p-2 flex-1 overflow-y-auto">
         <ul className="space-y-1">
-          {items.map((item) => (
-            <li key={item.title} className="relative">
-              {!item.subitems ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <NavLink
-                      to={item.href}
-                      className={({ isActive }) =>
-                        cn(
-                          "sidebar-item",
-                          isActive ? "active" : "",
-                          collapsed && "justify-center p-2"
-                        )
-                      }
-                    >
-                      {item.icon}
-                      <span className={cn("whitespace-nowrap", collapsed && "hidden")}>
-                        {item.title}
-                      </span>
-                    </NavLink>
-                  </TooltipTrigger>
-                  {collapsed && (
-                    <TooltipContent side="right">
-                      {item.title}
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              ) : (
-                <>
+          {items.map((item) => {
+            // Verificar se o item ou um de seus subitens está ativo
+            const isItemActive = location.pathname === item.href || 
+              (item.subitems?.some(subitem => location.pathname === subitem.href));
+            
+            return (
+              <li key={item.title} className="relative">
+                {!item.subitems ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button
-                        onClick={() => toggleSection(item.title)}
-                        className={cn(
-                          "w-full sidebar-item",
-                          expandedSection === item.title
-                            ? "bg-sidebar-accent/30"
-                            : "",
-                          collapsed && "justify-center p-2"
-                        )}
+                      <NavLink
+                        to={item.href}
+                        className={({ isActive }) =>
+                          cn(
+                            "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
+                            isActive 
+                              ? "bg-sidebar-accent/70 text-sidebar-accent-foreground font-medium" 
+                              : "hover:bg-sidebar-accent/30 text-sidebar-foreground",
+                            collapsed && "justify-center p-2"
+                          )
+                        }
                       >
                         {item.icon}
                         <span className={cn("whitespace-nowrap", collapsed && "hidden")}>
                           {item.title}
                         </span>
-                        {!collapsed && item.subitems && (
-                          <svg
-                            className={cn(
-                              "ml-auto h-4 w-4 transition-transform text-sidebar-foreground/70",
-                              expandedSection === item.title && "transform rotate-180"
-                            )}
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                          </svg>
-                        )}
-                      </button>
+                      </NavLink>
                     </TooltipTrigger>
                     {collapsed && (
                       <TooltipContent side="right">
@@ -198,36 +181,70 @@ export function Sidebar() {
                       </TooltipContent>
                     )}
                   </Tooltip>
-                  
-                  {item.subitems && !collapsed && (
-                    <ul className={cn(
-                      "mt-1 space-y-1 overflow-hidden transition-all duration-300",
-                      expandedSection === item.title ? "max-h-40" : "max-h-0"
-                    )}>
-                      {item.subitems.map((subitem) => (
-                        <li key={subitem.title}>
-                          <NavLink
-                            to={subitem.href}
-                            className={({ isActive }) =>
-                              cn(
-                                "flex items-center gap-2 ml-6 px-3 py-2 rounded-md transition-colors text-sm",
-                                isActive
-                                  ? "bg-sidebar-primary/30 text-sidebar-primary"
-                                  : "hover:bg-sidebar-accent/20 hover:text-sidebar-accent-foreground"
-                              )
-                            }
-                          >
-                            {subitem.icon}
-                            <span>{subitem.title}</span>
-                          </NavLink>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </>
-              )}
-            </li>
-          ))}
+                ) : (
+                  <>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => toggleSection(item.title)}
+                          className={cn(
+                            "w-full flex items-center justify-between gap-3 px-3 py-2 rounded-md transition-colors",
+                            isItemActive
+                              ? "bg-sidebar-accent/70 text-sidebar-accent-foreground font-medium"
+                              : "hover:bg-sidebar-accent/30 text-sidebar-foreground",
+                            collapsed && "justify-center p-2"
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            {item.icon}
+                            <span className={cn("whitespace-nowrap", collapsed && "hidden")}>
+                              {item.title}
+                            </span>
+                          </div>
+                          {!collapsed && item.subitems && (
+                            expandedSection === item.title ? 
+                              <ChevronDown className="h-4 w-4 text-sidebar-foreground/70" /> :
+                              <ChevronRight className="h-4 w-4 text-sidebar-foreground/70" />
+                          )}
+                        </button>
+                      </TooltipTrigger>
+                      {collapsed && (
+                        <TooltipContent side="right">
+                          {item.title}
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                    
+                    {item.subitems && !collapsed && (
+                      <ul className={cn(
+                        "mt-1 space-y-1 overflow-hidden transition-all duration-300",
+                        expandedSection === item.title ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+                      )}>
+                        {item.subitems.map((subitem) => (
+                          <li key={subitem.title}>
+                            <NavLink
+                              to={subitem.href}
+                              className={({ isActive }) =>
+                                cn(
+                                  "flex items-center gap-2 ml-6 px-3 py-2 rounded-md transition-colors text-sm",
+                                  isActive
+                                    ? "bg-sidebar-primary/20 text-sidebar-primary font-medium"
+                                    : "hover:bg-sidebar-accent/20 hover:text-sidebar-accent-foreground"
+                                )
+                              }
+                            >
+                              {subitem.icon}
+                              <span>{subitem.title}</span>
+                            </NavLink>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </nav>
       

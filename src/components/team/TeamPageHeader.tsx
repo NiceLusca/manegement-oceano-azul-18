@@ -9,7 +9,7 @@ import { Department, MemberFormData } from '@/hooks/useTeamMembers';
 interface TeamPageHeaderProps {
   userAccess: string | null;
   error: string | null;
-  canAddMembers: () => boolean;
+  canAddMembers: boolean; // Changed from function to boolean
   openDialog: boolean;
   setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
   novoMembro: MemberFormData;
@@ -59,7 +59,7 @@ export const TeamPageHeader: React.FC<TeamPageHeaderProps> = ({
           </Button>
         </Link>
         
-        {canAddMembers() && (
+        {canAddMembers && (
           <AddMemberDialog
             open={openDialog}
             onOpenChange={setOpenDialog}

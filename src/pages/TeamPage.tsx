@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { TeamMember } from '@/types';
@@ -125,7 +126,7 @@ const TeamPage = () => {
         <TeamPageHeader
           userAccess={userAccess}
           error={error}
-          canAddMembers={canAddMembers()}
+          canAddMembers={canAddMembers()} // Call the function to get the boolean value
           openDialog={openDialog}
           setOpenDialog={setOpenDialog}
           novoMembro={novoMembro}

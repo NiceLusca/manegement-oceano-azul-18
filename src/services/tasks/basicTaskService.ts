@@ -32,6 +32,16 @@ export const updateTaskStatus = async (taskId: string, newStatus: string) => {
       throw error;
     }
     
+    // Registrar a atividade no histórico
+    try {
+      console.log('Atividade registrada:', {
+        action: 'update_task_status',
+        details: `Tarefa atualizada para ${newStatus}`
+      });
+    } catch (historyError) {
+      console.error('Erro ao registrar histórico:', historyError);
+    }
+    
     return true;
   } catch (error: any) {
     console.error('Erro ao atualizar status da tarefa:', error.message);

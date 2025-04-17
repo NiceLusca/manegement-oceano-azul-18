@@ -63,7 +63,7 @@ export const TeamPageHeader: React.FC<TeamPageHeaderProps> = ({
           <AddMemberDialog
             open={openDialog}
             onOpenChange={setOpenDialog}
-            onAddMember={() => {}}
+            onAddMember={() => {}} // This will be connected in TeamPage
             novoMembro={novoMembro}
             setNovoMembro={setNovoMembro}
             departamentos={departamentos}

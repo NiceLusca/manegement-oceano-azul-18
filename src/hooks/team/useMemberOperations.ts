@@ -20,21 +20,22 @@ export const useMemberOperations = (userAccess: string | null, refreshData: () =
     }
 
     try {
-      const { data, error } = await supabase
+      const memberId = crypto.randomUUID(); // Generate a unique ID
+      
+      const { error } = await supabase
         .from('profiles')
         .insert([
           {
-            id: crypto.randomUUID(), // Generate a unique ID
+            id: memberId,
             nome: memberData.nome,
-            cargo: memberData.cargo,
-            departamento_id: memberData.departamento,
-            avatar_url: memberData.avatar_url,
+            cargo: memberData.cargo || 'Colaborador',
+            departamento_id: memberData.departamento || null,
+            avatar_url: memberData.avatar_url || null,
             nivel_acesso: memberData.nivel_acesso || 'user',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           }
-        ])
-        .select();
+        ]);
 
       if (error) throw error;
 

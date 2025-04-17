@@ -20,6 +20,8 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { AvatarUpload } from '@/components/AvatarUpload';
+import { useToast } from '@/hooks/use-toast';
 
 interface Department {
   id: string;
@@ -53,6 +55,17 @@ export const AddMemberDialog: React.FC<AddMemberDialogProps> = ({
   setNovoMembro,
   departamentos
 }) => {
+  const { toast } = useToast();
+  const tempUserId = crypto.randomUUID(); // Temporary ID for avatar upload
+
+  const handleAvatarUpload = (url: string) => {
+    setNovoMembro({...novoMembro, avatar_url: url});
+    toast({
+      title: "Imagem carregada",
+      description: "A imagem do avatar foi carregada com sucesso.",
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
@@ -69,6 +82,14 @@ export const AddMemberDialog: React.FC<AddMemberDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
+          <div className="flex justify-center mb-4">
+            <AvatarUpload 
+              userId={tempUserId}
+              avatarUrl={novoMembro.avatar_url}
+              onUploadComplete={handleAvatarUpload}
+              size="md"
+            />
+          </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="nome" className="text-right">
               Nome
@@ -110,17 +131,6 @@ export const AddMemberDialog: React.FC<AddMemberDialogProps> = ({
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="avatar" className="text-right">
-              URL do Avatar
-            </Label>
-            <Input
-              id="avatar"
-              value={novoMembro.avatar_url}
-              onChange={(e) => setNovoMembro({...novoMembro, avatar_url: e.target.value})}
-              className="col-span-3"
-            />
           </div>
         </div>
         <DialogFooter>

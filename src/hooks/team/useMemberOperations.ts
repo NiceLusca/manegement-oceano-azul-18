@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -20,14 +19,13 @@ export const useMemberOperations = (userAccess: string | null, refreshData: () =
     }
 
     try {
-      // Important: In Supabase, profiles.id must reference an existing auth.users entry
-      // For now, we'll create a profile entry directly without authentication
-      // This requires changing the foreign key constraint in the database
+      // Generate a UUID for the new member - required by the profiles table schema
+      const newMemberId = crypto.randomUUID();
       
       const { error } = await supabase
         .from('profiles')
         .insert({
-          // Do not specify an ID - let Supabase handle it with table defaults
+          id: newMemberId, // Explicitly provide an ID to satisfy the type requirements
           nome: memberData.nome,
           cargo: memberData.cargo || 'Colaborador',
           departamento_id: memberData.departamento || null,

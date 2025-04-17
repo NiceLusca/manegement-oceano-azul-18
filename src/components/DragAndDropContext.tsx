@@ -1,7 +1,6 @@
-
 import React, { createContext, useState, ReactNode, useContext } from 'react';
 import { Task } from '@/types';
-import { updateTaskStatus } from '@/services/taskService';
+import { updateTaskStatus } from '@/services/tasks';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 

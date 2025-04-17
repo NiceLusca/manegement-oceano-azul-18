@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { tasks as mockTasks, getTeamMemberById, projects } from '@/data/mock-data';
@@ -10,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates';
 import { useDragAndDrop, DragAndDropProvider } from '@/components/DragAndDropContext';
 import { CalendarClock } from 'lucide-react';
-import { getTasksWithDetails, resetCompletedRecurringTasks } from '@/services/taskService';
+import { getTasksWithDetails, resetCompletedRecurringTasks } from '@/services/tasks';
 import { useToast } from '@/hooks/use-toast';
 
 const DraggableKanbanColumn = ({ title, tasks, color }: { 
@@ -105,7 +104,6 @@ export function KanbanBoard() {
   const [departments, setDepartments] = useState<{id: string, nome: string}[]>([]);
   const { toast } = useToast();
   
-  // Função para resetar tarefas recorrentes completadas
   useEffect(() => {
     const resetTasks = async () => {
       try {
@@ -118,24 +116,20 @@ export function KanbanBoard() {
       }
     };
     
-    // Executar ao carregar o componente
     resetTasks();
     
-    // Configurar para executar diariamente à meia-noite
     const now = new Date();
     const night = new Date(
       now.getFullYear(),
       now.getMonth(),
-      now.getDate() + 1, // próximo dia
-      0, 0, 0 // meia-noite
+      now.getDate() + 1,
+      0, 0, 0
     );
     const timeToMidnight = night.getTime() - now.getTime();
     
-    // Agendar a primeira execução à meia-noite
     const timer = setTimeout(() => {
       resetTasks();
       
-      // Depois da primeira execução, configurar intervalo diário
       const interval = setInterval(resetTasks, 24 * 60 * 60 * 1000);
       return () => clearInterval(interval);
     }, timeToMidnight);
@@ -147,11 +141,9 @@ export function KanbanBoard() {
     try {
       setLoading(true);
       
-      // Buscar tarefas usando o serviço atualizado que inclui tarefas recorrentes
       const tasksData = await getTasksWithDetails();
       
       if (tasksData.length > 0) {
-        // Filtrar por departamento se necessário
         const filteredTasks = departmentFilter 
           ? tasksData.filter(task => task.assignee?.departamento_id === departmentFilter)
           : tasksData;
@@ -186,7 +178,6 @@ export function KanbanBoard() {
   
   const updateTaskStatus = async (taskId: string, newStatus: string) => {
     try {
-      // Verificar se é uma tarefa regular ou instância recorrente
       const task = tasks.find(t => t.id === taskId);
       
       if (!task) {
@@ -194,7 +185,6 @@ export function KanbanBoard() {
         return;
       }
       
-      // Atualizar a tarefa na tabela apropriada
       const table = task.isRecurring ? 'task_instances' : 'tasks';
       const { error } = await supabase
         .from(table)
@@ -210,14 +200,12 @@ export function KanbanBoard() {
         return;
       }
       
-      // Atualizar o estado local
       setTasks(prevTasks => 
         prevTasks.map(task => 
           task.id === taskId ? { ...task, status: newStatus as any } : task
         )
       );
       
-      // Registrar no histórico se a tabela existir
       try {
         await supabase
           .from('team_activity_view')
@@ -233,13 +221,11 @@ export function KanbanBoard() {
             }
           ]);
       } catch (historyError: any) {
-        // Apenas log se a tabela não existir, não é crítico
         if (!historyError.message?.includes('does not exist')) {
           console.error('Erro ao registrar no histórico:', historyError);
         }
       }
       
-      // Mostrar toast de confirmação
       toast({
         title: "Status atualizado",
         description: `Tarefa "${task.title}" movida para ${
@@ -248,7 +234,6 @@ export function KanbanBoard() {
           newStatus === 'review' ? 'Em Revisão' : 'Concluído'
         }`,
       });
-      
     } catch (error) {
       console.error('Error updating task status:', error);
     }

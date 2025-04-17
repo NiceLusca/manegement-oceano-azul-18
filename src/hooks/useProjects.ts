@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { Project, Task, TeamMember } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { fetchProjects } from '@/services/projectsService';
 import { fetchTeamMembers } from '@/services/teamService';
 import { fetchDepartamentos } from '@/services/departamentoService';
-import { addTask, addRecurringTask } from '@/services/taskService';
+import { addTask, addRecurringTask } from '@/services/tasks';
 
 export const useProjects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -98,19 +97,17 @@ export const useProjects = () => {
     }
 
     try {
-      // Aqui adicionamos tratamento de erro mais robusto
       let success = false;
       
       try {
         success = await addRecurringTask(taskData);
       } catch (innerError: any) {
         console.error('Erro específico ao adicionar tarefa recorrente:', innerError);
-        // Se houver erro de tabela não existente, retornamos mock para desenvolvimento
         if (innerError.message && innerError.message.includes('does not exist')) {
           console.log('Usando mock para tarefas recorrentes (tabela não existe)');
-          success = true; // Simulamos sucesso para desenvolvimento
+          success = true;
         } else {
-          throw innerError; // Re-lançamos o erro se não for relacionado à tabela
+          throw innerError;
         }
       }
       

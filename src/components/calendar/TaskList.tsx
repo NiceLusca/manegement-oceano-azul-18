@@ -38,20 +38,20 @@ export const TaskList: React.FC<TaskListProps> = ({
   };
   
   return (
-    <Card className="lg:col-span-2 mx-0 my-0 h-full">
-      <CardHeader>
-        <CardTitle className="flex items-center">
+    <Card className="lg:col-span-2 mx-0 my-0 h-full bg-white border border-gray-100 shadow-sm overflow-hidden">
+      <CardHeader className="bg-white border-b border-gray-100 pb-3">
+        <CardTitle className="flex items-center text-lg font-medium">
           Tarefas para {format(date, 'PPP', {
             locale: ptBR
           })}
           {activeFilter && (
-            <Badge className="ml-2" variant="outline">
+            <Badge className="ml-2 bg-purple-100 text-purple-700 border-0" variant="outline">
               {getFilterLabel(activeFilter)}
             </Badge>
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="h-[calc(100%-80px)] overflow-auto">
+      <CardContent className="h-[calc(100%-80px)] overflow-auto p-4">
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
@@ -62,14 +62,15 @@ export const TaskList: React.FC<TaskListProps> = ({
         
         {loading ? (
           <div className="text-center py-8">
-            <p>Carregando tarefas...</p>
+            <div className="animate-pulse mx-auto h-6 w-32 rounded-md bg-gray-200 mb-4"></div>
+            <div className="animate-pulse mx-auto h-4 w-48 rounded-md bg-gray-100"></div>
           </div>
         ) : tasksForDate.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <p>Nenhuma tarefa para esta data{activeFilter ? ' com este filtro' : ''}.</p>
+          <div className="text-center py-12 bg-gray-50/50 rounded-lg border border-dashed border-gray-200">
+            <p className="text-muted-foreground">Nenhuma tarefa para esta data{activeFilter ? ' com este filtro' : ''}.</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {tasksForDate.map(task => (
               <TaskCard key={task.id} task={task} />
             ))}

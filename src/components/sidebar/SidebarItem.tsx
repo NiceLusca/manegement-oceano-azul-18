@@ -24,11 +24,9 @@ export function SidebarItem({
   toggleSection,
 }: SidebarItemProps) {
   const menuTitle = title.toUpperCase();
-  const location = useLocation();
-  const exactMatch = location.pathname === href;
-
+  
   return (
-    <li className="w-full px-1">
+    <li className="w-full px-1 mb-1">
       <Tooltip>
         <TooltipTrigger asChild>
           <NavLink
@@ -53,7 +51,7 @@ export function SidebarItem({
               
               {!collapsed && (
                 <span className={cn(
-                  "whitespace-nowrap transition-all duration-200 uppercase font-bold",
+                  "whitespace-nowrap transition-all duration-200 font-medium",
                   isActive ? "text-white" : "text-white/70"
                 )}>
                   {menuTitle}

@@ -66,7 +66,7 @@ export function SidebarNav({ collapsed, expandedSection, toggleSection }: Sideba
     <nav className="p-3 flex-1 overflow-y-auto">
       <ul className="space-y-0.5">
         {items.map((item) => {
-          // Verificar se a rota atual corresponde exatamente ao item
+          // Verificar se a rota atual corresponde ao item
           const isExactMatch = location.pathname === item.href;
           
           // Tratamento especial para a rota raiz
@@ -77,7 +77,9 @@ export function SidebarNav({ collapsed, expandedSection, toggleSection }: Sideba
             item.href !== "/" && 
             location.pathname.startsWith(item.href);
             
-          const isActive = isExactMatch || isDashboardActive || isPartialMatch;
+          // Determinar se o item está ativo
+          const isActive = isExactMatch || isDashboardActive || 
+            (isPartialMatch && (!item.exactMatch || item.exactMatch === false));
           
           return (
             <SidebarItem

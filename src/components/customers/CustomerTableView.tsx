@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Mail, Phone, FileEdit, ArrowUpDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 import { 
   Table, 
   TableBody, 
@@ -39,7 +39,6 @@ const CustomerTableView: React.FC<CustomerTableViewProps> = ({
 
     const sortedCustomers = [...customers].sort((a, b) => {
       if (key === 'status') {
-        // Ordem personalizada para status: lead > prospect > customer > churned
         const statusOrder = { lead: 1, prospect: 2, customer: 3, churned: 4 };
         const aValue = statusOrder[a[key] as keyof typeof statusOrder] || 0;
         const bValue = statusOrder[b[key] as keyof typeof statusOrder] || 0;

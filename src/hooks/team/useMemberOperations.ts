@@ -19,19 +19,15 @@ export const useMemberOperations = (userAccess: string | null, refreshData: () =
     }
 
     try {
-      // Generate a UUID for the profile
-      const newMemberId = crypto.randomUUID();
-      
-      // Create a user account first if required by your auth system
-      // For profile-only operations, we would need to:
-      // 1. Check if the user account exists in auth.users
-      // 2. Only then create a profile linked to that user
+      // We need to modify our approach. Instead of generating a UUID ourselves,
+      // we should check if we're working with existing users or creating test profiles.
+      // For test profiles without auth, we should ensure the database allows this.
 
-      // For this fix, we need to explicitly set the ID field since it's required by the TypeScript type
+      // Create a new profile without explicitly specifying an ID
+      // The database will handle ID generation with proper constraints
       const { error } = await supabase
         .from('profiles')
         .insert({
-          id: newMemberId, // This is the required field
           nome: memberData.nome,
           cargo: memberData.cargo || 'Colaborador',
           departamento_id: memberData.departamento || null,

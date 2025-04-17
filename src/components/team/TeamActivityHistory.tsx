@@ -1,8 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { supabase } from '@/integrations/supabase/client';
 import { ActivitySkeleton } from './ActivitySkeleton';
 import { ActivityEntry } from './ActivityEntry';
 
@@ -18,30 +17,13 @@ interface HistoryEntry {
   department_color?: string;
 }
 
-export function TeamActivityHistory() {
-  const [activities, setActivities] = useState<HistoryEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+interface TeamActivityHistoryProps {
+  activities: HistoryEntry[];
+  loading: boolean;
+}
+
+export function TeamActivityHistory({ activities, loading }: TeamActivityHistoryProps) {
   const [activeTab, setActiveTab] = useState('activities');
-
-  useEffect(() => {
-    fetchActivities();
-  }, []);
-
-  const fetchActivities = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('team_activity_view')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setActivities(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar atividades:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <Card>

@@ -4,6 +4,7 @@ import { Task } from '@/types';
 import { updateTaskStatus } from '@/services/tasks';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { addActivityEntry } from '@/services/teamActivityService';
 
 // Interface do contexto
 interface DragAndDropContextType {
@@ -116,23 +117,17 @@ export const DragAndDropProvider: React.FC<DragAndDropProviderProps> = ({
       const userId = (await currentUser).data.user?.id || 'anonymous';
       
       // Registrar a atividade no histórico
-      const { error } = await supabase
-        .from('team_activity')
-        .insert({
-          user_id: userId,
-          action: 'update_status',
-          entity_type: 'task',
-          entity_id: task.id,
-          details: JSON.stringify({
-            taskTitle: task.title,
-            oldStatus: task.status,
-            newStatus: newStatus
-          })
-        });
-        
-      if (error && !error.message.includes('does not exist')) {
-        console.error('Erro ao registrar atividade:', error);
-      }
+      await addActivityEntry({
+        user_id: userId,
+        action: 'update_status',
+        entity_type: 'task',
+        entity_id: task.id,
+        details: JSON.stringify({
+          taskTitle: task.title,
+          oldStatus: task.status,
+          newStatus: newStatus
+        })
+      });
     } catch (error) {
       console.error('Erro ao registrar atividade no histórico:', error);
     }

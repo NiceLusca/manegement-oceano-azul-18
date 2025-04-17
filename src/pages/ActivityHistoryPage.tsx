@@ -39,7 +39,7 @@ const ActivityHistoryPage = () => {
           <p className="text-muted-foreground">Acompanhe as atividades da sua equipe</p>
         </div>
         
-        <TeamActivityHistory />
+        <TeamActivityHistory activities={activities} loading={loading} />
       </div>
     </Layout>
   );

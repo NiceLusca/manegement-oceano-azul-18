@@ -26,14 +26,14 @@ export function SidebarItem({
   const menuTitle = title.toUpperCase();
 
   return (
-    <li className="mb-1">
+    <li>
       <Tooltip>
         <TooltipTrigger asChild>
           <NavLink
             to={href}
             className={({ isActive }) =>
               cn(
-                "flex items-center gap-3 w-full px-3 py-2.5 rounded-md transition-all duration-200",
+                "flex items-center w-full px-3 py-2.5 rounded-md transition-all duration-200",
                 isActive
                   ? "bg-[#1e2131] text-[#38a9e4] font-medium" 
                   : "text-white/80 hover:bg-[#171923] hover:text-white",
@@ -42,13 +42,13 @@ export function SidebarItem({
             }
           >
             <span className={cn(
-              "transition-all duration-200", 
+              "min-w-[24px] flex items-center justify-center transition-all duration-200", 
               isActive ? "text-[#38a9e4]" : "text-white/70"
             )}>
               {icon}
             </span>
             <span className={cn(
-              "whitespace-nowrap transition-all duration-200 uppercase font-bold", 
+              "ml-3 whitespace-nowrap transition-all duration-200 uppercase font-bold", 
               collapsed && "hidden"
             )}>
               {menuTitle}

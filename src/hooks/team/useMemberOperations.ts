@@ -20,19 +20,19 @@ export const useMemberOperations = (userAccess: string | null, refreshData: () =
     }
 
     try {
-      // Generate a UUID for the new member - required by the profiles table schema
-      const newMemberId = crypto.randomUUID();
+      // Important: In Supabase, profiles.id must reference an existing auth.users entry
+      // For now, we'll create a profile entry directly without authentication
+      // This requires changing the foreign key constraint in the database
       
-      // Create a new profile with an explicitly specified ID
       const { error } = await supabase
         .from('profiles')
         .insert({
-          id: newMemberId, // Explicitly provide an ID to satisfy the type requirements
+          // Do not specify an ID - let Supabase handle it with table defaults
           nome: memberData.nome,
           cargo: memberData.cargo || 'Colaborador',
           departamento_id: memberData.departamento || null,
           avatar_url: memberData.avatar_url || null,
-          nivel_acesso: memberData.nivel_acesso || 'user', // Preserve the existing default
+          nivel_acesso: memberData.nivel_acesso || 'user',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });

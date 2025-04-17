@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Task } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -247,13 +246,13 @@ export const addRecurringTask = async (taskData: {
   }
 };
 
-// Função para resetar tarefas recorrentes completadas para o status 'todo'
+// Function to reset completed recurring tasks to 'todo' status
 export const resetCompletedRecurringTasks = async () => {
   try {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     
-    // Buscar tarefas recorrentes que foram completadas ontem
+    // Fetch recurring tasks that were completed yesterday
     const { data, error } = await supabase
       .from('task_instances')
       .select('*')
@@ -268,9 +267,9 @@ export const resetCompletedRecurringTasks = async () => {
       throw error;
     }
     
-    // Para cada tarefa completada, criar uma nova instância para hoje
+    // For each completed task, create a new instance for today
     for (const task of data || []) {
-      // Verificar se a tarefa recorrente ainda está ativa
+      // Check if the recurring task is still active
       const { data: recurringData, error: recurringError } = await supabase
         .from('recurring_tasks')
         .select('*')
@@ -282,12 +281,12 @@ export const resetCompletedRecurringTasks = async () => {
         continue;
       }
       
-      // Verificar se a tarefa recorrente não expirou
+      // Check if the recurring task has not expired
       if (recurringData.end_date && new Date(recurringData.end_date) < new Date()) {
         continue;
       }
       
-      // Criar nova instância da tarefa para hoje
+      // Create a new instance of the task for today
       const today = new Date();
       const { error: insertError } = await supabase
         .from('task_instances')
@@ -307,10 +306,10 @@ export const resetCompletedRecurringTasks = async () => {
         console.error('Erro ao criar nova instância de tarefa:', insertError);
       }
       
-      // Registrar no histórico a regeneração da tarefa
+      // Log the task regeneration in history
       try {
         await supabase
-          .from('team_activity')
+          .from('team_activity_view')
           .insert([
             {
               user_id: task.assignee_id,

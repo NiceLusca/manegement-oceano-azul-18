@@ -116,7 +116,7 @@ export const DragAndDropProvider: React.FC<{ children: ReactNode }> = ({ childre
         // Registrar atividade na tabela de histórico se existir
         try {
           await supabase
-            .from('team_activity')
+            .from('team_activity_view')
             .insert([{
               user_id: draggedTask?.assigneeId,
               action: 'update_task_status',

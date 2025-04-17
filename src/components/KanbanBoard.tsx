@@ -220,7 +220,7 @@ export function KanbanBoard() {
       // Registrar no histórico se a tabela existir
       try {
         await supabase
-          .from('team_activity')
+          .from('team_activity_view')
           .insert([
             {
               user_id: task.assigneeId,

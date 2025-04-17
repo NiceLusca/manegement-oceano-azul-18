@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { TeamMember } from '@/types';
-import { useTeamMembers, MemberFormData, EditMemberFormData } from '@/hooks/useTeamMembers';
+import { useTeamMembers, EditMemberFormData } from '@/hooks/useTeamMembers';
 import { EditMemberDialog } from '@/components/team/EditMemberDialog';
 import { DeleteMemberDialog } from '@/components/team/DeleteMemberDialog';
 import { TeamPageHeader } from '@/components/team/TeamPageHeader';
@@ -15,30 +15,20 @@ const TeamPage = () => {
     departamentos,
     loading,
     userAccess,
-    addMember,
     updateMember,
     deleteMember,
     getDepartmentName,
     canEditMember,
-    canAddMembers,
     canDeleteMember,
     error
   } = useTeamMembers();
 
-  const [openDialog, setOpenDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState('');
   const [viewMode, setViewMode] = useState<'all' | 'departments'>('all');
   const [teamByDepartment, setTeamByDepartment] = useState<any[]>([]);
   const [loadingDepartments, setLoadingDepartments] = useState(true);
-  
-  const [novoMembro, setNovoMembro] = useState<MemberFormData>({
-    nome: '',
-    cargo: '',
-    departamento: '',
-    avatar_url: ''
-  });
   
   const [editMembro, setEditMembro] = useState<EditMemberFormData>({
     id: '',
@@ -68,19 +58,6 @@ const TeamPage = () => {
     
     fetchDepartmentView();
   }, [teamMembers]);
-
-  const handleAddMember = async () => {
-    const success = await addMember(novoMembro);
-    if (success) {
-      setNovoMembro({
-        nome: '',
-        cargo: '',
-        departamento: '',
-        avatar_url: ''
-      });
-      setOpenDialog(false);
-    }
-  };
 
   const handleEditMember = async () => {
     const success = await updateMember(editMembro);
@@ -126,13 +103,6 @@ const TeamPage = () => {
         <TeamPageHeader
           userAccess={userAccess}
           error={error}
-          canAddMembers={canAddMembers()}
-          openDialog={openDialog}
-          setOpenDialog={setOpenDialog}
-          novoMembro={novoMembro}
-          setNovoMembro={setNovoMembro}
-          departamentos={departamentos}
-          onAddMember={handleAddMember} // Pass the function here
         />
 
         <TeamTabs

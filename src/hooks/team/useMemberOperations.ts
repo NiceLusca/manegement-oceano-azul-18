@@ -1,61 +1,12 @@
+
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { MemberFormData, EditMemberFormData } from './types';
+import { EditMemberFormData } from './types';
 import { buildUpdateData } from './teamUtils';
 
 export const useMemberOperations = (userAccess: string | null, refreshData: () => void) => {
   const { toast } = useToast();
-
-  // Add a new member
-  const addMember = useCallback(async (memberData: MemberFormData) => {
-    if (!memberData.nome.trim()) {
-      toast({
-        title: "Erro",
-        description: "O nome do membro é obrigatório",
-        variant: "destructive"
-      });
-      return false;
-    }
-
-    try {
-      // Generate a UUID for the new member - required by the profiles table schema
-      const newMemberId = crypto.randomUUID();
-      
-      const { error } = await supabase
-        .from('profiles')
-        .insert({
-          id: newMemberId, // Explicitly provide an ID to satisfy the type requirements
-          nome: memberData.nome,
-          cargo: memberData.cargo || 'Colaborador',
-          departamento_id: memberData.departamento || null,
-          avatar_url: memberData.avatar_url || null,
-          nivel_acesso: memberData.nivel_acesso || 'user',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Sucesso",
-        description: "Novo membro adicionado com sucesso!",
-        variant: "default"
-      });
-
-      // Reload the team members list
-      refreshData();
-      return true;
-    } catch (error: any) {
-      console.error('Erro ao adicionar membro:', error.message);
-      toast({
-        title: "Erro",
-        description: "Não foi possível adicionar o membro: " + error.message,
-        variant: "destructive"
-      });
-      return false;
-    }
-  }, [toast, refreshData]);
 
   // Update an existing member
   const updateMember = useCallback(async (memberData: EditMemberFormData) => {
@@ -129,7 +80,6 @@ export const useMemberOperations = (userAccess: string | null, refreshData: () =
   }, [toast, refreshData]);
 
   return {
-    addMember,
     updateMember,
     deleteMember
   };

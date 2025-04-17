@@ -1,18 +1,16 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { useTeamDepartments } from '@/hooks/useTeamDepartments';
-import { AddTeamMemberDialog } from '@/components/team/AddTeamMemberDialog';
 import { TeamMembersList } from '@/components/team/TeamMembersList';
 import { Loader2 } from 'lucide-react';
 
 export function TeamOverview() {
   const [nivelAcesso] = React.useState("admin"); // Em uma aplicação real, viria de um contexto de autenticação
   const { departamentos, getDepartmentColor } = useTeamDepartments();
-  const [openDialog, setOpenDialog] = useState(false);
   
-  const { teamMembers, loading, error, canAddMembers } = useTeamMembers();
+  const { teamMembers, loading, error } = useTeamMembers();
   
   const isAdmin = nivelAcesso === "admin";
   const isManager = nivelAcesso === "admin" || nivelAcesso === "manager";
@@ -34,15 +32,8 @@ export function TeamOverview() {
   
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader>
         <CardTitle>Membros da Equipe</CardTitle>
-        {canAddMembers() && (
-          <AddTeamMemberDialog 
-            open={openDialog} 
-            onOpenChange={setOpenDialog} 
-            departamentos={Object.values(departamentos)}
-          />
-        )}
       </CardHeader>
       <CardContent>
         {loading ? (

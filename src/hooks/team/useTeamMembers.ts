@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFetchTeamMembers } from './useFetchTeamMembers';
@@ -8,10 +9,9 @@ import {
   fetchUserAccessLevel,
   isUserSuperAdmin,
   canEditMember as canEditMemberAsync,
-  canAddMembers as canAddMembersAsync,
   canDeleteMember as canDeleteMemberAsync
 } from './teamUtils';
-import type { MemberFormData, EditMemberFormData, UseTeamMembersReturn } from './types';
+import type { EditMemberFormData, UseTeamMembersReturn } from './types';
 import { useToast } from '@/hooks/use-toast';
 import { TeamMember } from '@/types';
 
@@ -22,7 +22,6 @@ export const useTeamMembers = (): UseTeamMembersReturn => {
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [canEditPermissions, setCanEditPermissions] = useState<Record<string, boolean>>({});
   const [canDeletePermissions, setCanDeletePermissions] = useState<Record<string, boolean>>({});
-  const [canAddMembersValue, setCanAddMembersValue] = useState(false);
   
   const { 
     teamMembers, 
@@ -37,7 +36,6 @@ export const useTeamMembers = (): UseTeamMembersReturn => {
   } = useFetchDepartments();
 
   const { 
-    addMember, 
     updateMember, 
     deleteMember 
   } = useMemberOperations(userAccess, fetchTeamMembers);
@@ -99,10 +97,6 @@ export const useTeamMembers = (): UseTeamMembersReturn => {
     const updatePermissions = async () => {
       if (!user?.id || !teamMembers.length) return;
       
-      // Check add members permission
-      const canAdd = await canAddMembersAsync(user.id);
-      setCanAddMembersValue(canAdd);
-      
       // Check edit permissions for each member
       const editPerms: Record<string, boolean> = {};
       const deletePerms: Record<string, boolean> = {};
@@ -127,10 +121,6 @@ export const useTeamMembers = (): UseTeamMembersReturn => {
     return canEditPermissions[member.id] || false;
   }, [canEditPermissions]);
 
-  const canAddMembers = useCallback(() => {
-    return canAddMembersValue;
-  }, [canAddMembersValue]);
-
   const canDeleteMember = useCallback((member: TeamMember) => {
     return canDeletePermissions[member.id] || false;
   }, [canDeletePermissions]);
@@ -142,12 +132,10 @@ export const useTeamMembers = (): UseTeamMembersReturn => {
     userAccess,
     error,
     fetchTeamMembers,
-    addMember,
     updateMember,
     deleteMember,
     getDepartmentName,
     canEditMember,
-    canAddMembers,
     canDeleteMember
   };
 };

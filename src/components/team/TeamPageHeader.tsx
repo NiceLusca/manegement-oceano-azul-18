@@ -1,33 +1,18 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { BadgeAlert, Plus, Settings2 } from 'lucide-react';
+import { BadgeAlert, Settings2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { AddMemberDialog } from '@/components/team/AddMemberDialog';
-import { Department, MemberFormData } from '@/hooks/useTeamMembers';
+import { Department } from '@/hooks/useTeamMembers';
 
 interface TeamPageHeaderProps {
   userAccess: string | null;
   error: string | null;
-  canAddMembers: boolean; // Boolean flag
-  openDialog: boolean;
-  setOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
-  novoMembro: MemberFormData;
-  setNovoMembro: React.Dispatch<React.SetStateAction<MemberFormData>>;
-  departamentos: Department[];
-  onAddMember: () => void; // Add this prop
 }
 
 export const TeamPageHeader: React.FC<TeamPageHeaderProps> = ({
   userAccess,
-  error,
-  canAddMembers,
-  openDialog,
-  setOpenDialog,
-  novoMembro,
-  setNovoMembro,
-  departamentos,
-  onAddMember // Add this prop
+  error
 }) => {
   if (error) {
     return (
@@ -60,17 +45,6 @@ export const TeamPageHeader: React.FC<TeamPageHeaderProps> = ({
             Departamentos
           </Button>
         </Link>
-        
-        {canAddMembers && (
-          <AddMemberDialog
-            open={openDialog}
-            onOpenChange={setOpenDialog}
-            onAddMember={onAddMember} // Pass the function here
-            novoMembro={novoMembro}
-            setNovoMembro={setNovoMembro}
-            departamentos={departamentos}
-          />
-        )}
       </div>
     </div>
   );

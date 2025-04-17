@@ -6,14 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Plus, MoreHorizontal } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ProjectSearch } from './projects/ProjectSearch';
 import { ProjectSort } from './projects/ProjectSort';
 import { ProjectItem } from './projects/ProjectItem';
+import { ProjectFormDialog } from './projects/ProjectFormDialog';
 
 export function ProjectsOverview() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,11 +18,22 @@ export function ProjectsOverview() {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [nivelAcesso] = useState("admin");
   const [openDialog, setOpenDialog] = useState(false);
-  const [novaTarefaNome, setNovaTarefaNome] = useState('');
-  const [novaTarefaDescricao, setNovaTarefaDescricao] = useState('');
-  const [novaTarefaStatus, setNovaTarefaStatus] = useState('planning');
-  const { toast } = useToast();
+  const [novaTarefa, setNovaTarefa] = useState({
+    titulo: '',
+    descricao: '',
+    status: 'todo',
+    prioridade: 'medium',
+    responsavel: '',
+    departamento: '',
+    dataVencimento: '',
+    dataHora: '',
+    isRecurring: false,
+    recurrenceType: 'daily',
+    endDate: '',
+    customDays: [],
+  });
   
+  const { toast } = useToast();
   const isAdmin = nivelAcesso === "admin";
 
   const handleSort = (field: 'name' | 'deadline' | 'progress') => {
@@ -39,10 +46,10 @@ export function ProjectsOverview() {
   };
 
   const handleAddTask = () => {
-    if (!novaTarefaNome.trim()) {
+    if (!novaTarefa.titulo.trim()) {
       toast({
         title: "Erro",
-        description: "O nome da tarefa é obrigatório",
+        description: "O título da tarefa é obrigatório",
         variant: "destructive"
       });
       return;
@@ -54,13 +61,24 @@ export function ProjectsOverview() {
       variant: "default"
     });
 
-    setNovaTarefaNome('');
-    setNovaTarefaDescricao('');
-    setNovaTarefaStatus('planning');
+    setNovaTarefa({
+      titulo: '',
+      descricao: '',
+      status: 'todo',
+      prioridade: 'medium',
+      responsavel: '',
+      departamento: '',
+      dataVencimento: '',
+      dataHora: '',
+      isRecurring: false,
+      recurrenceType: 'daily',
+      endDate: '',
+      customDays: [],
+    });
     setOpenDialog(false);
   };
 
-  // Filtra e ordena os projetos
+  // Filter and sort projects
   const filteredProjects = projects
     .filter(project => 
       (statusFilter ? project.status === statusFilter : true) &&
@@ -94,66 +112,17 @@ export function ProjectsOverview() {
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Visão Geral das Tarefas</CardTitle>
         {isAdmin && (
-          <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8">
-                <Plus className="h-4 w-4 mr-1" /> Nova Tarefa
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Adicionar Nova Tarefa</DialogTitle>
-                <DialogDescription>
-                  Preencha os detalhes para criar uma nova tarefa.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="nome" className="text-right">Nome</Label>
-                  <Input
-                    id="nome"
-                    value={novaTarefaNome}
-                    onChange={(e) => setNovaTarefaNome(e.target.value)}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="descricao" className="text-right">Descrição</Label>
-                  <Textarea
-                    id="descricao"
-                    value={novaTarefaDescricao}
-                    onChange={(e) => setNovaTarefaDescricao(e.target.value)}
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="status" className="text-right">Status</Label>
-                  <Select
-                    value={novaTarefaStatus}
-                    onValueChange={setNovaTarefaStatus}
-                  >
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Selecione um status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="planning">Planejamento</SelectItem>
-                      <SelectItem value="in-progress">Em Progresso</SelectItem>
-                      <SelectItem value="review">Em Revisão</SelectItem>
-                      <SelectItem value="completed">Concluído</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setOpenDialog(false)}>
-                  Cancelar
-                </Button>
-                <Button type="button" onClick={handleAddTask}>
-                  Adicionar
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <ProjectFormDialog
+            open={openDialog}
+            onOpenChange={setOpenDialog}
+            teamMembers={[]}
+            departamentos={[]}
+            membrosFiltrados={[]}
+            onDepartmentChange={() => {}}
+            onSubmit={handleAddTask}
+            novaTarefa={novaTarefa}
+            setNovaTarefa={setNovaTarefa}
+          />
         )}
       </CardHeader>
       <CardContent>

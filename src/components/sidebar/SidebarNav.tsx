@@ -85,8 +85,8 @@ export function SidebarNav({ collapsed, expandedSection, toggleSection }: Sideba
   ];
 
   return (
-    <nav className="p-2 flex-1 overflow-y-auto">
-      <ul className="space-y-1">
+    <nav className="p-3 flex-1 overflow-y-auto">
+      <ul className="space-y-1.5">
         {items.map((item) => {
           // Verificar se o item ou um de seus subitens está ativo
           const isItemActive = location.pathname === item.href || 

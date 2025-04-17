@@ -42,8 +42,8 @@
 
     --radius: 0.5rem;
 
-    /* Lighter sidebar */
-    --sidebar-background: 220 50% 10%;
+    /* Enhanced sidebar colors */
+    --sidebar-background: 220 50% 8%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 200 85% 55%;
     --sidebar-primary-foreground: 222 47% 8%;

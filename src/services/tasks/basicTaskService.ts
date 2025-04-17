@@ -30,20 +30,13 @@ export const updateTaskStatus = async (taskId: string, newStatus: string) => {
       return false;
     }
     
-    // Registrar a atividade no histórico
+    // Registrar a atividade no histórico - for now, let's just log it
     try {
-      const { error: activityError } = await supabase
-        .from('team_activity_view')
-        .insert({
-          entity_id: taskId,
-          entity_type: 'task',
-          action: 'update_task_status',
-          details: `Status da tarefa atualizado para ${newStatus}`
-        });
-        
-      if (activityError) {
-        console.error('Erro ao registrar atividade:', activityError);
-      }
+      console.log('Tarefa atualizada:', {
+        taskId: taskId,
+        newStatus: newStatus,
+        timestamp: new Date().toISOString()
+      });
     } catch (historyError) {
       console.error('Erro ao registrar histórico:', historyError);
     }

@@ -17,7 +17,6 @@ interface SidebarNavProps {
   toggleSection: (title: string) => void;
 }
 
-// Define a proper interface for sidebar items
 interface SidebarItemType {
   title: string;
   href: string;
@@ -66,20 +65,17 @@ export function SidebarNav({ collapsed, expandedSection, toggleSection }: Sideba
     <nav className="p-3 flex-1 overflow-y-auto">
       <ul className="space-y-0.5">
         {items.map((item) => {
-          // Verificar se a rota atual corresponde ao item
           const isExactMatch = location.pathname === item.href;
-          
-          // Tratamento especial para a rota raiz
           const isDashboardActive = item.href === "/" && location.pathname === "/";
-          
-          // Verificar se há correspondência parcial para rotas aninhadas
           const isPartialMatch = !isExactMatch && 
             item.href !== "/" && 
             location.pathname.startsWith(item.href);
-            
-          // Determinar se o item está ativo
-          const isActive = isExactMatch || isDashboardActive || 
-            (isPartialMatch && (!item.exactMatch || item.exactMatch === false));
+          
+          const isActive = Boolean(
+            isExactMatch || 
+            isDashboardActive || 
+            (isPartialMatch && !item.exactMatch)
+          );
           
           return (
             <SidebarItem

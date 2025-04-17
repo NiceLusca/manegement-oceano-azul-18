@@ -35,7 +35,7 @@ export function SidebarItem({
               cn(
                 "flex items-center w-full px-4 py-3 rounded-lg transition-all duration-200",
                 isActive
-                  ? "bg-purple-600 text-white font-medium shadow-md" 
+                  ? "bg-[#38B2AC] text-white font-medium" 
                   : "text-white/80 hover:bg-[#171923] hover:text-white",
                 collapsed && "justify-center px-3 py-3"
               )
@@ -43,7 +43,7 @@ export function SidebarItem({
           >
             <div className="flex items-center gap-3 w-full">
               <span className={cn(
-                "flex items-center justify-center transition-all duration-200", 
+                "flex items-center justify-center transition-all duration-200",
                 isActive ? "text-white" : "text-white/70"
               )}>
                 {icon}
@@ -51,8 +51,8 @@ export function SidebarItem({
               
               {!collapsed && (
                 <span className={cn(
-                  "whitespace-nowrap transition-all duration-200 font-medium",
-                  isActive ? "text-white" : "text-white/70"
+                  "whitespace-nowrap transition-all duration-200",
+                  isActive ? "text-white font-medium" : "text-white/70"
                 )}>
                   {menuTitle}
                 </span>

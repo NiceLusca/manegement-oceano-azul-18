@@ -13,7 +13,7 @@ export function Layout({
 }: LayoutProps) {
   return (
     <TooltipProvider>
-      <div className="flex h-screen w-full">
+      <div className="flex h-screen w-full overflow-hidden">
         <Sidebar />
         <div className="flex flex-col flex-1 overflow-hidden">
           <Header />

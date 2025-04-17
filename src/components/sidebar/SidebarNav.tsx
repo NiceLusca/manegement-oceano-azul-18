@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Calendar,
   Settings,
@@ -12,56 +13,72 @@ import { SidebarItem } from './SidebarItem';
 
 interface SidebarNavProps {
   collapsed: boolean;
-  expandedSection: string | null;
-  toggleSection: (title: string) => void;
 }
 
-export function SidebarNav({ collapsed, expandedSection, toggleSection }: SidebarNavProps) {
+export function SidebarNav({ collapsed }: SidebarNavProps) {
+  const location = useLocation();
+  
+  React.useEffect(() => {
+    console.log("Current path in SidebarNav:", location.pathname);
+  }, [location.pathname]);
+  
   const items = [
     {
-      title: "Dashboard",
+      title: "DASHBOARD",
       href: "/",
       icon: <LayoutDashboard className="h-5 w-5" />,
+      match: (path: string) => path === '/',
     },
     { 
-      title: 'Tarefas', 
+      title: 'TAREFAS', 
       href: '/projects', 
       icon: <CheckSquare className="h-5 w-5" />,
+      match: (path: string) => path.startsWith('/projects'),
     },
     { 
-      title: 'Equipe', 
+      title: 'EQUIPE', 
       href: '/team', 
-      icon: <Users className="h-5 w-5" /> 
+      icon: <Users className="h-5 w-5" />,
+      match: (path: string) => path.startsWith('/team'),
     },
     { 
-      title: 'Clientes', 
+      title: 'CLIENTES', 
       href: '/customers', 
-      icon: <UserSquare2 className="h-5 w-5" /> 
+      icon: <UserSquare2 className="h-5 w-5" />,
+      match: (path: string) => path.startsWith('/customers'),
     },
     { 
-      title: 'Calendário', 
+      title: 'CALENDÁRIO', 
       href: '/calendar', 
-      icon: <Calendar className="h-5 w-5" /> 
+      icon: <Calendar className="h-5 w-5" />,
+      match: (path: string) => path.startsWith('/calendar'),
     },
     { 
-      title: 'Configurações', 
+      title: 'CONFIGURAÇÕES', 
       href: '/settings', 
-      icon: <Settings className="h-5 w-5" /> 
+      icon: <Settings className="h-5 w-5" />,
+      match: (path: string) => path.startsWith('/settings'),
     },
   ];
 
   return (
     <nav className="p-3 flex-1 overflow-y-auto">
-      <ul className="space-y-0.5">
-        {items.map((item) => (
-          <SidebarItem
-            key={item.title}
-            title={item.title}
-            href={item.href}
-            icon={item.icon}
-            collapsed={collapsed}
-          />
-        ))}
+      <ul className="space-y-1">
+        {items.map((item) => {
+          const isActive = item.match(location.pathname);
+          console.log(`${item.title} - path: ${location.pathname}, isActive: ${isActive}`);
+          
+          return (
+            <SidebarItem
+              key={item.title}
+              title={item.title}
+              href={item.href}
+              icon={item.icon}
+              collapsed={collapsed}
+              isActive={isActive}
+            />
+          );
+        })}
       </ul>
     </nav>
   );

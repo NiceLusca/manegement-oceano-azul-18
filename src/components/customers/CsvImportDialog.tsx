@@ -107,15 +107,19 @@ export const CsvImportDialog: React.FC<CsvImportDialogProps> = ({
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-2">
             <Button 
               variant="outline" 
               onClick={downloadSampleCsv}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full md:w-auto"
             >
               <Download className="h-4 w-4" />
               Baixar Modelo CSV
             </Button>
+            <p className="text-xs text-gray-500">
+              Campos obrigatórios: nome, origem. 
+              O campo 'responsavel' deve ser deixado em branco ou conter um ID válido.
+            </p>
           </div>
           
           <FileUploader

@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 export const generateSampleCsvContent = (): string => {
   return 'nome,email,telefone,origem,status,valor,responsavel,observacoes\n' +
     'João Silva,joao@exemplo.com,11999999999,Naie,lead,1000,,Cliente interessado\n' +
-    'Maria Oliveira,maria@exemplo.com,11888888888,1k por Dia,prospect,2500,101,Aguardando retorno';
+    'Maria Oliveira,maria@exemplo.com,11888888888,1k por Dia,prospect,2500,,Aguardando retorno';
 };
 
 /**
@@ -58,7 +58,7 @@ export const processCSVFile = async (file: File, onSuccess: () => void) => {
         const headers = rows[0].toLowerCase().split(',');
         
         // Basic validation
-        const requiredColumns = ['nome', 'email', 'origem', 'status'];
+        const requiredColumns = ['nome', 'origem'];
         for (const col of requiredColumns) {
           if (!headers.includes(col)) {
             throw new Error(`Coluna obrigatória ausente: ${col}`);
@@ -102,6 +102,10 @@ export const processCSVFile = async (file: File, onSuccess: () => void) => {
                 customer.phone = value;
                 break;
               case 'origem':
+                if (!value) {
+                  lineErrors.push(`Linha ${i}: Origem é obrigatória`);
+                  continue;
+                }
                 customer.origem = value;
                 break;
               case 'status':
@@ -115,13 +119,17 @@ export const processCSVFile = async (file: File, onSuccess: () => void) => {
                 customer.value = value ? parseFloat(value.replace(/[^\d.,]/g, '').replace(',', '.')) || 0 : 0;
                 break;
               case 'responsavel':
-                customer.assigned_to = value;
+                // Handle empty assignee properly - set to null instead of empty string
+                customer.assigned_to = value ? value : null;
                 break;
               case 'observacoes':
                 customer.notes = value;
                 break;
             }
           }
+          
+          // Set default fields if not provided
+          if (!customer.status) customer.status = 'lead';
           
           // Add timestamps
           const now = new Date().toISOString();

@@ -19,6 +19,7 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   isProcessing
 }) => {
   const [fileName, setFileName] = useState<string>('');
+  const [dragActive, setDragActive] = useState<boolean>(false);
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -38,12 +39,51 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
       onFileChange(null);
     }
   };
+  
+  // Drag and drop handlers
+  const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
+    }
+  };
+  
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      
+      // Check file type
+      if (!file.name.toLowerCase().endsWith('.csv')) {
+        onFileChange(null);
+        setFileName('');
+        return;
+      }
+      
+      setFileName(file.name);
+      onFileChange(file);
+    }
+  };
 
   return (
     <div className="grid gap-4">
       <Label htmlFor="csv-file">Arquivo CSV</Label>
       
-      <div className="border-2 border-dashed border-gray-300 rounded-md p-6 flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition cursor-pointer">
+      <div 
+        className={`border-2 border-dashed ${dragActive ? 'border-primary bg-primary/5' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'} 
+                    rounded-md p-6 flex flex-col items-center justify-center transition cursor-pointer`}
+        onDragEnter={handleDrag}
+        onDragLeave={handleDrag}
+        onDragOver={handleDrag}
+        onDrop={handleDrop}
+      >
         <Input
           id="csv-file"
           type="file"

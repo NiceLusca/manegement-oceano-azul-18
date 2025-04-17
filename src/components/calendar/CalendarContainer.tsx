@@ -63,7 +63,7 @@ export const CalendarContainer: React.FC<CalendarContainerProps> = ({
             </Badge>
           )}
           {hasDemo && (
-            <Badge variant="outline" className="text-xs font-normal bg-blue-500/10 text-blue-500 ml-auto flex items-center gap-1">
+            <Badge variant="outline" className="text-xs font-normal bg-blue-500/10 text-blue-500 border-blue-200/50 ml-auto flex items-center gap-1">
               <InfoIcon className="h-3 w-3" />
               Demo
             </Badge>

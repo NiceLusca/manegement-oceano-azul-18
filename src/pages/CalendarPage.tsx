@@ -18,6 +18,7 @@ export default function CalendarPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const { toast } = useToast();
   
   // Fetch tasks from Supabase
@@ -33,6 +34,7 @@ export default function CalendarPage() {
         if (error) {
           if (error.message.includes("does not exist")) {
             setError("A tabela de tarefas não existe no banco de dados");
+            setIsDemoMode(true);
             // Set demo tasks since the table doesn't exist
             setDemoTasks();
           } else {
@@ -50,13 +52,16 @@ export default function CalendarPage() {
             projectId: 'default-category' // Assign a default projectId since it's not in the database
           }));
           setAllTasks(formattedTasks);
+          setIsDemoMode(false);
         } else {
           // If there's no data, use demo tasks
+          setIsDemoMode(true);
           setDemoTasks();
         }
       } catch (error: any) {
         console.error('Error fetching tasks:', error);
         setError(`Erro ao carregar tarefas: ${error.message}`);
+        setIsDemoMode(true);
         // Use demo tasks as fallback
         setDemoTasks();
       } finally {
@@ -151,6 +156,16 @@ export default function CalendarPage() {
               >
                 Fechar
               </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {isDemoMode && (
+          <Alert variant="default" className="bg-blue-500/10 text-blue-500 border-blue-200/50">
+            <InfoIcon className="h-4 w-4" />
+            <AlertTitle>Usando dados de demonstração</AlertTitle>
+            <AlertDescription>
+              A tabela de tarefas não existe. Mostrando dados de exemplo.
             </AlertDescription>
           </Alert>
         )}

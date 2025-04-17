@@ -66,8 +66,8 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
     const priorityColor = getPriorityColor(dateKey);
     
     return (
-      <div className="relative p-0 calendar-day">
-        <time dateTime={format(day, 'yyyy-MM-dd')}>
+      <div className="relative p-0 calendar-day w-full h-full flex flex-col items-center justify-center">
+        <time dateTime={format(day, 'yyyy-MM-dd')} className="text-xs sm:text-sm">
           {format(day, 'd')}
         </time>
         {taskCount > 0 && (
@@ -100,7 +100,7 @@ export const TaskCalendar: React.FC<TaskCalendarProps> = ({
       }}
       components={{
         Day: ({ date: day, ...props }) => (
-          <button {...props} className="calendar-cell">
+          <button {...props} className="calendar-cell w-7 h-7 p-0 sm:w-8 sm:h-8 md:w-9 md:h-9">
             {renderDay(day)}
           </button>
         ),

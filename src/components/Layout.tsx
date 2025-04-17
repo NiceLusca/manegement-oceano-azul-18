@@ -11,6 +11,8 @@ interface LayoutProps {
 export function Layout({
   children
 }: LayoutProps) {
+  console.log("Layout rendering");
+  
   return (
     <TooltipProvider>
       <div className="flex h-screen w-full">

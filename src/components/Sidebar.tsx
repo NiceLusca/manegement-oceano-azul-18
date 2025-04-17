@@ -11,7 +11,10 @@ export function Sidebar() {
   const [expandedSection, setExpandedSection] = React.useState<string | null>(null);
   const location = useLocation();
   
-  const toggleSidebar = () => setCollapsed(!collapsed);
+  const toggleSidebar = () => {
+    console.log("Toggling sidebar from", collapsed, "to", !collapsed);
+    setCollapsed(!collapsed);
+  };
   
   const toggleSection = (title: string) => {
     setExpandedSection(expandedSection === title ? null : title);

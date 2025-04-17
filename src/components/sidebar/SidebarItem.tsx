@@ -31,15 +31,19 @@ export function SidebarItem({
         <TooltipTrigger asChild>
           <NavLink
             to={href}
-            className={({ isActive: navActive }) =>
-              cn(
+            className={({ isActive: navActive }) => {
+              // Combine our parent's isActive prop with NavLink's own isActive
+              const itemIsActive = isActive || navActive;
+              console.log(`NavLink ${title}: ${itemIsActive ? 'ACTIVE' : 'inactive'}`);
+              
+              return cn(
                 "flex items-center w-full px-4 py-3 rounded-lg transition-all duration-200",
-                isActive || navActive
+                itemIsActive
                   ? "bg-[#38B2AC] text-white font-medium" 
                   : "text-white/80 hover:bg-[#171923] hover:text-white",
                 collapsed && "justify-center px-3 py-3"
-              )
-            }
+              );
+            }}
             end={href === "/"}
           >
             <div className="flex items-center gap-3 w-full">

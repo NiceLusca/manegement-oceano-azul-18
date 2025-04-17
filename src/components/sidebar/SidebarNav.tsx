@@ -62,21 +62,29 @@ export function SidebarNav({ collapsed, expandedSection, toggleSection }: Sideba
     },
   ];
 
-  // Update active item based on current route
+  // Update active item based on current route with debugging
   useEffect(() => {
     const currentPath = location.pathname;
-    console.log('Current path:', currentPath);
+    console.log('SidebarNav - Current path:', currentPath);
     
     // Find matching item
     const matchedItem = items.find(item => {
+      // For exact matches like dashboard
       if (item.exactMatch) {
         return item.href === currentPath;
       }
-      return currentPath === item.href || 
-             (item.href !== '/' && currentPath.startsWith(item.href));
+      
+      // For other routes
+      const isMatch = (currentPath === item.href || 
+             (item.href !== '/' && currentPath.startsWith(item.href)));
+             
+      console.log(`Checking ${item.href}: ${isMatch ? 'ACTIVE' : 'inactive'}`);
+      return isMatch;
     });
     
-    setActiveItem(matchedItem?.href || null);
+    const activeHref = matchedItem?.href || null;
+    console.log('Setting active item to:', activeHref);
+    setActiveItem(activeHref);
   }, [location.pathname]);
 
   return (
@@ -85,6 +93,7 @@ export function SidebarNav({ collapsed, expandedSection, toggleSection }: Sideba
         {items.map((item) => {
           // Check if this item should be active
           const isActive = activeItem === item.href;
+          console.log(`Rendering ${item.title}: ${isActive ? 'ACTIVE' : 'inactive'}`);
           
           return (
             <SidebarItem

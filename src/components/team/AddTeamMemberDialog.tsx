@@ -78,8 +78,12 @@ export const AddTeamMemberDialog: React.FC<AddTeamMemberDialogProps> = ({
     setIsSubmitting(true);
     
     try {
-      // Insert directly into profiles with a generated UUID
+      // Generate a UUID for the new member
+      const newMemberId = crypto.randomUUID();
+      
+      // Insert with explicit ID to fix TypeScript error
       const memberData = {
+        id: newMemberId,
         nome: novoMembro.nome,
         cargo: novoMembro.cargo || 'Colaborador',
         departamento_id: novoMembro.departamento || null,

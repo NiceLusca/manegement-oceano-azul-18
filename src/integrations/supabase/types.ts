@@ -127,13 +127,239 @@ export type Database = {
             foreignKeyName: "profiles_departamento_id_fkey"
             columns: ["departamento_id"]
             isOneToOne: false
+            referencedRelation: "team_activity_view"
+            referencedColumns: ["department_id"]
+          },
+          {
+            foreignKeyName: "profiles_departamento_id_fkey"
+            columns: ["departamento_id"]
+            isOneToOne: false
             referencedRelation: "team_by_department"
             referencedColumns: ["department_id"]
           },
         ]
       }
+      recurring_tasks: {
+        Row: {
+          assignee_id: string | null
+          created_at: string | null
+          custom_days: number[] | null
+          custom_months: number[] | null
+          description: string | null
+          end_date: string | null
+          id: string
+          last_generated: string | null
+          project_id: string | null
+          recurrence_type: string
+          start_date: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assignee_id?: string | null
+          created_at?: string | null
+          custom_days?: number[] | null
+          custom_months?: number[] | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          last_generated?: string | null
+          project_id?: string | null
+          recurrence_type: string
+          start_date?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assignee_id?: string | null
+          created_at?: string | null
+          custom_days?: number[] | null
+          custom_months?: number[] | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          last_generated?: string | null
+          project_id?: string | null
+          recurrence_type?: string
+          start_date?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_tasks_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_tasks_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "team_activity_view"
+            referencedColumns: ["entity_id"]
+          },
+          {
+            foreignKeyName: "recurring_tasks_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "team_activity_view"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      task_instances: {
+        Row: {
+          assignee_id: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string
+          id: string
+          priority: string
+          project_id: string | null
+          recurring_task_id: string | null
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assignee_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date: string
+          id?: string
+          priority?: string
+          project_id?: string | null
+          recurring_task_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assignee_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string
+          id?: string
+          priority?: string
+          project_id?: string | null
+          recurring_task_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_instances_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_instances_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "team_activity_view"
+            referencedColumns: ["entity_id"]
+          },
+          {
+            foreignKeyName: "task_instances_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "team_activity_view"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "task_instances_recurring_task_id_fkey"
+            columns: ["recurring_task_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          assignee_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assignee_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority: string
+          status: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assignee_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "team_activity_view"
+            referencedColumns: ["entity_id"]
+          },
+          {
+            foreignKeyName: "tasks_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "team_activity_view"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
     }
     Views: {
+      team_activity_view: {
+        Row: {
+          action: string | null
+          created_at: string | null
+          department_color: string | null
+          department_id: string | null
+          department_name: string | null
+          details: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string | null
+          user_avatar: string | null
+          user_id: string | null
+          user_name: string | null
+        }
+        Relationships: []
+      }
       team_by_department: {
         Row: {
           department_color: string | null

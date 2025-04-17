@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -81,44 +80,63 @@ export function TeamActivityHistory() {
     const fetchActivities = async () => {
       setLoading(true);
       try {
-        let query = supabase
-          .from('team_activity_view')
-          .select('*')
-          .order('created_at', { ascending: false });
+        // Use type assertion to work around the TypeScript error
+        // This tells TypeScript that we know what we're doing when accessing the view
+        const query = supabase.from('team_activity_view') as any;
+        
+        let queryBuilder = query.select('*').order('created_at', { ascending: false });
           
         // Apply filters
         if (entityFilter !== 'all') {
-          query = query.eq('entity_type', entityFilter);
+          queryBuilder = queryBuilder.eq('entity_type', entityFilter);
         }
         
         if (userFilter !== 'all') {
-          query = query.eq('user_id', userFilter);
+          queryBuilder = queryBuilder.eq('user_id', userFilter);
         }
         
         if (departmentFilter !== 'all') {
-          query = query.eq('department_id', departmentFilter);
+          queryBuilder = queryBuilder.eq('department_id', departmentFilter);
         }
         
         if (searchQuery) {
-          query = query.or(`details.ilike.%${searchQuery}%,action.ilike.%${searchQuery}%`);
+          queryBuilder = queryBuilder.or(`details.ilike.%${searchQuery}%,action.ilike.%${searchQuery}%`);
         }
         
         if (dateRange?.from) {
-          query = query.gte('created_at', dateRange.from.toISOString());
+          queryBuilder = queryBuilder.gte('created_at', dateRange.from.toISOString());
         }
         
         if (dateRange?.to) {
           const nextDay = new Date(dateRange.to);
           nextDay.setDate(nextDay.getDate() + 1);
-          query = query.lt('created_at', nextDay.toISOString());
+          queryBuilder = queryBuilder.lt('created_at', nextDay.toISOString());
         }
         
-        const { data, error } = await query;
+        const { data, error } = await queryBuilder;
         
         if (error) throw error;
-        setActivities(data || []);
+        
+        // Convert the data to the expected TeamActivity format
+        const formattedActivities: TeamActivity[] = (data || []).map((item: any) => ({
+          id: item.id,
+          created_at: item.created_at,
+          user_id: item.user_id,
+          action: item.action,
+          details: item.details,
+          entity_type: item.entity_type,
+          entity_id: item.entity_id,
+          user_name: item.user_name,
+          user_avatar: item.user_avatar,
+          department_name: item.department_name,
+          department_color: item.department_color
+        }));
+        
+        setActivities(formattedActivities);
       } catch (error) {
         console.error('Error fetching activities:', error);
+        // Set empty activities array on error
+        setActivities([]);
       } finally {
         setLoading(false);
       }
@@ -459,7 +477,6 @@ export function TeamActivityHistory() {
   );
 }
 
-// Need to explicitly import the Check icon for the dropdown menu
 function Check(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg

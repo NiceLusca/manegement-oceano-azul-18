@@ -120,7 +120,7 @@ export const processCSVFile = async (file: File, onSuccess: () => void) => {
                 break;
               case 'responsavel':
                 // Handle empty assignee properly - set to null instead of empty string
-                customer.assigned_to = value ? value : null;
+                customer.assigned_to = value && value.trim() !== '' ? value : null;
                 break;
               case 'observacoes':
                 customer.notes = value;

@@ -33,12 +33,11 @@ export const updateTaskStatus = async (taskId: string, newStatus: string) => {
     // Registrar a atividade no histórico
     try {
       const { error: activityError } = await supabase
-        .from('team_activity')
+        .from('team_activity_view')
         .insert({
-          user_id: (await supabase.auth.getUser()).data.user?.id,
-          action: 'update_task_status',
-          entity_type: 'task',
           entity_id: taskId,
+          entity_type: 'task',
+          action: 'update_task_status',
           details: `Status da tarefa atualizado para ${newStatus}`
         });
         

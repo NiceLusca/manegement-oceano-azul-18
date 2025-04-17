@@ -129,12 +129,11 @@ export const DragAndDropProvider: React.FC<DragAndDropProviderProps> = ({
         // Registrar atividade na tabela de histórico
         try {
           const { error: activityError } = await supabase
-            .from('team_activity')
+            .from('team_activity_view')
             .insert({
-              user_id: draggedTask?.assigneeId,
-              action: 'update_task_status',
-              entity_type: 'recurring_task',
               entity_id: draggedTask?.recurringTaskId,
+              entity_type: 'recurring_task',
+              action: 'update_task_status',
               details: `Status da tarefa recorrente "${draggedTask?.title}" alterado para ${newStatus}`
             });
             

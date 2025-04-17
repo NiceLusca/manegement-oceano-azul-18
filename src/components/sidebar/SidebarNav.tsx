@@ -16,8 +16,22 @@ interface SidebarNavProps {
   toggleSection: (title: string) => void;
 }
 
+// Define a proper interface for sidebar items and subitems
+interface SidebarSubItem {
+  title: string;
+  href: string;
+  icon?: React.ReactNode;
+}
+
+interface SidebarItemType {
+  title: string;
+  href: string;
+  icon: React.ReactNode;
+  subitems?: SidebarSubItem[];
+}
+
 export function SidebarNav({ collapsed, expandedSection, toggleSection }: SidebarNavProps) {
-  const items = [
+  const items: SidebarItemType[] = [
     {
       title: "Dashboard",
       href: "/",

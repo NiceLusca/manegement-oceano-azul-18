@@ -68,12 +68,12 @@ export default function CalendarPage() {
   }, []);
   
   const setDemoTasks = () => {
-    const demoTasks = [
+    const demoTasks: Task[] = [
       {
         id: '1',
         title: 'Revisar proposta de marketing',
         description: 'Análise da proposta para o cliente XYZ',
-        status: 'todo',
+        status: 'todo' as const,
         assigneeId: '101',
         dueDate: new Date().toISOString(),
         priority: 'medium',
@@ -83,7 +83,7 @@ export default function CalendarPage() {
         id: '2',
         title: 'Atualizar site institucional',
         description: 'Incorporar novas seções de produtos',
-        status: 'in-progress',
+        status: 'in-progress' as const,
         assigneeId: '102',
         dueDate: new Date().toISOString(),
         priority: 'high',
@@ -93,7 +93,7 @@ export default function CalendarPage() {
         id: '3',
         title: 'Preparar relatório mensal',
         description: 'Compilar dados de performance de abril',
-        status: 'todo',
+        status: 'todo' as const,
         assigneeId: '103',
         dueDate: new Date().toISOString(),
         priority: 'low',

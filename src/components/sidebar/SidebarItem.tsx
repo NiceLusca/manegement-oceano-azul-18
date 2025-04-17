@@ -35,7 +35,7 @@ export function SidebarItem({
               cn(
                 "flex items-center w-full px-4 py-3 rounded-lg transition-all duration-200",
                 isActive
-                  ? "bg-[#1e2131] text-[#38a9e4] font-medium" 
+                  ? "bg-[#38a9e4] text-white font-medium" 
                   : "text-white/80 hover:bg-[#171923] hover:text-white",
                 collapsed && "justify-center p-2.5"
               )
@@ -44,7 +44,7 @@ export function SidebarItem({
             <div className="flex items-center gap-3">
               <span className={cn(
                 "flex items-center justify-center transition-all duration-200", 
-                isActive ? "text-[#38a9e4]" : "text-white/70"
+                isActive ? "text-white" : "text-white/70"
               )}>
                 {icon}
               </span>

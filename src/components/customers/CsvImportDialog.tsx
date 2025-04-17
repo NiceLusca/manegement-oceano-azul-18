@@ -45,10 +45,13 @@ export const CsvImportDialog: React.FC<CsvImportDialogProps> = ({
     
     try {
       // Use dynamic import to avoid circular dependencies
-      const { processCSVFile } = await import('./csv/csvUtils');
+      const csvUtils = await import('./csv/csvUtils');
       
-      // Call the function with the onImportSuccess callback
-      await processCSVFile(file, onImportSuccess);
+      // Call the function with the onImportSuccess callback as a separate function
+      await csvUtils.processCSVFile(file, () => {
+        // This ensures the callback is properly passed and called
+        onImportSuccess();
+      });
       
       setIsProcessing(false);
       setSuccess(true);
@@ -59,7 +62,7 @@ export const CsvImportDialog: React.FC<CsvImportDialogProps> = ({
         variant: "default"
       });
       
-      // Reset after 2 seconds and call the success callback
+      // Reset after 2 seconds and close dialog
       setTimeout(() => {
         setFile(null);
         setOpen(false);

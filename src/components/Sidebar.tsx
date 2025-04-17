@@ -21,7 +21,7 @@ export function Sidebar() {
     <aside
       className={cn(
         "bg-[#0a0c13] text-white h-screen border-r border-[#202330]/50 transition-all duration-300 ease-in-out flex flex-col shadow-xl shadow-black/20",
-        collapsed ? "w-16" : "w-60" // aumentado de w-48 para w-60
+        collapsed ? "w-20" : "w-64" // aumentado de w-60 para w-64
       )}
     >
       <SidebarHeader 

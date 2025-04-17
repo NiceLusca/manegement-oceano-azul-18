@@ -31,13 +31,30 @@ export const CsvImportDialog: React.FC<CsvImportDialogProps> = ({
   const [success, setSuccess] = useState(false);
   const { toast } = useToast();
 
+  // Reset state when dialog is opened/closed
+  React.useEffect(() => {
+    if (!open) {
+      // Small delay to avoid UI flicker
+      const timer = setTimeout(() => {
+        setFile(null);
+        setError(null);
+        setSuccess(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
+
   const handleFileChange = (selectedFile: File | null) => {
     setFile(selectedFile);
     setError(null);
+    setSuccess(false);
   };
 
   const processCSV = async () => {
-    if (!file) return;
+    if (!file) {
+      setError("Nenhum arquivo selecionado");
+      return;
+    }
     
     setIsProcessing(true);
     setError(null);
@@ -66,12 +83,13 @@ export const CsvImportDialog: React.FC<CsvImportDialogProps> = ({
       }, 2000);
       
     } catch (error: any) {
+      console.error("CSV processing error:", error);
       setIsProcessing(false);
       setError(error.message || 'Ocorreu um erro inesperado');
       
       toast({
         title: "Erro na importação",
-        description: error.message || 'Ocorreu um erro ao processar o arquivo',
+        description: "Não foi possível processar o arquivo. Verifique o formato e tente novamente.",
         variant: "destructive"
       });
     }

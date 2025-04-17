@@ -37,8 +37,24 @@ export const processCSVFile = async (file: File, onSuccess: () => void) => {
     
     reader.onload = async (e) => {
       try {
-        const text = e.target?.result as string;
+        if (!e.target?.result) {
+          throw new Error('Falha ao ler o conteúdo do arquivo');
+        }
+        
+        const text = e.target.result as string;
+        
+        // Check for empty file
+        if (!text.trim()) {
+          throw new Error('O arquivo está vazio');
+        }
+        
         const rows = text.split('\n');
+        
+        // Check if there's at least a header and one data row
+        if (rows.length < 2) {
+          throw new Error('O arquivo deve conter pelo menos o cabeçalho e uma linha de dados');
+        }
+        
         const headers = rows[0].toLowerCase().split(',');
         
         // Basic validation
@@ -51,11 +67,19 @@ export const processCSVFile = async (file: File, onSuccess: () => void) => {
         
         // Parse CSV data
         const customers = [];
+        let lineErrors = [];
         
         for (let i = 1; i < rows.length; i++) {
           if (!rows[i].trim()) continue; // Skip empty lines
           
           const values = rows[i].split(',');
+          
+          // Check if number of values matches number of headers
+          if (values.length !== headers.length) {
+            lineErrors.push(`Linha ${i}: número de colunas não corresponde ao cabeçalho`);
+            continue;
+          }
+          
           const customer: any = {};
           
           for (let j = 0; j < headers.length; j++) {
@@ -65,6 +89,10 @@ export const processCSVFile = async (file: File, onSuccess: () => void) => {
             // Map CSV headers to database fields
             switch (header) {
               case 'nome':
+                if (!value) {
+                  lineErrors.push(`Linha ${i}: Nome é obrigatório`);
+                  continue;
+                }
                 customer.name = value;
                 break;
               case 'email':
@@ -77,10 +105,14 @@ export const processCSVFile = async (file: File, onSuccess: () => void) => {
                 customer.origem = value;
                 break;
               case 'status':
-                customer.status = value;
+                // Validate status
+                const validStatus = ['lead', 'prospect', 'customer', 'churned'];
+                customer.status = validStatus.includes(value.toLowerCase()) ? 
+                  value.toLowerCase() : 'lead';
                 break;
               case 'valor':
-                customer.value = parseFloat(value) || 0;
+                // Ensure value is a valid number
+                customer.value = value ? parseFloat(value.replace(/[^\d.,]/g, '').replace(',', '.')) || 0 : 0;
                 break;
               case 'responsavel':
                 customer.assigned_to = value;
@@ -100,14 +132,24 @@ export const processCSVFile = async (file: File, onSuccess: () => void) => {
           customers.push(customer);
         }
         
+        // Report line errors if any
+        if (lineErrors.length > 0) {
+          throw new Error(`Problemas encontrados no arquivo:\n${lineErrors.join('\n')}`);
+        }
+        
         // Insert into database
         if (customers.length > 0) {
+          console.log('Attempting to insert customers:', customers);
+          
           const { data, error } = await supabase
             .from('customers')
             .insert(customers)
             .select();
             
-          if (error) throw new Error(`Erro ao inserir registros: ${error.message}`);
+          if (error) {
+            console.error('Supabase error:', error);
+            throw new Error(`Erro ao inserir registros: ${error.message}`);
+          }
           
           console.log('Customers imported:', data);
         } else {
@@ -119,12 +161,14 @@ export const processCSVFile = async (file: File, onSuccess: () => void) => {
         resolve(true);
         
       } catch (error: any) {
+        console.error('CSV processing error:', error);
         reject(error.message || 'Erro ao processar o arquivo CSV');
       }
     };
     
-    reader.onerror = () => {
-      reject('Erro ao ler o arquivo');
+    reader.onerror = (e) => {
+      console.error('FileReader error:', e);
+      reject('Erro ao ler o arquivo. Verifique se o formato é válido.');
     };
     
     reader.readAsText(file);

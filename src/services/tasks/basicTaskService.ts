@@ -13,7 +13,7 @@ export const updateTaskStatus = async (taskId: string, newStatus: string) => {
     
     // Obter informações da tarefa antes da atualização
     const { data: taskData, error: taskError } = await supabase
-      .from<TaskRow>('tasks')
+      .from('tasks')
       .select('*')
       .eq('id', taskId)
       .single();

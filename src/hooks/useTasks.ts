@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Task, RecurringTask, TaskInstance } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +7,6 @@ import {
   updateTaskStatus, 
   resetCompletedRecurringTasks 
 } from '@/services/tasks';
-import { TaskRow, RecurringTaskRow, TaskInstanceRow, ProfileRow } from '@/types/supabase-types';
 
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -16,7 +14,6 @@ export function useTasks() {
   const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Fetch all tasks (regular and recurring instances)
   const fetchAllTasks = async () => {
     try {
       setIsLoading(true);
@@ -34,12 +31,10 @@ export function useTasks() {
     }
   };
 
-  // Initial fetch
   useEffect(() => {
     fetchAllTasks();
   }, [departmentFilter]);
 
-  // Reset recurring tasks on component mount and at midnight
   useEffect(() => {
     const resetRecurringTasks = async () => {
       try {
@@ -50,10 +45,8 @@ export function useTasks() {
       }
     };
     
-    // Run immediately
     resetRecurringTasks();
     
-    // Calculate time until midnight
     const now = new Date();
     const night = new Date(
       now.getFullYear(),
@@ -63,11 +56,9 @@ export function useTasks() {
     );
     const timeToMidnight = night.getTime() - now.getTime();
     
-    // Set up timer for midnight
     const timer = setTimeout(() => {
       resetRecurringTasks();
       
-      // Then set up daily interval
       const interval = setInterval(resetRecurringTasks, 24 * 60 * 60 * 1000);
       return () => clearInterval(interval);
     }, timeToMidnight);
@@ -75,9 +66,7 @@ export function useTasks() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Set up realtime subscriptions for all task tables
   useEffect(() => {
-    // Subscribe to changes in tasks table
     const tasksSubscription = supabase
       .channel('tasks-changes')
       .on(
@@ -87,7 +76,6 @@ export function useTasks() {
       )
       .subscribe();
 
-    // Subscribe to changes in task_instances table
     const instancesSubscription = supabase
       .channel('instances-changes')
       .on(
@@ -97,7 +85,6 @@ export function useTasks() {
       )
       .subscribe();
 
-    // Subscribe to changes in recurring_tasks table
     const recurringSubscription = supabase
       .channel('recurring-changes')
       .on(
@@ -107,7 +94,6 @@ export function useTasks() {
       )
       .subscribe();
 
-    // Clean up subscriptions
     return () => {
       supabase.removeChannel(tasksSubscription);
       supabase.removeChannel(instancesSubscription);
@@ -115,9 +101,7 @@ export function useTasks() {
     };
   }, []);
 
-  // Update task status with optimistic update
   const changeTaskStatus = async (taskId: string, newStatus: Task['status']) => {
-    // Optimistic update
     setTasks(prev => 
       prev.map(task => 
         task.id === taskId ? { ...task, status: newStatus } : task
@@ -128,7 +112,6 @@ export function useTasks() {
       const success = await updateTaskStatus(taskId, newStatus);
       
       if (!success) {
-        // Revert optimistic update if it failed
         fetchAllTasks();
         toast({
           title: "Erro",
@@ -138,7 +121,6 @@ export function useTasks() {
       }
     } catch (error) {
       console.error('Error updating task status:', error);
-      // Revert optimistic update
       fetchAllTasks();
       toast({
         title: "Erro",
@@ -148,7 +130,6 @@ export function useTasks() {
     }
   };
 
-  // Get tasks for a specific status
   const getTasksByStatus = (status: Task['status']) => {
     return tasks.filter(task => task.status === status);
   };
@@ -245,13 +226,10 @@ export function useRecurringTasksEnhanced() {
     }
   };
 
-  // Set up realtime subscriptions
   useEffect(() => {
-    // Initial fetch
     fetchRecurringTasks();
     fetchTaskInstances();
 
-    // Subscribe to changes in recurring_tasks table
     const recurringSubscription = supabase
       .channel('recurring-tasks-changes')
       .on(
@@ -261,7 +239,6 @@ export function useRecurringTasksEnhanced() {
       )
       .subscribe();
 
-    // Subscribe to changes in task_instances table
     const instancesSubscription = supabase
       .channel('instances-changes-recurring')
       .on(
@@ -271,7 +248,6 @@ export function useRecurringTasksEnhanced() {
       )
       .subscribe();
 
-    // Clean up subscriptions
     return () => {
       supabase.removeChannel(recurringSubscription);
       supabase.removeChannel(instancesSubscription);

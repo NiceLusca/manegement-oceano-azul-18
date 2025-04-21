@@ -1,7 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Task } from '@/types';
-import { TaskRow, TaskInstanceRow, RecurringTaskRow, ProfileRow } from '@/types/supabase-types';
 import { addActivityEntry } from '@/services/teamActivityService';
 
 // Fetch all tasks including recurring task instances
@@ -9,7 +8,7 @@ export const getTasksWithDetails = async (departmentFilter: string | null = null
   try {
     // Base query for regular tasks
     let regularTasksQuery = supabase
-      .from<TaskRow>('tasks')
+      .from('tasks')
       .select(`
         *,
         assignee:assignee_id (
@@ -24,7 +23,7 @@ export const getTasksWithDetails = async (departmentFilter: string | null = null
       
     // Base query for recurring task instances
     let instanceTasksQuery = supabase
-      .from<TaskInstanceRow>('task_instances')
+      .from('task_instances')
       .select(`
         *,
         assignee:assignee_id (
@@ -61,7 +60,7 @@ export const getTasksWithDetails = async (departmentFilter: string | null = null
     }
     
     // Format regular tasks
-    const formattedRegularTasks = regularTasks.map(task => ({
+    const formattedRegularTasks = regularTasks.map((task: any) => ({
       id: task.id,
       title: task.title,
       description: task.description || '',
@@ -76,7 +75,7 @@ export const getTasksWithDetails = async (departmentFilter: string | null = null
     }));
     
     // Format recurring task instances
-    const formattedInstanceTasks = instanceTasks.map(task => ({
+    const formattedInstanceTasks = instanceTasks.map((task: any) => ({
       id: task.id,
       title: task.title,
       description: task.description || '',
@@ -106,7 +105,7 @@ export const resetCompletedRecurringTasks = async () => {
     
     // Fetch completed recurring task instances
     const { data, error } = await supabase
-      .from<TaskInstanceRow>('task_instances')
+      .from('task_instances')
       .select('*')
       .eq('status', 'completed')
       .not('recurring_task_id', 'is', null);
@@ -132,13 +131,13 @@ export const resetCompletedRecurringTasks = async () => {
 };
 
 // Helper function to process a completed task
-async function processCompletedTask(task: TaskInstanceRow) {
+async function processCompletedTask(task: any) {
   try {
     if (!task.recurring_task_id) return;
     
     // Check if recurring task is still active
     const { data: recurringData, error: recurringError } = await supabase
-      .from<RecurringTaskRow>('recurring_tasks')
+      .from('recurring_tasks')
       .select('*')
       .eq('id', task.recurring_task_id)
       .single();
@@ -164,7 +163,7 @@ async function processCompletedTask(task: TaskInstanceRow) {
 }
 
 // Helper function to create a new task instance
-async function createNewTaskInstance(task: TaskInstanceRow, recurringData: RecurringTaskRow) {
+async function createNewTaskInstance(task: any, recurringData: any) {
   try {
     const today = new Date();
     
@@ -209,7 +208,7 @@ async function createNewTaskInstance(task: TaskInstanceRow, recurringData: Recur
 }
 
 // Helper function to log task regeneration
-async function logTaskRegeneration(task: TaskInstanceRow) {
+async function logTaskRegeneration(task: any) {
   try {
     const currentUser = supabase.auth.getUser();
     const userId = (await currentUser).data.user?.id || 'system';
@@ -235,7 +234,7 @@ export const getRecurringTasksWithInstances = async () => {
   try {
     // Fetch recurring tasks
     const { data: recurringTasks, error: recurringError } = await supabase
-      .from<RecurringTaskRow>('recurring_tasks')
+      .from('recurring_tasks')
       .select(`
         *,
         assignee:assignee_id (
@@ -254,7 +253,7 @@ export const getRecurringTasksWithInstances = async () => {
     
     // Fetch instances for all recurring tasks
     const { data: instances, error: instancesError } = await supabase
-      .from<TaskInstanceRow>('task_instances')
+      .from('task_instances')
       .select(`
         *,
         assignee:assignee_id (
@@ -273,7 +272,7 @@ export const getRecurringTasksWithInstances = async () => {
     }
     
     // Group instances by recurring task ID
-    const instancesByRecurringTaskId = (instances || []).reduce((acc, instance) => {
+    const instancesByRecurringTaskId = (instances || []).reduce((acc: Record<string, any[]>, instance: any) => {
       if (!instance.recurring_task_id) return acc;
       
       if (!acc[instance.recurring_task_id]) {
@@ -299,7 +298,7 @@ export const getRecurringTasksWithInstances = async () => {
     }, {} as Record<string, any[]>);
     
     // Combine recurring tasks with their instances
-    const formattedRecurringTasks = (recurringTasks || []).map(task => ({
+    const formattedRecurringTasks = (recurringTasks || []).map((task: any) => ({
       id: task.id,
       title: task.title,
       description: task.description || '',

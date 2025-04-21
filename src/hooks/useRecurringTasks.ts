@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { RecurringTask, TaskInstance } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,16 +14,13 @@ export function useRecurringTasksEnhanced() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      // Get recurring tasks with their instances
       const data = await getRecurringTasksWithInstances();
       setRecurringTasks(data);
       
-      // Flatten all instances for display in the instances list
       const allInstances = data.reduce((acc: TaskInstance[], task) => {
         return [...acc, ...(task.instances || [])];
       }, []);
       
-      // Sort instances by due date
       allInstances.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
       
       setTaskInstances(allInstances);
@@ -66,13 +62,12 @@ export function useRecurringTasksEnhanced() {
       supabase.removeChannel(instancesSubscription);
     };
   }, []);
-  
+
   const changeInstanceStatus = async (instanceId: string, newStatus: TaskInstance['status']) => {
     try {
       const success = await updateTaskInstanceStatus(instanceId, newStatus);
       
       if (success) {
-        // Update local state optimistically
         setTaskInstances(prev => 
           prev.map(instance => 
             instance.id === instanceId 
@@ -81,7 +76,6 @@ export function useRecurringTasksEnhanced() {
           )
         );
         
-        // Update in parent recurring task
         setRecurringTasks(prev => 
           prev.map(task => ({
             ...task,

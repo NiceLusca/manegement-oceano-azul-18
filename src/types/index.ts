@@ -1,4 +1,3 @@
-
 export type TeamMember = {
   id: string;
   name: string;
@@ -34,19 +33,7 @@ export type Task = {
   isRecurring?: boolean;
   recurringTaskId?: string | null;
   assignee?: any;
-};
-
-export type Customer = {
-  id: string;
-  name: string;
-  origem: string;
-  email: string;
-  phone: string;
-  status: 'lead' | 'prospect' | 'customer' | 'churned';
-  lastContact: string;
-  notes: string;
-  assignedTo: string;
-  value: number;
+  completedAt?: string | null;
 };
 
 export type RecurringTask = {
@@ -63,6 +50,7 @@ export type RecurringTask = {
   createdAt: string;
   updatedAt: string;
   projectId: string;
+  instances: TaskInstance[];
 };
 
 export type TaskInstance = {
@@ -77,4 +65,18 @@ export type TaskInstance = {
   createdAt: string;
   updatedAt: string;
   projectId: string;
+  completedAt?: string | null;
+};
+
+export type Customer = {
+  id: string;
+  name: string;
+  origem: string;
+  email: string;
+  phone: string;
+  status: 'lead' | 'prospect' | 'customer' | 'churned';
+  lastContact: string;
+  notes: string;
+  assignedTo: string;
+  value: number;
 };

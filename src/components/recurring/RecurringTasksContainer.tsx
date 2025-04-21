@@ -23,6 +23,7 @@ export const RecurringTasksContainer: React.FC<RecurringTasksContainerProps> = (
       <TaskInstancesList 
         taskInstances={taskInstances} 
         isLoading={isLoading} 
+        onStatusChange={refreshData}
       />
     </div>
   );

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,7 @@ interface Comment {
   id: string;
   task_id: string;
   user_id: string;
-  user_name: string;
+  user_name?: string;
   user_avatar?: string;
   content: string;
   created_at: string;
@@ -37,7 +36,7 @@ export function CommentSection({ taskId }: CommentSectionProps) {
   const fetchComments = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data: commentsData, error: commentsError } = await supabase
         .from('task_comments')
         .select(`
           id,
@@ -53,9 +52,9 @@ export function CommentSection({ taskId }: CommentSectionProps) {
         .eq('task_id', taskId)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (commentsError) throw commentsError;
 
-      const formattedComments = (data || []).map((item: any) => ({
+      const formattedComments = (commentsData || []).map((item: any) => ({
         id: item.id,
         task_id: item.task_id,
         user_id: item.user_id,
@@ -90,14 +89,12 @@ export function CommentSection({ taskId }: CommentSectionProps) {
 
     try {
       setSubmitting(true);
-
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
+      
       if (!user) {
         throw new Error('Usuário não autenticado');
       }
 
-      // Insert comment
       const { error } = await supabase
         .from('task_comments')
         .insert({
@@ -109,8 +106,8 @@ export function CommentSection({ taskId }: CommentSectionProps) {
       if (error) throw error;
 
       toast({
-        title: 'Comentário adicionado',
-        description: 'Seu comentário foi adicionado com sucesso'
+        title: 'Sucesso',
+        description: 'Comentário adicionado com sucesso'
       });
 
       setComment('');

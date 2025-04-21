@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Task, RecurringTask, TaskInstance } from '@/types';
 import { addActivityEntry } from '@/services/teamActivityService';
@@ -234,7 +233,6 @@ async function logTaskRegeneration(task: any) {
 // Get recurring tasks with their instances
 export const getRecurringTasksWithInstances = async (): Promise<RecurringTask[]> => {
   try {
-    // Fetch recurring tasks
     const { data: recurringTasks, error: recurringError } = await supabase
       .from('recurring_tasks')
       .select(`
@@ -253,7 +251,6 @@ export const getRecurringTasksWithInstances = async (): Promise<RecurringTask[]>
       throw recurringError;
     }
     
-    // Fetch instances for all recurring tasks
     const { data: instances, error: instancesError } = await supabase
       .from('task_instances')
       .select(`
@@ -273,7 +270,6 @@ export const getRecurringTasksWithInstances = async (): Promise<RecurringTask[]>
       throw instancesError;
     }
     
-    // Group instances by recurring task ID
     const instancesByRecurringTaskId = (instances || []).reduce((acc: Record<string, TaskInstance[]>, instance: any) => {
       if (!instance.recurring_task_id) return acc;
       
@@ -289,23 +285,21 @@ export const getRecurringTasksWithInstances = async (): Promise<RecurringTask[]>
         assigneeId: instance.assignee_id || '',
         dueDate: instance.due_date,
         priority: instance.priority as 'low' | 'medium' | 'high',
-        assignee: instance.assignee,
         recurringTaskId: instance.recurring_task_id,
         projectId: instance.project_id || 'default-project',
         createdAt: instance.created_at || new Date().toISOString(),
-        updatedAt: instance.updated_at || new Date().toISOString()
+        updatedAt: instance.updated_at || new Date().toISOString(),
+        completedAt: instance.completed_at
       });
       
       return acc;
     }, {} as Record<string, TaskInstance[]>);
     
-    // Combine recurring tasks with their instances
-    const formattedRecurringTasks = (recurringTasks || []).map((task: any) => ({
+    return (recurringTasks || []).map((task: any) => ({
       id: task.id,
       title: task.title,
       description: task.description || '',
       assigneeId: task.assignee_id || '',
-      assignee: task.assignee,
       recurrenceType: task.recurrence_type as 'daily' | 'weekly' | 'monthly' | 'custom',
       customDays: task.custom_days || [],
       customMonths: task.custom_months || [],
@@ -317,10 +311,8 @@ export const getRecurringTasksWithInstances = async (): Promise<RecurringTask[]>
       projectId: task.project_id || 'default-project',
       instances: instancesByRecurringTaskId[task.id] || []
     }));
-    
-    return formattedRecurringTasks;
   } catch (error: any) {
-    console.error('Erro ao buscar tarefas recorrentes com instâncias:', error.message);
+    console.error('Error fetching recurring tasks with instances:', error.message);
     return [];
   }
 };

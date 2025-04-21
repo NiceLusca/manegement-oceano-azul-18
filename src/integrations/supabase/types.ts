@@ -209,9 +209,37 @@ export type Database = {
           },
         ]
       }
+      task_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          task_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          task_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          task_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       task_instances: {
         Row: {
           assignee_id: string | null
+          completed_at: string | null
           created_at: string | null
           description: string | null
           due_date: string
@@ -225,6 +253,7 @@ export type Database = {
         }
         Insert: {
           assignee_id?: string | null
+          completed_at?: string | null
           created_at?: string | null
           description?: string | null
           due_date: string
@@ -238,6 +267,7 @@ export type Database = {
         }
         Update: {
           assignee_id?: string | null
+          completed_at?: string | null
           created_at?: string | null
           description?: string | null
           due_date?: string

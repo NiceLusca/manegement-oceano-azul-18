@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +26,8 @@ import { z } from 'zod';
 import { RecurringTasksList } from '@/components/recurring/RecurringTasksList';
 import { TaskInstancesList } from '@/components/recurring/TaskInstancesList';
 import { RecurringTaskForm } from '@/components/recurring/RecurringTaskForm';
+import { RecurringTasksHeader } from '@/components/recurring/RecurringTasksHeader';
+import { RecurringTasksContainer } from '@/components/recurring/RecurringTasksContainer';
 
 const recurringTaskFormSchema = z.object({
   title: z.string().min(3, 'O título precisa ter pelo menos 3 caracteres'),
@@ -153,10 +154,10 @@ const RecurringTasksPage = () => {
         title: 'Sucesso',
         description: 'Tarefa recorrente criada com sucesso',
       });
-      
-      fetchRecurringTasks();
+
       setShowForm(false);
       form.reset();
+      setIsLoading(true);
     } catch (error: any) {
       console.error('Erro ao criar tarefa recorrente:', error);
       toast({
@@ -170,40 +171,25 @@ const RecurringTasksPage = () => {
   return (
     <Layout>
       <div className="space-y-6 animate-fade-in">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">Tarefas Recorrentes</h1>
-            <p className="text-muted-foreground">Gerencie tarefas periódicas para sua equipe</p>
-          </div>
-          
-          <Button
-            className="flex items-center gap-2"
-            onClick={() => setShowForm(!showForm)}
-          >
-            <Plus className="h-4 w-4" />
-            Nova Tarefa Recorrente
-          </Button>
-        </div>
-
+        <RecurringTasksHeader
+          onNewTask={() => setShowForm(prev => !prev)}
+          showForm={showForm}
+        />
         {showForm && (
-          <RecurringTaskForm 
-            form={form} 
-            onSubmit={onSubmit} 
+          <RecurringTaskForm
+            form={form}
+            onSubmit={onSubmit}
             onCancel={() => setShowForm(false)}
           />
         )}
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <RecurringTasksList 
-            recurringTasks={recurringTasks} 
-            isLoading={isLoading} 
-          />
-          
-          <TaskInstancesList 
-            taskInstances={taskInstances} 
-            isLoading={isLoading} 
-          />
-        </div>
+        <RecurringTasksContainer
+          isLoading={isLoading}
+          setIsLoading={setIsLoading}
+          recurringTasks={recurringTasks}
+          setRecurringTasks={setRecurringTasks}
+          taskInstances={taskInstances}
+          setTaskInstances={setTaskInstances}
+        />
       </div>
     </Layout>
   );

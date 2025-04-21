@@ -1,9 +1,12 @@
+
 import { useState, useEffect } from 'react';
 import { RecurringTask, TaskInstance } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { getRecurringTasksWithInstances } from '@/services/tasks/recurringTaskService';
-import { updateTaskInstanceStatus } from '@/services/tasks/basicTaskService';
+import { 
+  getRecurringTasksWithInstances, 
+  updateTaskInstanceStatus 
+} from '@/services/tasks';
 
 export function useRecurringTasksEnhanced() {
   const [recurringTasks, setRecurringTasks] = useState<RecurringTask[]>([]);

@@ -155,11 +155,24 @@ export const DragAndDropProvider: React.FC<DragAndDropProviderProps> = ({
         }
         
         // Registrar atividade no histórico
-        console.log('Tarefa recorrente atualizada:', {
-          id: taskId,
-          title: draggedTask?.title,
-          newStatus: newStatus
-        });
+        try {
+          const currentUser = supabase.auth.getUser();
+          const userId = (await currentUser).data.user?.id || 'anonymous';
+          
+          await addActivityEntry({
+            user_id: userId,
+            action: 'update_status',
+            entity_type: 'task',
+            entity_id: taskId,
+            details: JSON.stringify({
+              taskTitle: draggedTask?.title,
+              oldStatus: draggedTask?.status,
+              newStatus: newStatus
+            })
+          });
+        } catch (historyError) {
+          console.error('Erro ao registrar histórico para tarefa recorrente:', historyError);
+        }
         
         return true;
       } else {

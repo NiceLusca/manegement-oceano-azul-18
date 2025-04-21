@@ -38,6 +38,54 @@ export function TaskHistory({ taskId }: TaskHistoryProps) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      
+      // Buscar também histórico na descrição da tarefa
+      const { data: taskData, error: taskError } = await supabase
+        .from('tasks')
+        .select('description, updated_at')
+        .eq('id', taskId)
+        .single();
+        
+      if (!taskError && taskData?.description && taskData.description.includes('update_status')) {
+        // Tentar extrair histórico da descrição
+        try {
+          const descLines = taskData.description.split('\n');
+          const statusUpdates = descLines
+            .filter(line => line.includes('update_status'))
+            .map(line => {
+              const parts = line.match(/update_status - (.*?) \((.*?)\)/);
+              if (parts) {
+                try {
+                  const details = JSON.parse(parts[1]);
+                  const timestamp = new Date(parts[2]);
+                  
+                  return {
+                    id: `desc-${Math.random().toString(36).substring(2)}`,
+                    user_id: 'system',
+                    user_name: 'Sistema',
+                    action: 'update_status',
+                    details: `Status alterado de "${details.oldStatus}" para "${details.newStatus}"`,
+                    created_at: timestamp.toISOString()
+                  };
+                } catch (e) {
+                  console.error('Erro ao processar linha de histórico:', e);
+                  return null;
+                }
+              }
+              return null;
+            })
+            .filter(Boolean);
+            
+          if (statusUpdates.length > 0) {
+            setHistory(prev => [...(data || []), ...statusUpdates]);
+            setLoading(false);
+            return;
+          }
+        } catch (parseError) {
+          console.error('Erro ao processar histórico da descrição:', parseError);
+        }
+      }
+      
       setHistory(data || []);
     } catch (error) {
       console.error('Erro ao carregar histórico:', error);
@@ -48,6 +96,7 @@ export function TaskHistory({ taskId }: TaskHistoryProps) {
 
   const getActionIcon = (action: string) => {
     switch (action) {
+      case 'update_status':
       case 'update_task_status':
         return <RotateCcw className="h-4 w-4 text-blue-500" />;
       case 'complete_task':
@@ -61,6 +110,7 @@ export function TaskHistory({ taskId }: TaskHistoryProps) {
 
   const getActionColor = (action: string) => {
     switch (action) {
+      case 'update_status':
       case 'update_task_status':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
       case 'complete_task':
@@ -70,6 +120,30 @@ export function TaskHistory({ taskId }: TaskHistoryProps) {
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
+  };
+  
+  const formatDetails = (details: string, action: string) => {
+    if (action === 'update_status' && details.includes('{')) {
+      try {
+        const data = JSON.parse(details);
+        return `Status alterado de "${
+          data.oldStatus === 'todo' ? 'A Fazer' :
+          data.oldStatus === 'in-progress' ? 'Em Progresso' :
+          data.oldStatus === 'review' ? 'Em Revisão' :
+          data.oldStatus === 'completed' ? 'Concluído' : 
+          data.oldStatus
+        }" para "${
+          data.newStatus === 'todo' ? 'A Fazer' :
+          data.newStatus === 'in-progress' ? 'Em Progresso' :
+          data.newStatus === 'review' ? 'Em Revisão' :
+          data.newStatus === 'completed' ? 'Concluído' : 
+          data.newStatus
+        }"`;
+      } catch {
+        return details;
+      }
+    }
+    return details;
   };
 
   return (
@@ -113,7 +187,8 @@ export function TaskHistory({ taskId }: TaskHistoryProps) {
                     >
                       <span className="flex items-center gap-1">
                         {getActionIcon(entry.action)}
-                        {entry.action === 'update_task_status' ? 'Atualizou status' :
+                        {entry.action === 'update_status' ? 'Atualizou status' :
+                         entry.action === 'update_task_status' ? 'Atualizou status' :
                          entry.action === 'complete_task' ? 'Completou tarefa' :
                          entry.action === 'edit_task' ? 'Editou tarefa' :
                          'Outra ação'}
@@ -129,7 +204,7 @@ export function TaskHistory({ taskId }: TaskHistoryProps) {
                 </div>
                 
                 <p className="text-sm text-muted-foreground">
-                  {entry.details}
+                  {formatDetails(entry.details, entry.action)}
                 </p>
               </div>
             </div>

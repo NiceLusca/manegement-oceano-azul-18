@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TeamMember } from '@/types';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface ProjectFormBasicFieldsProps {
   novaTarefa: {
@@ -16,10 +16,24 @@ interface ProjectFormBasicFieldsProps {
     departamento: string;
     dataVencimento: string;
     dataHora?: string;
+    isRecurring?: boolean;
   };
-  setNovaTarefa: React.Dispatch<React.SetStateAction<any>>;
-  departamentos: { id: string; nome: string; }[];
-  membrosFiltrados: TeamMember[];
+  setNovaTarefa: React.Dispatch<React.SetStateAction<{
+    titulo: string;
+    descricao: string;
+    status: string;
+    prioridade: string;
+    responsavel: string;
+    departamento: string;
+    dataVencimento: string;
+    dataHora?: string;
+    isRecurring?: boolean;
+    recurrenceType?: string;
+    endDate?: string;
+    customDays?: number[];
+  }>>;
+  departamentos: { id: string, nome: string }[];
+  membrosFiltrados: { id: string, name: string }[];
   onDepartmentChange: (departmentId: string) => void;
 }
 
@@ -28,7 +42,7 @@ export const ProjectFormBasicFields: React.FC<ProjectFormBasicFieldsProps> = ({
   setNovaTarefa,
   departamentos,
   membrosFiltrados,
-  onDepartmentChange,
+  onDepartmentChange
 }) => {
   return (
     <>
@@ -55,6 +69,43 @@ export const ProjectFormBasicFields: React.FC<ProjectFormBasicFieldsProps> = ({
         />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="status" className="text-right">
+          Status
+        </Label>
+        <Select
+          value={novaTarefa.status}
+          onValueChange={(value) => setNovaTarefa({ ...novaTarefa, status: value })}
+        >
+          <SelectTrigger className="col-span-3">
+            <SelectValue placeholder="Selecione um status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todo">A Fazer</SelectItem>
+            <SelectItem value="in-progress">Em Progresso</SelectItem>
+            <SelectItem value="review">Em Revisão</SelectItem>
+            <SelectItem value="completed">Concluído</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="prioridade" className="text-right">
+          Prioridade
+        </Label>
+        <Select
+          value={novaTarefa.prioridade}
+          onValueChange={(value) => setNovaTarefa({ ...novaTarefa, prioridade: value })}
+        >
+          <SelectTrigger className="col-span-3">
+            <SelectValue placeholder="Selecione uma prioridade" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="low">Baixa</SelectItem>
+            <SelectItem value="medium">Média</SelectItem>
+            <SelectItem value="high">Alta</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="departamento" className="text-right">
           Departamento
         </Label>
@@ -69,9 +120,9 @@ export const ProjectFormBasicFields: React.FC<ProjectFormBasicFieldsProps> = ({
             <SelectValue placeholder="Selecione um departamento" />
           </SelectTrigger>
           <SelectContent>
-            {departamentos.map((dept) => (
-              <SelectItem key={dept.id} value={dept.id}>
-                {dept.nome}
+            {departamentos.map((depto) => (
+              <SelectItem key={depto.id} value={depto.id}>
+                {depto.nome}
               </SelectItem>
             ))}
           </SelectContent>
@@ -84,35 +135,17 @@ export const ProjectFormBasicFields: React.FC<ProjectFormBasicFieldsProps> = ({
         <Select
           value={novaTarefa.responsavel}
           onValueChange={(value) => setNovaTarefa({ ...novaTarefa, responsavel: value })}
-          disabled={!novaTarefa.departamento}
+          disabled={membrosFiltrados.length === 0}
         >
           <SelectTrigger className="col-span-3">
-            <SelectValue placeholder="Selecione um responsável" />
+            <SelectValue placeholder={membrosFiltrados.length === 0 ? "Selecione um departamento primeiro" : "Selecione um responsável"} />
           </SelectTrigger>
           <SelectContent>
-            {membrosFiltrados.map((member) => (
-              <SelectItem key={member.id} value={member.id}>
-                {member.name}
+            {membrosFiltrados.map((membro) => (
+              <SelectItem key={membro.id} value={membro.id}>
+                {membro.name}
               </SelectItem>
             ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="prioridade" className="text-right">
-          Prioridade
-        </Label>
-        <Select
-          value={novaTarefa.prioridade}
-          onValueChange={(value) => setNovaTarefa({ ...novaTarefa, prioridade: value })}
-        >
-          <SelectTrigger className="col-span-3">
-            <SelectValue placeholder="Selecione a prioridade" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="low">Baixa</SelectItem>
-            <SelectItem value="medium">Média</SelectItem>
-            <SelectItem value="high">Alta</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -125,13 +158,42 @@ export const ProjectFormBasicFields: React.FC<ProjectFormBasicFieldsProps> = ({
           type="date"
           value={novaTarefa.dataVencimento}
           onChange={(e) => setNovaTarefa({ ...novaTarefa, dataVencimento: e.target.value })}
-          className="col-span-2"
+          className="col-span-3"
         />
+      </div>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="dataHora" className="text-right">
+          Hora
+        </Label>
         <Input
+          id="dataHora"
           type="time"
           value={novaTarefa.dataHora || ''}
           onChange={(e) => setNovaTarefa({ ...novaTarefa, dataHora: e.target.value })}
+          className="col-span-3"
         />
+      </div>
+      
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label className="text-right">
+          Tarefa Recorrente
+        </Label>
+        <div className="flex items-center space-x-2 col-span-3">
+          <Checkbox 
+            id="isRecurring" 
+            checked={novaTarefa.isRecurring || false}
+            onCheckedChange={(checked) => 
+              setNovaTarefa({ 
+                ...novaTarefa, 
+                isRecurring: !!checked,
+                recurrenceType: checked ? 'daily' : undefined,
+                endDate: checked ? '' : undefined,
+                customDays: checked ? [] : undefined 
+              })
+            }
+          />
+          <Label htmlFor="isRecurring">Esta é uma tarefa recorrente</Label>
+        </div>
       </div>
     </>
   );

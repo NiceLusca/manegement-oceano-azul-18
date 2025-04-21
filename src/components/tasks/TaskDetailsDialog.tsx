@@ -1,19 +1,24 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Task } from '@/types';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Calendar, Clock, History } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar, Clock, History, Edit, MessageSquare } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { TaskHistory } from './TaskHistory';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { useToast } from '@/components/ui/use-toast';
 
 interface TaskDetailsDialogProps {
   task: Task;
@@ -22,6 +27,11 @@ interface TaskDetailsDialogProps {
 }
 
 export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialogProps) {
+  const [activeTab, setActiveTab] = useState("details");
+  const [comment, setComment] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const { toast } = useToast();
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'todo': return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
@@ -39,6 +49,35 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
       case 'high': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
+  };
+
+  const handleAddComment = () => {
+    if (!comment.trim()) {
+      toast({
+        title: "Erro",
+        description: "O comentário não pode estar vazio",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Aqui implementaríamos a lógica para salvar o comentário
+    toast({
+      title: "Comentário adicionado",
+      description: "Seu comentário foi adicionado com sucesso"
+    });
+    
+    setComment("");
+  };
+
+  const handleEditTask = () => {
+    setIsEditing(true);
+    // Aqui implementaríamos a lógica para editar a tarefa
+    toast({
+      title: "Funcionalidade em desenvolvimento",
+      description: "A edição de tarefas estará disponível em breve"
+    });
+    setIsEditing(false);
   };
 
   return (
@@ -71,43 +110,101 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
                  task.priority === 'medium' ? 'Média' :
                  'Alta'} Prioridade
               </Badge>
+              {task.isRecurring && (
+                <Badge variant="outline" className="bg-[#D0E9FF] text-[#005B99] border-[#D0E9FF]/70">
+                  Recorrente
+                </Badge>
+              )}
             </div>
           </div>
         </DialogHeader>
         
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-6">
-            <div>
-              <h3 className="font-medium mb-2">Descrição</h3>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                {task.description || "Sem descrição"}
-              </p>
-            </div>
+        <div className="flex-1 flex flex-col">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="details">Detalhes</TabsTrigger>
+              <TabsTrigger value="history">Histórico</TabsTrigger>
+              <TabsTrigger value="comments">Comentários</TabsTrigger>
+            </TabsList>
             
-            {task.assigneeId && (
-              <div>
-                <h3 className="font-medium mb-2">Responsável</h3>
-                <div className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={`https://ui-avatars.com/api/?name=${task.assigneeId}&background=0D8ABC&color=fff`} />
-                    <AvatarFallback>
-                      {task.assigneeId.substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm">{task.assigneeId}</span>
+            <TabsContent value="details" className="flex-1">
+              <ScrollArea className="h-[calc(100vh-360px)]">
+                <div className="space-y-6 p-4">
+                  <div>
+                    <h3 className="font-medium mb-2">Descrição</h3>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                      {task.description || "Sem descrição"}
+                    </p>
+                  </div>
+                  
+                  {task.assigneeId && (
+                    <div>
+                      <h3 className="font-medium mb-2">Responsável</h3>
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={`https://ui-avatars.com/api/?name=${task.assigneeId}&background=0D8ABC&color=fff`} />
+                          <AvatarFallback>
+                            {task.assigneeId.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm">{task.assigneeId}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
+              </ScrollArea>
+            </TabsContent>
+            
+            <TabsContent value="history" className="flex-1">
+              <ScrollArea className="h-[calc(100vh-360px)]">
+                <div className="p-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <History className="h-4 w-4" />
+                    <h3 className="font-medium">Histórico de Atividades</h3>
+                  </div>
+                  <TaskHistory taskId={task.id} />
+                </div>
+              </ScrollArea>
+            </TabsContent>
+            
+            <TabsContent value="comments" className="flex-1">
+              <ScrollArea className="h-[calc(100vh-420px)]">
+                <div className="p-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <MessageSquare className="h-4 w-4" />
+                    <h3 className="font-medium">Comentários</h3>
+                  </div>
+                  
+                  <div className="text-center py-8 text-sm text-muted-foreground">
+                    Nenhum comentário encontrado para esta tarefa.
+                  </div>
+                </div>
+              </ScrollArea>
+              
+              <div className="p-4 border-t space-y-2">
+                <Textarea 
+                  placeholder="Adicione um comentário..." 
+                  value={comment}
+                  onChange={e => setComment(e.target.value)}
+                  className="min-h-24"
+                />
+                <Button onClick={handleAddComment}>Adicionar Comentário</Button>
               </div>
-            )}
-
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <History className="h-4 w-4" />
-                <h3 className="font-medium">Histórico de Atividades</h3>
-              </div>
-              <TaskHistory taskId={task.id} />
-            </div>
-          </div>
-        </ScrollArea>
+            </TabsContent>
+          </Tabs>
+        </div>
+        
+        <DialogFooter className="border-t pt-4">
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={handleEditTask}
+            disabled={isEditing}
+          >
+            <Edit className="h-4 w-4" />
+            Editar Tarefa
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

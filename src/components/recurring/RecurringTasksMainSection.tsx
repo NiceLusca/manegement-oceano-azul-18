@@ -8,7 +8,7 @@ import { RecurringTaskForm } from './RecurringTaskForm';
 import { RecurringTasksContainer } from './RecurringTasksContainer';
 import { addRecurringTask } from '@/services/tasks';
 import { useToast } from '@/components/ui/use-toast';
-import { useRecurringTasksEnhanced } from '@/hooks/useTasks';
+import { useRecurringTasksEnhanced } from '@/hooks/useRecurringTasks';
 
 const recurringTaskFormSchema = z.object({
   title: z.string().min(3, 'O título precisa ter pelo menos 3 caracteres'),

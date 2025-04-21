@@ -5,7 +5,7 @@ import { KanbanColumn } from './KanbanColumn';
 import { KanbanHeader } from './KanbanHeader';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
-import { useTasks } from '@/hooks/useTasks';
+import { useRegularTasks } from '@/hooks/useRegularTasks';
 
 export function KanbanBoard() {
   const { 
@@ -18,7 +18,7 @@ export function KanbanBoard() {
     inProgressTasks,
     reviewTasks,
     completedTasks
-  } = useTasks();
+  } = useRegularTasks();
   
   const [departments, setDepartments] = useState<{id: string, nome: string}[]>([]);
   const { toast } = useToast();

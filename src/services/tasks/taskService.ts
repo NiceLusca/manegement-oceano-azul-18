@@ -98,7 +98,35 @@ export const getTasksByDepartment = async (departmentId: string): Promise<Task[]
       return [];
     }
     
-    return data || [];
+    // Transform the data to match the Task type
+    return (data || []).map(task => {
+      // Ensure status is one of the valid Task status values
+      let validStatus: Task['status'] = 'todo'; // Default fallback
+      if (['todo', 'in-progress', 'review', 'completed'].includes(task.status)) {
+        validStatus = task.status as Task['status'];
+      }
+      
+      // Ensure priority is one of the valid Task priority values
+      let validPriority: Task['priority'] = 'medium'; // Default fallback
+      if (['low', 'medium', 'high'].includes(task.priority)) {
+        validPriority = task.priority as Task['priority'];
+      }
+      
+      return {
+        id: task.id,
+        title: task.title,
+        description: task.description || '',
+        status: validStatus,
+        assigneeId: task.assignee_id || '',
+        dueDate: task.due_date || '',
+        priority: validPriority,
+        projectId: 'default-project', // Default value since this field isn't in the database
+        isRecurring: false, // Default value since this isn't a recurring task
+        recurringTaskId: null,
+        assignee: task.profiles,
+        completedAt: task.completed_at
+      };
+    });
   } catch (error: any) {
     console.error('Erro ao buscar tarefas por departamento:', error.message);
     return [];

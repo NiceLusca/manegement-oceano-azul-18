@@ -1,136 +1,47 @@
 
-import React, { useState, useEffect } from 'react';
-import { Task } from '@/types';
-import { getTasksWithDetails, resetCompletedRecurringTasks } from '@/services/tasks';
-import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates';
+import React, { useState } from 'react';
 import { DragAndDropProvider } from '../dragAndDrop/DragAndDropProvider';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanHeader } from './KanbanHeader';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { useTasks } from '@/hooks/useTasks';
 
 export function KanbanBoard() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
+  const { 
+    tasks, 
+    isLoading, 
+    departmentFilter, 
+    setDepartmentFilter,
+    changeTaskStatus,
+    todoTasks,
+    inProgressTasks,
+    reviewTasks,
+    completedTasks
+  } = useTasks();
+  
   const [departments, setDepartments] = useState<{id: string, nome: string}[]>([]);
   const { toast } = useToast();
   
-  useEffect(() => {
-    const resetTasks = async () => {
+  React.useEffect(() => {
+    // Fetch departments
+    const fetchDepartments = async () => {
       try {
-        const result = await resetCompletedRecurringTasks();
-        if (result) {
-          console.log('Tarefas recorrentes resetadas com sucesso');
-        }
+        const { data, error } = await supabase
+          .from('departamentos')
+          .select('id, nome');
+          
+        if (error) throw error;
+        setDepartments(data || []);
       } catch (error) {
-        console.error('Erro ao resetar tarefas recorrentes:', error);
+        console.error('Error fetching departments:', error);
       }
     };
     
-    resetTasks();
-    
-    const now = new Date();
-    const night = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate() + 1,
-      0, 0, 0
-    );
-    const timeToMidnight = night.getTime() - now.getTime();
-    
-    const timer = setTimeout(() => {
-      resetTasks();
-      
-      const interval = setInterval(resetTasks, 24 * 60 * 60 * 1000);
-      return () => clearInterval(interval);
-    }, timeToMidnight);
-    
-    // Fetch departments
     fetchDepartments();
-    
-    return () => clearTimeout(timer);
   }, []);
   
-  const fetchDepartments = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('departamentos')
-        .select('id, nome');
-        
-      if (error) throw error;
-      setDepartments(data || []);
-    } catch (error) {
-      console.error('Error fetching departments:', error);
-    }
-  };
-  
-  const fetchTasks = async () => {
-    try {
-      setLoading(true);
-      
-      const tasksData = await getTasksWithDetails();
-      
-      if (tasksData.length > 0) {
-        const filteredTasks = departmentFilter 
-          ? tasksData.filter(task => 
-              task.assignee?.departamento_id === departmentFilter
-            )
-          : tasksData;
-          
-        // Ensure priority field is correctly typed
-        setTasks(filteredTasks.map(task => ({
-          ...task,
-          priority: task.priority as 'low' | 'medium' | 'high',
-          status: task.status as Task['status']
-        })));
-      } else {
-        // Try to get mock data if no tasks are found
-        const { projects } = await import('@/data/mock-data');
-        const mockTasks: Task[] = [];
-        
-        projects.forEach(project => {
-          if (project.tasks && project.tasks.length > 0) {
-            mockTasks.push(...project.tasks);
-          }
-        });
-        
-        setTasks(mockTasks);
-      }
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar as tarefas",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Função para atualizar localmente o status de uma tarefa
-  const updateTaskStatus = (taskId: string, newStatus: Task['status']) => {
-    setTasks(currentTasks => 
-      currentTasks.map(task => 
-        task.id === taskId 
-          ? { ...task, status: newStatus } 
-          : task
-      )
-    );
-  };
-  
-  useRealtimeUpdates(
-    fetchTasks,
-    () => {},
-    () => {}
-  );
-  
-  useEffect(() => {
-    fetchTasks();
-  }, [departmentFilter]);
-  
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-4">
         <h2 className="text-xl font-bold">Quadro de Tarefas</h2>
@@ -141,13 +52,8 @@ export function KanbanBoard() {
     );
   }
   
-  const todoTasks = tasks.filter(task => task.status === 'todo');
-  const inProgressTasks = tasks.filter(task => task.status === 'in-progress');
-  const reviewTasks = tasks.filter(task => task.status === 'review');
-  const completedTasks = tasks.filter(task => task.status === 'completed');
-  
   return (
-    <DragAndDropProvider onTaskStatusUpdate={updateTaskStatus}>
+    <DragAndDropProvider onTaskStatusUpdate={changeTaskStatus}>
       <div className="space-y-4">
         <KanbanHeader 
           departments={departments}

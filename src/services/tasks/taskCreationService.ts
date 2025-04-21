@@ -81,6 +81,18 @@ export const addRecurringTask = async (taskData: {
       console.error('Erro ao adicionar instância de tarefa:', instanceError);
     }
 
+    // Update last_generated in recurring task
+    const { error: updateError } = await supabase
+      .from('recurring_tasks')
+      .update({
+        last_generated: new Date().toISOString()
+      })
+      .eq('id', data?.[0]?.id);
+      
+    if (updateError) {
+      console.error('Erro ao atualizar data de última geração:', updateError);
+    }
+
     return true;
   } catch (error: any) {
     console.error('Erro ao adicionar tarefa recorrente:', error.message);

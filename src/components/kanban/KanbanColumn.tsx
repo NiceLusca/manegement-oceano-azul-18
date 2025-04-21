@@ -34,7 +34,11 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({ title, tasks, color 
       <CardContent className="px-2 py-2 overflow-y-auto max-h-[calc(100vh-250px)]">
         <div className="space-y-2">
           {tasks.map((task) => (
-            <KanbanTask key={task.id} task={task} onDragStart={handleDragStart} />
+            <KanbanTask 
+              key={task.isRecurring ? `instance-${task.id}` : `task-${task.id}`} 
+              task={task} 
+              onDragStart={handleDragStart} 
+            />
           ))}
         </div>
       </CardContent>

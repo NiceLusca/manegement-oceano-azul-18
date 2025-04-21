@@ -1,14 +1,14 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { RecurringTasksHeader } from './RecurringTasksHeader';
 import { RecurringTaskForm } from './RecurringTaskForm';
 import { RecurringTasksContainer } from './RecurringTasksContainer';
-import { useRecurringTasks, useTaskInstances } from './RecurringTasksFetchHooks';
+import { addRecurringTask } from '@/services/tasks';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useRecurringTasksEnhanced } from '@/hooks/useTasks';
 
 const recurringTaskFormSchema = z.object({
   title: z.string().min(3, 'O título precisa ter pelo menos 3 caracteres'),
@@ -22,8 +22,7 @@ type RecurringTaskFormValues = z.infer<typeof recurringTaskFormSchema>;
 
 export const RecurringTasksMainSection: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
-  const { recurringTasks, setRecurringTasks, isLoading, setIsLoading, fetchRecurringTasks } = useRecurringTasks();
-  const { taskInstances, setTaskInstances, fetchTaskInstances } = useTaskInstances();
+  const { recurringTasks, taskInstances, isLoading, refreshData } = useRecurringTasksEnhanced();
   const { toast } = useToast();
 
   const form = useForm<RecurringTaskFormValues>({
@@ -37,24 +36,12 @@ export const RecurringTasksMainSection: React.FC = () => {
     }
   });
 
-  useEffect(() => {
-    fetchRecurringTasks();
-    fetchTaskInstances();
-    // eslint-disable-next-line
-  }, []);
-
   const onSubmit = async (values: RecurringTaskFormValues) => {
     try {
-      const { error } = await supabase.from('recurring_tasks').insert({
-        title: values.title,
-        description: values.description || null,
-        assignee_id: values.assigneeId,
-        recurrence_type: values.recurrenceType,
-        start_date: values.startDate,
-        end_date: values.endDate || null,
+      await addRecurringTask({
+        ...values,
+        priority: 'medium', // Default priority
       });
-
-      if (error) throw error;
 
       toast({
         title: 'Sucesso',
@@ -63,9 +50,7 @@ export const RecurringTasksMainSection: React.FC = () => {
 
       setShowForm(false);
       form.reset();
-      setIsLoading(true);
-      fetchRecurringTasks();
-      fetchTaskInstances();
+      refreshData();
     } catch (error: any) {
       toast({
         title: 'Erro',
@@ -90,11 +75,9 @@ export const RecurringTasksMainSection: React.FC = () => {
       )}
       <RecurringTasksContainer
         isLoading={isLoading}
-        setIsLoading={setIsLoading}
         recurringTasks={recurringTasks}
-        setRecurringTasks={setRecurringTasks}
         taskInstances={taskInstances}
-        setTaskInstances={setTaskInstances}
+        refreshData={refreshData}
       />
     </div>
   );

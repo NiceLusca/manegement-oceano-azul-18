@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { addActivityEntry } from '@/services/teamActivityService';
+import { Task } from '@/types';
 
 // Basic task status update
 export const updateTaskStatus = async (taskId: string, newStatus: string) => {
@@ -244,7 +245,7 @@ export const deleteRecurringTask = async (recurringTaskId: string) => {
   }
 };
 
-export const getTasksWithDetails = async (departmentFilter: string | null) => {
+export const getTasksWithDetails = async (departmentFilter: string | null): Promise<Task[]> => {
   try {
     let query = supabase
       .from('task_instances')
@@ -272,21 +273,33 @@ export const getTasksWithDetails = async (departmentFilter: string | null) => {
       return [];
     }
     
-    // Transform the data to match the Task type
-    return (data || []).map(task => ({
-      id: task.id,
-      title: task.title,
-      description: task.description || '',
-      status: task.status,
-      assigneeId: task.assignee_id || '',
-      dueDate: task.due_date,
-      priority: task.priority,
-      projectId: task.project_id || 'default-project',
-      isRecurring: !!task.recurring_task_id,
-      recurringTaskId: task.recurring_task_id,
-      assignee: task.assignee,
-      completedAt: task.completed_at
-    }));
+    // Transform the data to match the Task type with proper status typing
+    return (data || []).map(task => {
+      // Ensure status is one of the valid Task status values
+      let validStatus: Task['status'] = 'todo'; // Default fallback
+      
+      if (['todo', 'in-progress', 'review', 'completed'].includes(task.status)) {
+        validStatus = task.status as Task['status'];
+      } else {
+        // Log unexpected status values for debugging
+        console.warn(`Unexpected task status: ${task.status}, defaulting to 'todo'`);
+      }
+      
+      return {
+        id: task.id,
+        title: task.title,
+        description: task.description || '',
+        status: validStatus,
+        assigneeId: task.assignee_id || '',
+        dueDate: task.due_date,
+        priority: task.priority as Task['priority'], // Apply proper typing to priority as well
+        projectId: task.project_id || 'default-project',
+        isRecurring: !!task.recurring_task_id,
+        recurringTaskId: task.recurring_task_id,
+        assignee: task.assignee,
+        completedAt: task.completed_at
+      };
+    });
   } catch (error: any) {
     console.error('Error fetching tasks with details:', error.message);
     return [];

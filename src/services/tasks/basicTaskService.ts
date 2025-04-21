@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { addActivityEntry } from '@/services/teamActivityService';
 
@@ -242,5 +241,54 @@ export const deleteRecurringTask = async (recurringTaskId: string) => {
   } catch (error: any) {
     console.error('Erro ao excluir tarefa recorrente:', error.message);
     return false;
+  }
+};
+
+export const getTasksWithDetails = async (departmentFilter: string | null) => {
+  try {
+    let query = supabase
+      .from('task_instances')
+      .select(`
+        *,
+        assignee:assignee_id (
+          id,
+          nome,
+          cargo,
+          avatar_url,
+          departamento_id
+        )
+      `)
+      .order('due_date', { ascending: true });
+      
+    if (departmentFilter) {
+      // Join with profiles to filter by department
+      query = query.eq('assignee.departamento_id', departmentFilter);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('Error fetching tasks:', error);
+      return [];
+    }
+    
+    // Transform the data to match the Task type
+    return (data || []).map(task => ({
+      id: task.id,
+      title: task.title,
+      description: task.description || '',
+      status: task.status,
+      assigneeId: task.assignee_id || '',
+      dueDate: task.due_date,
+      priority: task.priority,
+      projectId: task.project_id || 'default-project',
+      isRecurring: !!task.recurring_task_id,
+      recurringTaskId: task.recurring_task_id,
+      assignee: task.assignee,
+      completedAt: task.completed_at
+    }));
+  } catch (error: any) {
+    console.error('Error fetching tasks with details:', error.message);
+    return [];
   }
 };

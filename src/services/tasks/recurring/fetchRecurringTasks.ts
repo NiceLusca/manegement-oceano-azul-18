@@ -79,7 +79,8 @@ export const getRecurringTasksWithInstances = async (): Promise<RecurringTask[]>
       lastGenerated: task.last_generated || null,
       createdAt: task.created_at || new Date().toISOString(),
       updatedAt: task.updated_at || new Date().toISOString(),
-      projectId: task.project_id || 'default-project'
+      projectId: task.project_id || 'default-project',
+      instances: instancesByRecurringTaskId[task.id] || []
     }));
   } catch (error: any) {
     console.error('Error fetching recurring tasks with instances:', error.message);

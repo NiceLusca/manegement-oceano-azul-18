@@ -178,13 +178,13 @@ export function useRecurringTasksEnhanced() {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from<RecurringTaskRow>('recurring_tasks')
+        .from('recurring_tasks')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      const formattedRecurringTasks = (data || []).map(task => ({
+      const formattedRecurringTasks = (data || []).map((task: any) => ({
         id: task.id,
         title: task.title,
         description: task.description || '',
@@ -215,14 +215,14 @@ export function useRecurringTasksEnhanced() {
   const fetchTaskInstances = async () => {
     try {
       const { data, error } = await supabase
-        .from<TaskInstanceRow>('task_instances')
+        .from('task_instances')
         .select('*')
         .not('recurring_task_id', 'is', null)
         .order('due_date', { ascending: true });
 
       if (error) throw error;
 
-      const mappedInstances = (data || []).map(instance => ({
+      const mappedInstances = (data || []).map((instance: any) => ({
         id: instance.id,
         recurringTaskId: instance.recurring_task_id || null,
         title: instance.title,

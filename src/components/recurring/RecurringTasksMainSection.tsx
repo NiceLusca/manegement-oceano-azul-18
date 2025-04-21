@@ -39,8 +39,14 @@ export const RecurringTasksMainSection: React.FC = () => {
   const onSubmit = async (values: RecurringTaskFormValues) => {
     try {
       await addRecurringTask({
-        ...values,
+        title: values.title,
+        description: values.description || '',
+        assigneeId: values.assigneeId,
+        recurrenceType: values.recurrenceType,
+        startDate: values.startDate,
+        endDate: values.endDate,
         priority: 'medium', // Default priority
+        customDays: [] // Default empty custom days array
       });
 
       toast({

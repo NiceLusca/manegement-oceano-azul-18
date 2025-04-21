@@ -32,8 +32,9 @@ export const RecurringTasksList: React.FC<RecurringTasksListProps> = ({
     }
   };
   
-  const getAssigneeName = (assignee: any) => {
-    return assignee?.nome || 'Não atribuído';
+  const getAssigneeName = (assigneeId: string) => {
+    // This is a temporary fix - ideally we would fetch the assignee name from profiles
+    return assigneeId || 'Não atribuído';
   };
 
   const formatDate = (dateString: string) => {
@@ -117,7 +118,7 @@ export const RecurringTasksList: React.FC<RecurringTasksListProps> = ({
                 <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <User className="h-3 w-3" />
-                    <span>{getAssigneeName(task.assignee)}</span>
+                    <span>{getAssigneeName(task.assigneeId)}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <CalendarDays className="h-3 w-3" />

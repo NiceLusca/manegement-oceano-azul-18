@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Task } from '@/types';
-import { useDragAndDrop } from '../DragAndDropContext';
+import { useDragAndDrop } from '../dragAndDrop/useDragAndDrop';
 import { KanbanTask } from './KanbanTask';
 
 interface KanbanColumnProps {

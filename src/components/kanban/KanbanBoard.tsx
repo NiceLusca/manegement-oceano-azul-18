@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Task } from '@/types';
 import { getTasksWithDetails, resetCompletedRecurringTasks } from '@/services/tasks';
 import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates';
-import { DragAndDropProvider } from '../DragAndDropContext';
+import { DragAndDropProvider } from '../dragAndDrop/DragAndDropProvider';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanHeader } from './KanbanHeader';
 import { supabase } from '@/integrations/supabase/client';

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Edit, RotateCcw, CheckCircle2, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -126,7 +126,7 @@ export function TaskHistory({ taskId }: TaskHistoryProps) {
     if (action === 'update_status' && details.includes('{')) {
       try {
         const data = JSON.parse(details);
-        return `Status alterado de "${
+        let message = `Status alterado de "${
           data.oldStatus === 'todo' ? 'A Fazer' :
           data.oldStatus === 'in-progress' ? 'Em Progresso' :
           data.oldStatus === 'review' ? 'Em Revisão' :
@@ -139,6 +139,18 @@ export function TaskHistory({ taskId }: TaskHistoryProps) {
           data.newStatus === 'completed' ? 'Concluído' : 
           data.newStatus
         }"`;
+        
+        // Add completion information if available
+        if (data.completedAt && data.newStatus === 'completed') {
+          try {
+            const completionDate = new Date(data.completedAt);
+            message += ` em ${format(completionDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`;
+          } catch (e) {
+            console.error('Erro ao formatar data de conclusão:', e);
+          }
+        }
+        
+        return message;
       } catch {
         return details;
       }

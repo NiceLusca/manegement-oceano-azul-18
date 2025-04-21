@@ -2,13 +2,13 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { updateTaskInstanceStatus } from '@/services/tasks/basicTaskService';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Calendar, Clock, User, CheckCircle, AlertCircle, RefreshCcw } from 'lucide-react';
+import { Calendar, Clock, CheckCircle, AlertCircle, RefreshCcw } from 'lucide-react';
 import { TaskInstance } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { useRecurringTasksEnhanced } from '@/hooks/useRecurringTasks';
 
 interface TaskInstancesListProps {
   taskInstances: TaskInstance[];
@@ -18,10 +18,10 @@ interface TaskInstancesListProps {
 
 export const TaskInstancesList: React.FC<TaskInstancesListProps> = ({ 
   taskInstances, 
-  isLoading,
-  onStatusChange
+  isLoading
 }) => {
   const { toast } = useToast();
+  const { changeInstanceStatus } = useRecurringTasksEnhanced();
   
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -63,12 +63,14 @@ export const TaskInstancesList: React.FC<TaskInstancesListProps> = ({
   
   const handleCompleteTask = async (taskId: string) => {
     try {
-      await updateTaskInstanceStatus(taskId, 'completed');
-      toast({
-        title: 'Tarefa concluída',
-        description: 'Status da tarefa atualizado com sucesso!',
-      });
-      onStatusChange();
+      const success = await changeInstanceStatus(taskId, 'completed');
+      if (!success) {
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível concluir a tarefa',
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
       console.error('Erro ao concluir tarefa:', error);
       toast({
@@ -81,12 +83,14 @@ export const TaskInstancesList: React.FC<TaskInstancesListProps> = ({
   
   const handleChangeStatus = async (taskId: string, newStatus: TaskInstance['status']) => {
     try {
-      await updateTaskInstanceStatus(taskId, newStatus);
-      toast({
-        title: 'Status atualizado',
-        description: `Tarefa movida para "${getStatusLabel(newStatus)}"`,
-      });
-      onStatusChange();
+      const success = await changeInstanceStatus(taskId, newStatus);
+      if (!success) {
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível atualizar o status da tarefa',
+          variant: 'destructive',
+        });
+      }
     } catch (error) {
       console.error('Erro ao atualizar status:', error);
       toast({

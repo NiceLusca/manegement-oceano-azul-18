@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Task } from '@/types';
+import { Task, RecurringTask, TaskInstance } from '@/types';
 import { addActivityEntry } from '@/services/teamActivityService';
 
 // Fetch all tasks including recurring task instances
@@ -84,10 +84,10 @@ export const getTasksWithDetails = async (departmentFilter: string | null = null
       dueDate: task.due_date || new Date().toISOString(),
       priority: task.priority as 'low' | 'medium' | 'high',
       assignee: task.assignee,
-      projectId: 'default-category',
+      projectId: task.project_id || 'default-category',
       isRecurring: true,
       recurringTaskId: task.recurring_task_id,
-      completedAt: null
+      completedAt: task.completed_at
     }));
     
     return [...formattedRegularTasks, ...formattedInstanceTasks];
@@ -147,6 +147,8 @@ async function processCompletedTask(task: any) {
       return;
     }
     
+    if (!recurringData) return;
+    
     // Check if task hasn't expired
     if (recurringData.end_date && new Date(recurringData.end_date) < new Date()) {
       return;
@@ -178,10 +180,10 @@ async function createNewTaskInstance(task: any, recurringData: any) {
         status: 'todo',
         priority: task.priority,
         recurring_task_id: task.recurring_task_id,
-        project_id: task.project_id
+        project_id: task.project_id,
+        completed_at: null
       }])
-      .select()
-      .single();
+      .select();
       
     if (insertError) {
       console.error('Erro ao criar nova instância de tarefa:', insertError);
@@ -200,7 +202,7 @@ async function createNewTaskInstance(task: any, recurringData: any) {
       console.error('Erro ao atualizar data de última geração:', updateError);
     }
     
-    return newInstance;
+    return newInstance?.[0];
   } catch (error) {
     console.error('Erro ao criar nova instância de tarefa:', error);
     return null;
@@ -210,8 +212,8 @@ async function createNewTaskInstance(task: any, recurringData: any) {
 // Helper function to log task regeneration
 async function logTaskRegeneration(task: any) {
   try {
-    const currentUser = supabase.auth.getUser();
-    const userId = (await currentUser).data.user?.id || 'system';
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id || 'system';
     
     await addActivityEntry({
       user_id: userId,
@@ -230,7 +232,7 @@ async function logTaskRegeneration(task: any) {
 }
 
 // Get recurring tasks with their instances
-export const getRecurringTasksWithInstances = async () => {
+export const getRecurringTasksWithInstances = async (): Promise<RecurringTask[]> => {
   try {
     // Fetch recurring tasks
     const { data: recurringTasks, error: recurringError } = await supabase
@@ -272,7 +274,7 @@ export const getRecurringTasksWithInstances = async () => {
     }
     
     // Group instances by recurring task ID
-    const instancesByRecurringTaskId = (instances || []).reduce((acc: Record<string, any[]>, instance: any) => {
+    const instancesByRecurringTaskId = (instances || []).reduce((acc: Record<string, TaskInstance[]>, instance: any) => {
       if (!instance.recurring_task_id) return acc;
       
       if (!acc[instance.recurring_task_id]) {
@@ -283,7 +285,7 @@ export const getRecurringTasksWithInstances = async () => {
         id: instance.id,
         title: instance.title,
         description: instance.description || '',
-        status: instance.status as Task['status'],
+        status: instance.status as TaskInstance['status'],
         assigneeId: instance.assignee_id || '',
         dueDate: instance.due_date,
         priority: instance.priority as 'low' | 'medium' | 'high',
@@ -295,7 +297,7 @@ export const getRecurringTasksWithInstances = async () => {
       });
       
       return acc;
-    }, {} as Record<string, any[]>);
+    }, {} as Record<string, TaskInstance[]>);
     
     // Combine recurring tasks with their instances
     const formattedRecurringTasks = (recurringTasks || []).map((task: any) => ({

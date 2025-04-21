@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { RecurringTask, TaskInstance } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getRecurringTasksWithInstances } from '@/services/tasks/recurringTaskService';
+import { updateTaskInstanceStatus } from '@/services/tasks/basicTaskService';
 
 export function useRecurringTasksEnhanced() {
   const [recurringTasks, setRecurringTasks] = useState<RecurringTask[]>([]);
@@ -10,87 +12,43 @@ export function useRecurringTasksEnhanced() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchRecurringTasks = async () => {
+  const fetchData = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('recurring_tasks')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const formattedRecurringTasks = (data || []).map((task: any) => ({
-        id: task.id,
-        title: task.title,
-        description: task.description || '',
-        assigneeId: task.assignee_id || '',
-        recurrenceType: task.recurrence_type as 'daily' | 'weekly' | 'monthly' | 'custom',
-        customDays: task.custom_days || [],
-        customMonths: task.custom_months || [],
-        startDate: task.start_date,
-        endDate: task.end_date || null,
-        lastGenerated: task.last_generated || null,
-        createdAt: task.created_at || new Date().toISOString(),
-        updatedAt: task.updated_at || new Date().toISOString(),
-        projectId: task.project_id || 'default-project',
-      }));
-
-      setRecurringTasks(formattedRecurringTasks);
+      // Get recurring tasks with their instances
+      const data = await getRecurringTasksWithInstances();
+      setRecurringTasks(data);
+      
+      // Flatten all instances for display in the instances list
+      const allInstances = data.reduce((acc: TaskInstance[], task) => {
+        return [...acc, ...(task.instances || [])];
+      }, []);
+      
+      // Sort instances by due date
+      allInstances.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+      
+      setTaskInstances(allInstances);
     } catch (error: any) {
       toast({
         title: 'Erro',
         description: 'Não foi possível carregar as tarefas recorrentes',
         variant: 'destructive',
       });
+      console.error('Error fetching recurring tasks:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fetchTaskInstances = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('task_instances')
-        .select('*')
-        .not('recurring_task_id', 'is', null)
-        .order('due_date', { ascending: true });
-
-      if (error) throw error;
-
-      const mappedInstances = (data || []).map((instance: any) => ({
-        id: instance.id,
-        recurringTaskId: instance.recurring_task_id || null,
-        title: instance.title,
-        description: instance.description || '',
-        assigneeId: instance.assignee_id || '',
-        dueDate: instance.due_date,
-        status: instance.status as 'todo' | 'in-progress' | 'review' | 'completed',
-        priority: instance.priority as 'low' | 'medium' | 'high',
-        createdAt: instance.created_at || new Date().toISOString(),
-        updatedAt: instance.updated_at || new Date().toISOString(),
-        projectId: instance.project_id || 'default-project',
-      }));
-      setTaskInstances(mappedInstances);
-    } catch (error: any) {
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível carregar as instâncias de tarefas',
-        variant: 'destructive',
-      });
-    }
-  };
-
   useEffect(() => {
-    fetchRecurringTasks();
-    fetchTaskInstances();
+    fetchData();
 
     const recurringSubscription = supabase
       .channel('recurring-tasks-changes')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'recurring_tasks' },
-        () => fetchRecurringTasks()
+        () => fetchData()
       )
       .subscribe();
 
@@ -99,7 +57,7 @@ export function useRecurringTasksEnhanced() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'task_instances' },
-        () => fetchTaskInstances()
+        () => fetchData()
       )
       .subscribe();
 
@@ -108,14 +66,62 @@ export function useRecurringTasksEnhanced() {
       supabase.removeChannel(instancesSubscription);
     };
   }, []);
+  
+  const changeInstanceStatus = async (instanceId: string, newStatus: TaskInstance['status']) => {
+    try {
+      const success = await updateTaskInstanceStatus(instanceId, newStatus);
+      
+      if (success) {
+        // Update local state optimistically
+        setTaskInstances(prev => 
+          prev.map(instance => 
+            instance.id === instanceId 
+              ? { ...instance, status: newStatus } 
+              : instance
+          )
+        );
+        
+        // Update in parent recurring task
+        setRecurringTasks(prev => 
+          prev.map(task => ({
+            ...task,
+            instances: (task.instances || []).map(instance => 
+              instance.id === instanceId 
+                ? { ...instance, status: newStatus } 
+                : instance
+            )
+          }))
+        );
+        
+        toast({
+          title: 'Status atualizado',
+          description: `Tarefa movida para ${
+            newStatus === 'todo' ? 'A Fazer' :
+            newStatus === 'in-progress' ? 'Em Progresso' :
+            newStatus === 'review' ? 'Em Revisão' :
+            'Concluído'
+          }`,
+        });
+        
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error updating task instance status:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível atualizar o status da tarefa',
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
 
   return {
     recurringTasks,
     taskInstances,
     isLoading,
-    refreshData: () => {
-      fetchRecurringTasks();
-      fetchTaskInstances();
-    }
+    refreshData: fetchData,
+    changeInstanceStatus
   };
 }

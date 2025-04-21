@@ -13,10 +13,10 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, History, Edit, MessageSquare } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { TaskHistory } from './TaskHistory';
+import { CommentSection } from './CommentSection';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -28,7 +28,6 @@ interface TaskDetailsDialogProps {
 
 export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialogProps) {
   const [activeTab, setActiveTab] = useState("details");
-  const [comment, setComment] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
 
@@ -49,25 +48,6 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
       case 'high': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
-  };
-
-  const handleAddComment = () => {
-    if (!comment.trim()) {
-      toast({
-        title: "Erro",
-        description: "O comentário não pode estar vazio",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Aqui implementaríamos a lógica para salvar o comentário
-    toast({
-      title: "Comentário adicionado",
-      description: "Seu comentário foi adicionado com sucesso"
-    });
-    
-    setComment("");
   };
 
   const handleEditTask = () => {
@@ -168,28 +148,16 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
             </TabsContent>
             
             <TabsContent value="comments" className="flex-1">
-              <ScrollArea className="h-[calc(100vh-420px)]">
+              <ScrollArea className="h-[calc(100vh-360px)]">
                 <div className="p-4">
                   <div className="flex items-center gap-2 mb-4">
                     <MessageSquare className="h-4 w-4" />
                     <h3 className="font-medium">Comentários</h3>
                   </div>
                   
-                  <div className="text-center py-8 text-sm text-muted-foreground">
-                    Nenhum comentário encontrado para esta tarefa.
-                  </div>
+                  <CommentSection taskId={task.id} />
                 </div>
               </ScrollArea>
-              
-              <div className="p-4 border-t space-y-2">
-                <Textarea 
-                  placeholder="Adicione um comentário..." 
-                  value={comment}
-                  onChange={e => setComment(e.target.value)}
-                  className="min-h-24"
-                />
-                <Button onClick={handleAddComment}>Adicionar Comentário</Button>
-              </div>
             </TabsContent>
           </Tabs>
         </div>

@@ -1,7 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { addActivityEntry } from '@/services/teamActivityService';
-import { TaskRow } from '@/types/supabase-types';
 
 // Basic task status update
 export const updateTaskStatus = async (taskId: string, newStatus: string) => {
@@ -31,6 +30,9 @@ export const updateTaskStatus = async (taskId: string, newStatus: string) => {
     
     if (newStatus === 'completed') {
       updates.completed_at = new Date().toISOString();
+    } else if (taskData.completed_at && newStatus !== 'completed') {
+      // Se estiver saindo do status concluído, remover a data de conclusão
+      updates.completed_at = null;
     }
     
     // Atualizar no banco de dados
@@ -46,8 +48,8 @@ export const updateTaskStatus = async (taskId: string, newStatus: string) => {
     
     // Registrar a atividade no histórico
     try {
-      const currentUser = supabase.auth.getUser();
-      const userId = (await currentUser).data.user?.id || 'anonymous';
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id || 'anonymous';
       
       await addActivityEntry({
         user_id: userId,
@@ -57,7 +59,9 @@ export const updateTaskStatus = async (taskId: string, newStatus: string) => {
         details: JSON.stringify({
           taskTitle: taskData.title,
           oldStatus: taskData.status,
-          newStatus: newStatus
+          newStatus: newStatus,
+          completedAt: newStatus === 'completed' ? updates.completed_at : null,
+          completedBy: newStatus === 'completed' ? userId : null
         })
       });
     } catch (historyError) {
@@ -91,13 +95,28 @@ export const updateTaskInstanceStatus = async (instanceId: string, newStatus: st
       return false;
     }
     
+    if (!instanceData) {
+      console.error('Instância de tarefa não encontrada');
+      return false;
+    }
+    
+    // Prepare updates
+    const updates: any = { 
+      status: newStatus,
+      updated_at: new Date().toISOString()
+    };
+    
+    if (newStatus === 'completed') {
+      updates.completed_at = new Date().toISOString();
+    } else if (instanceData.completed_at && newStatus !== 'completed') {
+      // Se estiver saindo do status concluído, remover a data de conclusão
+      updates.completed_at = null;
+    }
+    
     // Atualizar no banco de dados
     const { error } = await supabase
       .from('task_instances')
-      .update({ 
-        status: newStatus,
-        updated_at: new Date().toISOString()
-      })
+      .update(updates)
       .eq('id', instanceId);
       
     if (error) {
@@ -121,8 +140,8 @@ export const updateTaskInstanceStatus = async (instanceId: string, newStatus: st
     
     // Registrar a atividade no histórico
     try {
-      const currentUser = supabase.auth.getUser();
-      const userId = (await currentUser).data.user?.id || 'anonymous';
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id || 'anonymous';
       
       await addActivityEntry({
         user_id: userId,
@@ -133,7 +152,9 @@ export const updateTaskInstanceStatus = async (instanceId: string, newStatus: st
           taskTitle: instanceData.title,
           oldStatus: instanceData.status,
           newStatus: newStatus,
-          isRecurring: instanceData.recurring_task_id ? true : false
+          isRecurring: instanceData.recurring_task_id ? true : false,
+          completedAt: newStatus === 'completed' ? updates.completed_at : null,
+          completedBy: newStatus === 'completed' ? userId : null
         })
       });
     } catch (historyError) {
